@@ -5,7 +5,7 @@ import { Position, TextDocument } from "vscode-languageserver-types";
 export class LanguageService {
 
     public static initialize(resourcesProvider: ResourcesProviderBase) {
-        if (resourcesProvider != null) {
+        if (resourcesProvider === null) {
             throw new Error("Illegal operation");
         }
         this.resourcesProvider = resourcesProvider;
