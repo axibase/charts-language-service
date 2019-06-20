@@ -6,7 +6,7 @@ module.exports = {
     input: "src/index.ts",
     external: ["vscode-languageserver-types"],
     output: {
-        file: "dist/amd/charts-language-service.js",
+        file: "dist/amd/build.js",
         format: "amd",
         amd: {
             id: "charts-language-service"
