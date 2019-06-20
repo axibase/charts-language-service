@@ -1,15 +1,26 @@
+import { CompletionProvider, ResourcesProviderBase, Validator } from ".";
+
 import { Position, TextDocument } from "vscode-languageserver-types";
-import { CompletionProvider } from "./completionProvider";
-import { ResourcesProviderBase } from "./resourcesProviderBase";
 
 export class LanguageService {
-    public resourcesProvider: ResourcesProviderBase;
 
-    constructor(resourcesProvider: ResourcesProviderBase) {
+    public static initialize(resourcesProvider: ResourcesProviderBase) {
+        if (resourcesProvider != null) {
+            throw new Error("Illegal operation");
+        }
         this.resourcesProvider = resourcesProvider;
     }
 
+    public static getResourcesProvider() {
+        return LanguageService.resourcesProvider;
+    }
+    private static resourcesProvider: ResourcesProviderBase;
+
     public getCompletionProvider(textDocument: TextDocument, position: Position) {
-        return new CompletionProvider(textDocument, position, this.resourcesProvider);
+        return new CompletionProvider(textDocument, position, LanguageService.resourcesProvider);
+    }
+
+    public getValidator(text: string) {
+        return new Validator(text, LanguageService.resourcesProvider);
     }
 }
