@@ -10,7 +10,7 @@
     "build": "npm run build-lib && npm run build-amd",
     "clean": "rimraf dist lib",
     "build-lib": "tsc -p tsconfig.json",
-    "build-amd": "rollup -c rollup.config.js && terser -c -o dist/amd/axibase-charts-languageservice.min.js dist/amd/axibase-charts-languageservice.js"
+    "build-amd": "rollup -c rollup.config.js && terser -c -o dist/amd/charts-language-service.min.js dist/amd/charts-language-service.js"
   },
   "dependencies": {
     "rimraf": "^2.6.3",
