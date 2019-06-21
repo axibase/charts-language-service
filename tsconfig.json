@@ -7,8 +7,6 @@
 		"declaration": true,
 		"outDir": "lib",
 		"rootDir": "src",
-		"resolveJsonModule": true,
-		"allowSyntheticDefaultImports": true,
 		"downlevelIteration": true
 	},
 	"exclude": [
