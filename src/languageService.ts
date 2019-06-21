@@ -17,10 +17,10 @@ export class LanguageService {
     }
 
     public static getCompletionProvider(textDocument: TextDocument, position: Position) {
-        return new CompletionProvider(textDocument, position, LanguageService.resourcesProvider);
+        return new CompletionProvider(textDocument, position);
     }
 
     public static getValidator(text: string) {
-        return new Validator(text, LanguageService.resourcesProvider);
+        return new Validator(text);
     }
 }

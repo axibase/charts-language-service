@@ -2,10 +2,10 @@ import {
     CompletionItem, CompletionItemKind, InsertTextFormat, Position, TextDocument
 } from "vscode-languageserver-types";
 import { Field } from "./field";
-import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { calendarKeywords, intervalUnits, Setting } from "./setting";
 import snippets from "./snippets/snippets.json";
 import { Util } from "./util";
+import { LanguageService } from "./languageService";
 
 export interface ItemFields {
     insertTextFormat?: InsertTextFormat;
@@ -21,14 +21,12 @@ export interface ItemFields {
 export class CompletionProvider {
     private readonly text: string;
     private readonly currentLine: string;
-    private readonly resourcesProvider: ResourcesProviderBase;
 
-    public constructor(textDocument: TextDocument, position: Position, resourcesProvider: ResourcesProviderBase) {
+    public constructor(textDocument: TextDocument, position: Position) {
         const text: string = textDocument.getText().substr(0, textDocument.offsetAt(position));
         this.text = Util.deleteScripts(Util.deleteComments(text));
         let textList = this.text.split("\n");
         this.currentLine = textList[textList.length - 1];
-        this.resourcesProvider = resourcesProvider;
     }
 
     /**
@@ -153,7 +151,7 @@ endif
      */
     private completeSettingName(): CompletionItem[] {
         const items: CompletionItem[] = [];
-        const map = Array.from(this.resourcesProvider.settingsMap.values());
+        const map = Array.from(LanguageService.getResourcesProvider().settingsMap.values());
         map.forEach(value => {
             items.push(this.fillCompletionItem({
                 detail: `${value.description ? value.description + "\n" : ""}Example: ${value.example}`,
@@ -170,7 +168,7 @@ endif
      * @returns array containing completions
      */
     private completeSettingValue(settingName: string): CompletionItem[] {
-        const setting = this.resourcesProvider.getSetting(settingName);
+        const setting = LanguageService.getResourcesProvider().getSetting(settingName);
         if (!setting) {
             return [];
         }

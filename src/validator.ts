@@ -149,16 +149,10 @@ export class Validator {
 
     private keywordHandler: KeywordHandler;
 
-    /**
-     * Resources provider instance resonsible for settingsMap
-     */
-    private resourcesProvider: ResourcesProviderBase;
-
-    public constructor(text: string, resourcesProvider: ResourcesProviderBase) {
+    public constructor(text: string) {
         this.configTree = new ConfigTree();
         this.config = new Config(text);
         this.keywordHandler = new KeywordHandler(this.keywordsStack);
-        this.resourcesProvider = resourcesProvider;
     }
 
     /**
