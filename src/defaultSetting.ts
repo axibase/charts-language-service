@@ -1,6 +1,5 @@
 import { PossibleValue } from "./possibleValue";
 import { Script } from "./script";
-import { Setting } from "./setting";
 
 export interface SettingScope {
     widget: string;
@@ -138,8 +137,7 @@ export class DefaultSetting {
             .map((override) => override.setting);
 
         if (matchingOverrides.length > 0) {
-            let copy = Object.create(Setting.prototype);
-            return Object.assign(copy, this, ...matchingOverrides);
+            return Object.assign(this, ...matchingOverrides);
         } else {
             return this;
         }
