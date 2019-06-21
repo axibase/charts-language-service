@@ -20,6 +20,6 @@ module.exports = {
         json(),
         resolve({
             extensions: ['.js', '.json'],
-        }),
+        })
     ],
 }
