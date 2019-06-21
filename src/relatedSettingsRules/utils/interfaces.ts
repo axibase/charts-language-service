@@ -1,12 +1,11 @@
 import { Diagnostic } from "vscode-languageserver-types";
 import { Section } from "../../configTree/section";
-import { ResourcesProviderBase } from "../../resourcesProviderBase";
 import { Condition } from "./condition";
 
 /**
  * Function, which performs check of the section.
  */
-export type Check = (section: Section, resourcesProvider: ResourcesProviderBase) => Diagnostic | Diagnostic[] | void;
+export type Check = (section: Section) => Diagnostic | Diagnostic[] | void;
 
 export interface RelatedSettingsRule {
     name?: string;

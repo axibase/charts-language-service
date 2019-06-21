@@ -1,6 +1,5 @@
 import { Diagnostic } from "vscode-languageserver-types";
 import validationRules from "../relatedSettingsRules";
-import { ResourcesProviderBase } from "../resourcesProviderBase";
 import { ConfigTree } from "./configTree";
 import { Section } from "./section";
 
@@ -11,7 +10,7 @@ export class ConfigTreeValidator {
      * @param сonfigTree - Configuration tree
      * @returns Diagnosics about problems in sections
      */
-    public static validate(сonfigTree: ConfigTree, resourcesProvider: ResourcesProviderBase): Diagnostic[] {
+    public static validate(сonfigTree: ConfigTree): Diagnostic[] {
         const walker = new ConfigTreeWalker(сonfigTree);
         const diagnostics: Diagnostic[] = [];
         validationRules.forEach((rulesForSection, sectionName) => {
@@ -19,7 +18,7 @@ export class ConfigTreeValidator {
             if (sectionsToCheck.length > 0) {
                 sectionsToCheck.forEach(section => {
                     rulesForSection.forEach(rule => {
-                        const diag: Diagnostic | Diagnostic[] | void = rule.check(section, resourcesProvider);
+                        const diag: Diagnostic | Diagnostic[] | void = rule.check(section);
                         if (diag) {
                             if (Array.isArray(diag)) {
                                 diagnostics.push(...diag);

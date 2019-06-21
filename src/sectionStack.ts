@@ -1,9 +1,8 @@
 import { Diagnostic, DiagnosticSeverity, Position, Range } from "vscode-languageserver-types";
-import { DefaultSetting } from "./defaultSetting";
-import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { Setting } from "./setting";
 import { TextRange } from "./textRange";
 import { Util } from "./util";
+import { LanguageService, ResourcesProviderBase } from ".";
 
 interface DependencyResolveInfo {
     resolvedCount: number;
@@ -16,7 +15,8 @@ class SectionStackNode {
     public readonly dependencies: DependencyResolveInfo[] = [];
     public readonly settings: Setting[] = [];
 
-    public constructor(public range: TextRange, settingsMap: Map<string, DefaultSetting>) {
+    public constructor(public range: TextRange) {
+        const settingsMap = LanguageService.getResourcesProvider().settingsMap;
         const deps = ResourcesProviderBase.getRequiredSectionSettingsMap(settingsMap).get(this.name);
         if (deps && deps.sections) {
             this.setRequiredSections(deps.sections);
@@ -122,11 +122,6 @@ const DummySectionStackNode: SectionStackNode & { [Symbol.toStringTag]: string }
 // tslint:disable-next-line:max-classes-per-file
 export class SectionStack {
     private stack: SectionStackNode[] = [];
-    private resourcesProvider: ResourcesProviderBase;
-
-    constructor(resourcesProvider: ResourcesProviderBase) {
-        this.resourcesProvider = resourcesProvider;
-    }
 
     public insertSection(section: TextRange): Diagnostic | null {
         const sectionName: string = section.text;
@@ -150,7 +145,7 @@ export class SectionStack {
             entry.resolveDependency(sectionName);
         }
 
-        this.stack.push(new SectionStackNode(section, this.resourcesProvider.settingsMap));
+        this.stack.push(new SectionStackNode(section));
 
         return error;
     }
@@ -284,7 +279,7 @@ export class SectionStack {
                 let errorMessage = `Unexpected section [${section}]. `;
                 let expectedSections: string[] = Object.entries(ResourcesProviderBase.sectionDepthMap)
                     .filter(([, depth]) => depth === expectedDepth)
-                    .map(([key, ]) => `[${key}]`);
+                    .map(([key,]) => `[${key}]`);
 
                 if (expectedSections.length > 1) {
                     errorMessage += `Expected one of ${expectedSections.join(", ")}.`;

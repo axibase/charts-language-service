@@ -21,6 +21,7 @@ import { TextRange } from "./textRange";
 import {
     Util
 } from "./util";
+import { LanguageService } from ".";
 
 const placeholderContainingSettings = [
     "url", "urlparameters"
@@ -68,7 +69,7 @@ export class Validator {
     /**
      * Contains sections hierarchy from configuration
      */
-    private readonly sectionStack: SectionStack;
+    private readonly sectionStack: SectionStack = new SectionStack();
     /**
      * Array of settings declared in current section
      */
@@ -158,11 +159,6 @@ export class Validator {
         this.config = new Config(text);
         this.keywordHandler = new KeywordHandler(this.keywordsStack);
         this.resourcesProvider = resourcesProvider;
-        this.sectionStack = new SectionStack(resourcesProvider);
-    }
-
-    public getResourcesProvider(): ResourcesProviderBase {
-        return this.resourcesProvider;
     }
 
     /**
@@ -209,7 +205,7 @@ export class Validator {
         /**
          * Apply checks, which require walking through the ConfigTree.
          */
-        let rulesDiagnostics: Diagnostic[] = ConfigTreeValidator.validate(this.configTree, this.resourcesProvider);
+        let rulesDiagnostics: Diagnostic[] = ConfigTreeValidator.validate(this.configTree);
         /**
          * Ugly hack. Removes duplicates from rulesDiagnostics.
          */
@@ -457,7 +453,7 @@ export class Validator {
             this.currentSettings = this.previousSettings;
             this.currentSection = this.previousSection;
         }
-        const settingsMap = this.resourcesProvider.settingsMap;
+        const settingsMap = LanguageService.getResourcesProvider().settingsMap;
         const sectionRequirements = ResourcesProviderBase.getRequiredSectionSettingsMap(settingsMap)
             .get(this.currentSection.text);
         if (!sectionRequirements) {
@@ -1209,7 +1205,7 @@ export class Validator {
         const line = this.config.getCurrentLine();
         const start: number = line.indexOf(name);
         const range: Range = (start > -1) ? this.createRange(start, name.length) : undefined;
-        return this.resourcesProvider.getSetting(name, range);
+        return LanguageService.getResourcesProvider().getSetting(name, range);
     }
 
     private checkUrlPlaceholders() {
