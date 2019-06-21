@@ -6,13 +6,13 @@ export class LanguageService {
     private static resourcesProvider: ResourcesProviderBase;
 
     public static initialize(resourcesProvider: ResourcesProviderBase) {
-        if (resourcesProvider === null) {
-            throw new Error("Illegal operation");
-        }
         LanguageService.resourcesProvider = resourcesProvider;
     }
 
     public static getResourcesProvider() {
+        if (LanguageService.resourcesProvider === undefined) {
+            throw new Error("LanguageService wasn't properly initialized with ResourcesProvider");
+        }
         return LanguageService.resourcesProvider;
     }
 
