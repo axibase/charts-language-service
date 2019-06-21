@@ -35,7 +35,7 @@ npm i @axibase/charts-language-service
 
 #### LanguageService features: CompletionProvider and Validation
 _index.js_
-```
+```ts
 import { LanguageService } from "@axibase/charts-language-service";
 import { ResourcesProvider } from "./resourcesProvider";
 
@@ -47,7 +47,7 @@ LanguageService.getCompletionProvider(document, position);
 LanguageService.getValidator(text);
 ```
 _resourcesProvider.js_
-```
+```ts
 import { ResourcesProviderBase } from "@axibase/charts-language-service";
 
 export class ResourcesProvider extends ResourcesProviderBase {
@@ -59,6 +59,6 @@ export class ResourcesProvider extends ResourcesProviderBase {
 
 #### Accessing resources via ResourcesProvider <a name="accessing-resources"></a>
 You can get access to the ResourcesProvider instance in arbitrary place of your project:
-```
+```ts
 const settingsMap = LanguageService.getResourcesProvider().settingsMap;
 ```
