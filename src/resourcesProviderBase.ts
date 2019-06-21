@@ -192,16 +192,22 @@ export abstract class ResourcesProviderBase {
     }
 
     /**
-     * Reads descriptions from "descriptions.md" file
-     * @returns map of settings names and descriptions
+     * Reads snippets from "snippets.json" file
+     * @returns snippets JSON contents
      */
-    protected abstract readDescriptions(): Map<string, string>;
+    public abstract readSnippets(): string;
 
     /**
      * Reads dictionary from "dictionary.json" file
      * @returns array of settings from the file
      */
     protected abstract readSettings(): Setting[];
+
+    /**
+     * Reads descriptions from "descriptions.md" file
+     * @returns map of settings names and descriptions
+     */
+    protected abstract readDescriptions(): Map<string, string>;
 
     /**
      * @returns map of settings, key is the setting name, value is instance of Setting

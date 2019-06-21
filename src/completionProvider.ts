@@ -3,7 +3,6 @@ import {
 } from "vscode-languageserver-types";
 import { Field } from "./field";
 import { calendarKeywords, intervalUnits, Setting } from "./setting";
-import snippets from "./snippets/snippets.json";
 import { Util } from "./util";
 import { LanguageService } from "./languageService";
 
@@ -208,6 +207,7 @@ endif
      * @returns array containing snippets
      */
     private completeSnippets(): CompletionItem[] {
+        const snippets = LanguageService.getResourcesProvider().readSnippets();
         const items: CompletionItem[] = Object.keys(snippets).map((key: string) => {
             const insertText: string =
                 (typeof snippets[key].body === "string") ?
