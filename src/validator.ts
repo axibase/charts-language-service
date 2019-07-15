@@ -4,6 +4,7 @@ import { ConfigTree } from "./configTree/configTree";
 import { ConfigTreeValidator } from "./configTree/configTreeValidator";
 import { DefaultSetting } from "./defaultSetting";
 import { KeywordHandler } from "./keywordHandler";
+import { LanguageService } from "./languageService";
 import {
     deprecatedTagSection,
     getCsvErrorMessage,
@@ -14,41 +15,22 @@ import {
     tagNameWithWhitespaces,
     unknownToken
 } from "./messageUtil";
+import {
+    BLANK_LINE_PATTERN,
+    CSV_FROM_URL_PATTERN,
+    CSV_INLINE_HEADER_PATTERN,
+    CSV_KEYWORD_PATTERN,
+    CSV_NEXT_LINE_HEADER_PATTERN
+} from "./regExpressions";
 import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { SectionStack } from "./sectionStack";
 import { Setting } from "./setting";
 import { TextRange } from "./textRange";
-import {
-    Util
-} from "./util";
-import { LanguageService } from ".";
+import { Util } from "./util";
 
 const placeholderContainingSettings = [
     "url", "urlparameters"
 ];
-
-/** Regular expressions for CSV syntax checking */
-/**
- * RegExp for: `csv <name> =
- *              <header1>, <header2>`
- */
-const CSV_NEXT_LINE_HEADER_PATTERN = /(^[ \t]*csv[ \t]+)(\w+)[ \t]*(=)/m;
-/**
- * RegExp for: 'csv <name> = <header1>, <header2>'
- */
-const CSV_INLINE_HEADER_PATTERN = /=[ \t]*$/m;
-/**
- * RegExp for: 'csv <name> from <url>'
- */
-const CSV_FROM_URL_PATTERN = /(^[ \t]*csv[ \t]+)(\w+)[ \t]*(from)/m;
-/**
- * RegExp for blank line
- */
-const BLANK_LINE_PATTERN = /^[ \t]*$/m;
-/**
- * RegExp for 'csv' keyword
- */
-const CSV_KEYWORD_PATTERN = /\b(csv)\b/i;
 
 /**
  * Performs validation of a whole document line by line.
@@ -175,7 +157,7 @@ export class Validator {
             if (this.isNotKeywordEnd("script") || this.isNotKeywordEnd("var") || this.isNotKeywordEnd("sql")) {
                 /**
                  * Lines in multiline script and var sections
-                 * will be cheked in JavaScriptValidator.processScript() and processVar().
+                 * will be checked in JavaScriptValidator.processScript() and processVar().
                  * SQL-block must be skipped without any processing.
                  */
                 continue;
@@ -1109,10 +1091,7 @@ export class Validator {
                 break;
             }
             case "if": {
-                const regex: RegExp = /!=|==/;
-                if (!regex.test(line)) {
-                    this.result.push(Util.createDiagnostic(this.foundKeyword.range, `Specify == or !=`));
-                }
+                this.keywordHandler.handleIf(line, this.foundKeyword);
                 this.setLastCondition();
                 break;
             }
@@ -1238,7 +1217,7 @@ export class Validator {
      * Returns all placeholders declared before the current line.
      */
     private getUrlPlaceholders(): string[] {
-        let result = new Set();
+        let result: Set<string> = new Set();
         for (let setting of placeholderContainingSettings) {
             let currentSetting = this.sectionStack.getCurrentSetting(setting);
             if (currentSetting) {
@@ -1251,7 +1230,6 @@ export class Validator {
                 }
             }
         }
-        // @ts-ignore
         return [...result];
     }
 

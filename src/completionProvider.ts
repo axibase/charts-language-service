@@ -1,10 +1,12 @@
 import {
     CompletionItem, CompletionItemKind, InsertTextFormat, Position, TextDocument
 } from "vscode-languageserver-types";
+import { CALENDAR_KEYWORDS, CONTROL_KEYWORDS, INTERVAL_UNITS } from "./constants";
 import { Field } from "./field";
-import { calendarKeywords, intervalUnits, Setting } from "./setting";
-import { Util } from "./util";
+import { Setting } from "./setting";
 import { LanguageService } from "./languageService";
+import { Util } from "./util";
+import { ResourcesProviderBase } from ".";
 
 export interface ItemFields {
     insertTextFormat?: InsertTextFormat;
@@ -32,13 +34,24 @@ export class CompletionProvider {
      * Creates completion items
      */
     public getCompletionItems(): CompletionItem[] {
-        let match = /^\s*(\S+)\s*=\s*/.exec(this.currentLine);
-        if (match) {
+        const valueMatch = /^\s*(\S+)\s*=\s*/.exec(this.currentLine);
+        const bracketsMatch = /\s*(\[.*?)\s*/.exec(this.currentLine);
+        if (valueMatch) {
             // completion requested at assign stage, i. e. type = <Ctrl + space>
-            return this.completeSettingValue(match[1]);
+            return this.completeSettingValue(valueMatch[1]);
+        } else if (bracketsMatch) {
+            // requested completion for section name in []
+            return this.completeSectionName();
         } else {
             // completion requested at start of line (supposed that line is empty)
-            return this.completeSnippets().concat(this.completeIf(), this.completeFor(), this.completeSettingName());
+            return this.completeSnippets().concat(
+                this.completeIf(),
+                this.completeFor(),
+                this.completeSettingName(),
+                this.completeSectionName(),
+                this.completeControlKeyWord(),
+                this.completeEndKeyword()
+            );
         }
     }
 
@@ -78,6 +91,58 @@ endfor`;
         completion.insertTextFormat = InsertTextFormat.Snippet;
 
         return completion;
+    }
+
+    /**
+     * Creates an array of completion items containing section names.
+     * @returns array containing snippets
+     */
+    private completeControlKeyWord(): CompletionItem[] {
+        const items: CompletionItem[] = [];
+
+        for (let keyword of CONTROL_KEYWORDS) {
+            items.push(this.fillCompletionItem({
+                detail: `Control keyword: ${keyword}`,
+                insertText: `${keyword}`,
+                kind: CompletionItemKind.Keyword,
+                name: keyword
+            }));
+        }
+
+        return items;
+    }
+
+    /**
+     * Completes keywords endings such as `endsql`, `endfor` etc
+     */
+    private completeEndKeyword(): CompletionItem[] {
+        // detected `end`
+        const endWordRegex: RegExp = /^[ \t]*(end)[ \t]*/gm;
+        // detected any control keyword in previous code
+        const keywordsRegex: RegExp = new RegExp(`^[ \t]*(?:${CONTROL_KEYWORDS.join("|")})[ \t]*`, "mg");
+        let completions: CompletionItem[] = [];
+
+        if (endWordRegex.test(this.text)) {
+            let keywordMatch: RegExpExecArray | null = keywordsRegex.exec(this.text);
+            let keywordLastMatch: RegExpExecArray | undefined;
+
+            while (keywordMatch) {
+                keywordLastMatch = keywordMatch;
+                keywordMatch = keywordsRegex.exec(this.text);
+            }
+
+            if (keywordLastMatch) {
+                const keyword = keywordLastMatch[0].trim();
+
+                completions.push(this.fillCompletionItem({
+                    detail: `Control keyword: ${keyword}`,
+                    insertText: `end${keyword}`,
+                    kind: CompletionItemKind.Keyword,
+                }));
+            }
+        }
+
+        return completions;
     }
 
     /**
@@ -161,6 +226,27 @@ endif
         });
         return items;
     }
+
+    /**
+     * Creates an array of completion items containing section names.
+     * @returns array containing snippets
+     */
+    private completeSectionName(): CompletionItem[] {
+        const items: CompletionItem[] = [];
+        const sectionNames = Object.keys(ResourcesProviderBase.sectionDepthMap);
+
+        for (let item of sectionNames) {
+            items.push(this.fillCompletionItem({
+                detail: `Section name: [${item}]`,
+                insertText: `${item}`,
+                kind: CompletionItemKind.Struct,
+                name: item
+            }));
+        }
+
+        return items;
+    }
+
     /**
      * Creates an array of completion items containing possible values for settings.
      * @param settingName name of the setting, for example "colors"
@@ -189,10 +275,10 @@ endif
                     el.replace(/percentile\\.+/, "percentile(n)")));
             }
             case "interval": {
-                return this.getItemsArray(intervalUnits, ...setting.enum);
+                return this.getItemsArray(INTERVAL_UNITS, ...setting.enum);
             }
             case "date": {
-                return this.getItemsArray(calendarKeywords, new Date().toISOString());
+                return this.getItemsArray(CALENDAR_KEYWORDS, new Date().toISOString());
             }
             default: {
                 return [];
