@@ -13,6 +13,10 @@
     "build-amd": "rollup -c rollup.config.js && terser -c -o dist/amd/build.min.js dist/amd/build.js"
   },
   "dependencies": {
+    "@types/escodegen": "^0.0.6",
+    "@types/esprima": "^4.0.2",
+    "escodegen": "^1.11.1",
+    "esprima": "^4.0.1",
     "rimraf": "^2.6.3",
     "rollup": "^1.15.6",
     "rollup-plugin-terser": "^5.0.0",

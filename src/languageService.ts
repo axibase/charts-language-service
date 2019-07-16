@@ -1,6 +1,6 @@
-import { CompletionProvider, ResourcesProviderBase, Validator } from ".";
+import { CompletionProvider, ResourcesProviderBase, Validator, Formatter } from ".";
 
-import { Position, TextDocument } from "vscode-languageserver-types";
+import { Position, TextDocument, FormattingOptions } from "vscode-languageserver-types";
 
 export class LanguageService {
     private static resourcesProvider: ResourcesProviderBase;
@@ -22,5 +22,9 @@ export class LanguageService {
 
     public static getValidator(text: string) {
         return new Validator(text);
+    }
+
+    public static getFormatter(text: string, formattingOptions: FormattingOptions) {
+        return new Formatter(text, formattingOptions);
     }
 }
