@@ -847,9 +847,8 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
         LanguageService.getHoverProvider = function (document) {
             return new HoverProvider(document);
         };
-        LanguageService.getFormatter = function (text, formattingOptions, formatBlankLines) {
-            if (formatBlankLines === void 0) { formatBlankLines = false; }
-            return new Formatter(text, formattingOptions, formatBlankLines);
+        LanguageService.getFormatter = function (text, formattingOptions) {
+            return new Formatter(text, formattingOptions);
         };
         return LanguageService;
     }());
@@ -1338,8 +1337,7 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
      * Formats the document
      */
     var Formatter = /** @class */ (function () {
-        function Formatter(text, formattingOptions, formatBlankLines) {
-            if (formatBlankLines === void 0) { formatBlankLines = false; }
+        function Formatter(text, formattingOptions) {
             /**
              * Currently used indent
              */
@@ -1369,7 +1367,6 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
             this.currentSection = {};
             this.options = formattingOptions;
             this.lines = text.split("\n");
-            this.formatBlankLines = formatBlankLines;
         }
         /**
          * Reads the document line by line and calls corresponding formatting functions
@@ -1382,14 +1379,12 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
                         Object.assign(this.currentSection, this.previousSection);
                         this.decreaseIndent();
                     }
-                    this.deleteExtraBlankLines();
                     continue;
                 }
                 else if (this.isSectionDeclaration()) {
                     this.calculateSectionIndent();
                     this.checkIndent();
                     this.increaseIndent();
-                    this.insertLineBeforeSection();
                     continue;
                 }
                 else if (BLOCK_SCRIPT_START.test(line)) {
@@ -1584,26 +1579,6 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
          */
         Formatter.prototype.nextLine = function () {
             return this.getLine(++this.currentLine);
-        };
-        /**
-         * Inserts blank line before section except for configuration
-         * Works only if `formatBlankLines` option is activated
-         */
-        Formatter.prototype.insertLineBeforeSection = function () {
-            if (!this.formatBlankLines || this.currentSection.name === "configuration") {
-                return;
-            }
-            this.edits.push(vscodeLanguageserverTypes.TextEdit.replace(vscodeLanguageserverTypes.Range.create(this.currentLine, 0, this.currentLine, this.getCurrentLine().length), "\n" + this.getCurrentLine()));
-        };
-        /**
-         * Deletes extra blank lines in the document
-         * Works only if `formatBlankLines` option is activated
-         */
-        Formatter.prototype.deleteExtraBlankLines = function () {
-            if (!this.formatBlankLines || this.getLine(this.currentLine + 1) === void 0) {
-                return;
-            }
-            this.edits.push(vscodeLanguageserverTypes.TextEdit.replace(vscodeLanguageserverTypes.Range.create(this.currentLine, 0, this.currentLine + 1, 0), ""));
         };
         /**
          * Increases current indent by one
