@@ -6,10 +6,9 @@
   "author": "Axibase Developers",
   "license": "Apache-2.0",
   "scripts": {
-    "build": "npm run build-lib && npm run build-amd",
+    "build": "npm run clean && npm run build-lib",
     "clean": "rimraf dist lib",
     "build-lib": "tsc -p tsconfig.json",
-    "build-amd": "rollup -c rollup.config.js && terser -c -o dist/amd/build.min.js dist/amd/build.js",
     "test": "node node_modules/vscode/bin/test --node-ipc"
   },
   "dependencies": {
@@ -19,12 +18,6 @@
     "esprima": "^4.0.1",
     "jsdom": "^15.1.1",
     "rimraf": "^2.6.3",
-    "rollup": "^1.15.6",
-    "rollup-plugin-terser": "^5.0.0",
-    "rollup-plugin-typescript": "^1.0.1",
-    "terser": "^4.0.0",
-    "ts-loader": "^6.0.2",
-    "tslib": "^1.10.0",
     "typescript": "^3.5.2",
     "vscode-languageserver-types": "^3.14.0"
   },
