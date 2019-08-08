@@ -4558,7 +4558,6 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
         return LanguageService;
     }());
 
-    var snippets = require("../../snippets/snippets.json");
     /**
      * Provides dynamic completion items.
      */
@@ -4809,6 +4808,7 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
          */
         CompletionProvider.prototype.completeSnippets = function () {
             var _this = this;
+            var snippets = LanguageService.getResourcesProvider().readSnippets();
             var items = Object.keys(snippets).map(function (key) {
                 var insertText = (typeof snippets[key].body === "string") ?
                     snippets[key].body : snippets[key].body.join("\n");
@@ -4930,6 +4930,10 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
         return CompletionProvider;
     }());
 
+    var descriptions = require("./resources/descriptions.md");
+    var dictionary = require("./resources/dictionary.json");
+    var snippets = require("./resources/snippets/snippets.json");
+
     exports.CompletionProvider = CompletionProvider;
     exports.DefaultSetting = DefaultSetting;
     exports.Formatter = Formatter;
@@ -4938,6 +4942,9 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
     exports.ResourcesProviderBase = ResourcesProviderBase;
     exports.Setting = Setting;
     exports.Validator = Validator;
+    exports.descriptions = descriptions;
+    exports.dictionary = dictionary;
+    exports.snippets = snippets;
 
     Object.defineProperty(exports, '__esModule', { value: true });
 

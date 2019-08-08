@@ -7,7 +7,6 @@ import { Setting } from "./setting";
 import { deleteComments, deleteScripts, getSetting } from "./util";
 import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { LanguageService } from "./languageService";
-export const snippets = require("../../snippets/snippets.json");
 
 export interface ItemFields {
     insertTextFormat?: InsertTextFormat;
@@ -293,6 +292,7 @@ endif
      * @returns array containing snippets
      */
     private completeSnippets(): CompletionItem[] {
+        const snippets = LanguageService.getResourcesProvider().readSnippets();
         const items: CompletionItem[] = Object.keys(snippets).map((key: string) => {
             const insertText: string =
                 (typeof snippets[key].body === "string") ?

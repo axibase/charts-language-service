@@ -9,13 +9,15 @@
     "build": "npm run build-lib && npm run build-amd",
     "clean": "rimraf dist lib",
     "build-lib": "tsc -p tsconfig.json",
-    "build-amd": "rollup -c rollup.config.js && terser -c -o dist/amd/build.min.js dist/amd/build.js"
+    "build-amd": "rollup -c rollup.config.js && terser -c -o dist/amd/build.min.js dist/amd/build.js",
+    "test": "node node_modules/vscode/bin/test --node-ipc"
   },
   "dependencies": {
     "@types/escodegen": "^0.0.6",
     "@types/esprima": "^4.0.2",
     "escodegen": "^1.11.1",
     "esprima": "^4.0.1",
+    "jsdom": "^15.1.1",
     "rimraf": "^2.6.3",
     "rollup": "^1.15.6",
     "rollup-plugin-terser": "^5.0.0",
@@ -25,5 +27,10 @@
     "tslib": "^1.10.0",
     "typescript": "^3.5.2",
     "vscode-languageserver-types": "^3.14.0"
+  },
+  "devDependencies": {
+    "@types/jsdom": "^12.2.4",
+    "@types/mocha": "^5.2.7",
+    "vscode": "^1.1.33"
   }
 }
