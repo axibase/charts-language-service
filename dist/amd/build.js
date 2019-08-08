@@ -112,6 +112,9 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
         ">",
         "<"
     ];
+    var BOOLEAN_KEYWORDS = [
+        "false", "no", "null", "none", "0", "off", "true", "yes", "on", "1",
+    ];
 
     /**
      * Holds the description of a setting and corresponding methods.
@@ -193,7 +196,8 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
                 .filter(function (override) { return override.test(scope); })
                 .map(function (override) { return override.setting; });
             if (matchingOverrides.length > 0) {
-                return Object.assign.apply(Object, __spread([this], matchingOverrides));
+                var copy = Object.create(Setting.prototype);
+                return Object.assign.apply(Object, __spread([copy, this], matchingOverrides));
             }
             else {
                 return this;
@@ -217,7 +221,7 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
             if (this.defaultValue != null && this.defaultValue !== "") {
                 result += "Default value: " + this.defaultValue + "  \n";
             }
-            if (this.enum == null && this.enum.length === 0) {
+            if (this.enum != null && this.enum.length > 0) {
                 result += "Possible values: " + this.enum.join() + "  \n";
             }
             if (this.excludes != null && this.excludes.length !== 0) {
@@ -277,6 +281,49 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
         return DefaultSetting;
     }());
 
+    /** Regular expressions for CSV syntax checking */
+    //  csv <name> =
+    //  <header1>, <header2>
+    var CSV_NEXT_LINE_HEADER_PATTERN = /(^[ \t]*csv[ \t]+)(\w+)[ \t]*(=)/m;
+    // csv <name> = <header1>, <header2>
+    var CSV_INLINE_HEADER_PATTERN = /=[ \t]*$/m;
+    // csv <name> from <url>
+    var CSV_FROM_URL_PATTERN = /(^[ \t]*csv[ \t]+)(\w+)[ \t]*(from)/m;
+    // blank line
+    var BLANK_LINE_PATTERN = /^[ \t]*$/m;
+    // csv
+    var CSV_KEYWORD_PATTERN = /\b(csv)\b/i;
+    // csv from <url>
+    var CSV_FROM_URL_MISSING_NAME_PATTERN = /(^[ \t]*csv[ \t]+)[ \t]*(from)/;
+    /** Regular expressions to match SQL */
+    // sql = SELECT time, entity, value FROM cpu_busy
+    var ONE_LINE_SQL = /^\s*sql\s*=.*$/m;
+    // sql SELECT 1
+    var BLOCK_SQL_START_WITHOUT_LF = /(^\s*)sql\s*\S/;
+    /** Regular expressions to match script */
+    // script = console.log()
+    var ONE_LINE_SCRIPT = /^\s*script\s*=.*$/m;
+    // script alert("Hello, world!")
+    var BLOCK_SCRIPT_START_WITHOUT_LF = /(^\s*)script\s*\S/;
+    // script
+    var BLOCK_SCRIPT_START = /(?:^\s*)script(?!([\s\S]*=))/;
+    // endscript
+    var BLOCK_SCRIPT_END = /^\s*endscript\s*$/;
+    /** Various regular expressions */
+    // false, no, null, none, 0, off, true, yes, on, 1
+    var BOOLEAN_REGEXP = new RegExp("^(?:" + BOOLEAN_KEYWORDS.join("|") + ")$");
+    // 07, +3, -81
+    var INTEGER_REGEXP = /^[-+]?\d+$/;
+    var INTERVAL_REGEXP = new RegExp(
+    // -5 month, +3 day, .3 year, 2.3 week, all
+    "^(?:(?:[-+]?(?:(?:\\d+|(?:\\d+)?\\.\\d+)|@\\{.+\\})[ \\t]*(?:" + INTERVAL_UNITS.join("|") + "))|all)$");
+    // 1, 5.2, 0.3, .9, -8, -0.5, +1.4
+    var NUMBER_REGEXP = /^(?:\-|\+)?(?:\.\d+|\d+(?:\.\d+)?)$/;
+    // ${server}, ${example}
+    var CALCULATED_REGEXP = /[@$]\{.+\}/;
+    // =, ==, !=, >=, <=, >, <
+    var RELATIONS_REGEXP = new RegExp("(^\\s*.+?)(\\s*?)(" + RELATIONS.join("|") + ")(\\s*)");
+
     /**
      * Creates a error message for unknown setting or value.
      * @param found the variant found in the user's text
@@ -296,7 +343,7 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
             "enclose in double-quotes to send it to the server without\na warning.";
     };
     var uselessScope = function (found, msg) {
-        return found + " setting is appplied only if " + msg + ".";
+        return found + " setting is applied only if " + msg + ".";
     };
     var incorrectColors = function (found, msg) {
         return "Number of colors (if specified) must be equal to\nnumber of thresholds minus 1.\nCurrent: " + found + ", expected: " + msg;
@@ -305,10 +352,6 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
         return found + " setting is not allowed here.";
     };
     /**
-     * RegExp for: 'csv from <url>'
-     */
-    var CSV_FROM_URL_MISSING_NAME_PATTERN = /(^[ \t]*csv[ \t]+)[ \t]*(from)/;
-    /**
      * If SCV pattern didn't match any known RegExp, compose error message
      * @param line line of code instruction
      * @returns csv error message
@@ -316,6 +359,12 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
     var getCsvErrorMessage = function (line) {
         return (CSV_FROM_URL_MISSING_NAME_PATTERN.test(line)) ? "<name> in 'csv <name> from <url>' is missing" :
             "The line should contain a '=' or 'from' keyword";
+    };
+    /**
+     * If start-time, end-time and timespan are declared simultaneously, show the warning
+     */
+    var simultaneousTimeSettingsWarning = function () {
+        return "'start-time', 'end-time' and 'timespan' can not be declared simultaneously. 'timespan' will be ignored.";
     };
     var noRequiredSetting = function (dependent, required) {
         return required + " is required if " + dependent + " is specified";
@@ -329,233 +378,10 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
     var lineFeedRequired = function (dependent) {
         return "A linefeed character after '" + dependent + "' keyword is required";
     };
+    var dateError = function (specificMsg, name) {
+        return specificMsg + ". " + name + " must be a date or calendar expression, for example:\n * current_hour + 1 minute\n * 2019-04-01T10:15:00Z";
+    };
 
-    var DIAGNOSTIC_SOURCE = "Axibase Charts";
-    var Util = /** @class */ (function () {
-        function Util() {
-        }
-        /**
-         * @param value the value to find
-         * @param map the map to search
-         * @returns true if at least one value in map is/contains the wanted value
-         */
-        Util.isInMap = function (value, map) {
-            var e_1, _a, e_2, _b;
-            if (value == null) {
-                return false;
-            }
-            try {
-                for (var _c = __values(map.values()), _d = _c.next(); !_d.done; _d = _c.next()) {
-                    var array = _d.value;
-                    try {
-                        for (var array_1 = (e_2 = void 0, __values(array)), array_1_1 = array_1.next(); !array_1_1.done; array_1_1 = array_1.next()) {
-                            var item = array_1_1.value;
-                            if ((Array.isArray(item) && item.includes(value)) || (item === value)) {
-                                return true;
-                            }
-                        }
-                    }
-                    catch (e_2_1) { e_2 = { error: e_2_1 }; }
-                    finally {
-                        try {
-                            if (array_1_1 && !array_1_1.done && (_b = array_1.return)) _b.call(array_1);
-                        }
-                        finally { if (e_2) throw e_2.error; }
-                    }
-                }
-            }
-            catch (e_1_1) { e_1 = { error: e_1_1 }; }
-            finally {
-                try {
-                    if (_d && !_d.done && (_a = _c.return)) _a.call(_c);
-                }
-                finally { if (e_1) throw e_1.error; }
-            }
-            return false;
-        };
-        /**
-         * @param target array of aliases
-         * @param array array to perform the search
-         * @returns true, if array contains a value from target
-         */
-        Util.isAnyInArray = function (target, array) {
-            var e_3, _a;
-            try {
-                for (var target_1 = __values(target), target_1_1 = target_1.next(); !target_1_1.done; target_1_1 = target_1.next()) {
-                    var item = target_1_1.value;
-                    if (array.includes(item)) {
-                        return true;
-                    }
-                }
-            }
-            catch (e_3_1) { e_3 = { error: e_3_1 }; }
-            finally {
-                try {
-                    if (target_1_1 && !target_1_1.done && (_a = target_1.return)) _a.call(target_1);
-                }
-                finally { if (e_3) throw e_3.error; }
-            }
-            return false;
-        };
-        /**
-         * Counts CSV columns using RegExp.
-         * @param line a CSV-formatted line
-         * @returns number of CSV columns in the line
-         */
-        Util.countCsvColumns = function (line) {
-            if (line.length === 0) {
-                return 0;
-            }
-            var lineWithoutEscapes = line.replace(/(['"]).+\1/g, ""); // remove strings in quotes "6,3" or "6 3"
-            return lineWithoutEscapes.split(",").length;
-        };
-        /**
-         * Short-hand to create a diagnostic with undefined code and a standardized source
-         * @param range Where is the mistake?
-         * @param severity How severe is that problem?
-         * @param message What message should be passed to the user?
-         */
-        Util.createDiagnostic = function (range, message, severity) {
-            if (severity === void 0) { severity = vscodeLanguageserverTypes.DiagnosticSeverity.Error; }
-            return vscodeLanguageserverTypes.Diagnostic.create(range, message, severity, undefined, DIAGNOSTIC_SOURCE);
-        };
-        /**
-         * Replaces all comments with spaces.
-         * We need to remember places of statements in the original configuration,
-         * that's why it is not possible to delete all comments, whereas they must be ignored.
-         * @param text the text to replace comments
-         * @returns the modified text
-         */
-        Util.deleteComments = function (text) {
-            var content = text;
-            var multiLine = /\/\*[\s\S]*?\*\//g;
-            var oneLine = /^[ \t]*#.*/mg;
-            var match = multiLine.exec(content);
-            if (match === null) {
-                match = oneLine.exec(content);
-            }
-            while (match !== null) {
-                var newLines = match[0].split("\n").length - 1;
-                var spaces = Array(match[0].length)
-                    .fill(" ")
-                    .concat(Array(newLines).fill("\n"))
-                    .join("");
-                content = "" + content.substr(0, match.index) + spaces + content.substr(match.index + match[0].length);
-                match = multiLine.exec(content);
-                if (match === null) {
-                    match = oneLine.exec(content);
-                }
-            }
-            return content;
-        };
-        /**
-         * Replaces scripts body with newline character
-         * @param text the text to perform modifications
-         * @returns the modified text
-         */
-        Util.deleteScripts = function (text) {
-            return text.replace(/\bscript\b([\s\S]+?)\bendscript\b/g, "script\nendscript");
-        };
-        /**
-         * Creates a diagnostic for a repeated setting. Warning if this setting was
-         * multi-line previously, but now it is deprecated, error otherwise.
-         * @param range The range where the diagnostic will be displayed
-         * @param declaredAbove The setting, which has been declared earlier
-         * @param current The current setting
-         */
-        Util.repetitionDiagnostic = function (range, declaredAbove, current) {
-            var diagnosticSeverity = (["script", "thresholds", "colors"].includes(current.name)) ?
-                vscodeLanguageserverTypes.DiagnosticSeverity.Warning : vscodeLanguageserverTypes.DiagnosticSeverity.Error;
-            var message;
-            switch (current.name) {
-                case "script": {
-                    message =
-                        "Multi-line scripts are deprecated.\nGroup multiple scripts into blocks:\nscript\nendscript";
-                    break;
-                }
-                case "thresholds": {
-                    message = "Replace multiple `thresholds` settings with one, for example:\nthresholds = 0\nthresholds = 60\nthresholds = 80\n\nthresholds = 0, 60, 80";
-                    declaredAbove.values.push(current.value);
-                    break;
-                }
-                case "colors": {
-                    message = "Replace multiple `colors` settings with one, for example:\ncolors = red\ncolors = yellow\ncolors = green\n\ncolors = red, yellow, green";
-                    declaredAbove.values.push(current.value);
-                    break;
-                }
-                default:
-                    message = declaredAbove.displayName + " is already defined";
-            }
-            return Util.createDiagnostic(range, message, diagnosticSeverity);
-        };
-        /**
-         * @returns true if the current line contains white spaces or nothing, false otherwise
-         */
-        Util.isEmpty = function (str) {
-            return /^\s*$/.test(str);
-        };
-        /**
-         * Creates Range object.
-         *
-         * @param start - The starting position in the string
-         * @param length - Length of the word to be highlighted
-         * @param lineNumber - Number of line, where is the word to be highlighted
-         * @returns Range object with start equal to `start` and end equal to `start+length` and line equal to `lineNumber`
-         */
-        Util.createRange = function (start, length, lineNumber) {
-            return vscodeLanguageserverTypes.Range.create(vscodeLanguageserverTypes.Position.create(lineNumber, start), vscodeLanguageserverTypes.Position.create(lineNumber, start + length));
-        };
-        return Util;
-    }());
-
-    var intervalUnits = [
-        "nanosecond", "millisecond", "second", "minute", "hour", "day", "week", "month", "quarter", "year",
-    ];
-    var calendarKeywords = [
-        "current_day", "current_hour", "current_minute", "current_month", "current_quarter", "current_week",
-        "current_year", "first_day", "first_vacation_day", "first_working_day", "friday", "last_vacation_day",
-        "last_working_day", "monday", "next_day", "next_hour", "next_minute", "next_month", "next_quarter",
-        "next_vacation_day", "next_week", "next_working_day", "next_year", "now", "previous_day", "previous_hour",
-        "previous_minute", "previous_month", "previous_quarter", "previous_vacation_day", "previous_week",
-        "previous_working_day", "previous_year", "saturday", "sunday", "thursday", "tuesday", "wednesday",
-    ];
-    var booleanKeywords = [
-        "false", "no", "null", "none", "0", "off", "true", "yes", "on", "1",
-    ];
-    var booleanRegExp = new RegExp("^(?:" + booleanKeywords.join("|") + ")$");
-    var calendarRegExp = new RegExp(
-    // current_day
-    "^(?:" + calendarKeywords.join("|") + ")" +
-        (
-        // + 5 * minute
-        "(?:[ \\t]*[-+][ \\t]*(?:\\d+|(?:\\d+)?\\.\\d+)[ \\t]*\\*[ \\t]*(?:" + intervalUnits.join("|") + "))?$"));
-    var integerRegExp = /^[-+]?\d+$/;
-    var intervalRegExp = new RegExp(
-    // -5 month, +3 day, .3 year, 2.3 week, all
-    "^(?:(?:[-+]?(?:(?:\\d+|(?:\\d+)?\\.\\d+)|@\\{.+\\})[ \\t]*(?:" + intervalUnits.join("|") + "))|all)$");
-    var localDateRegExp = new RegExp(
-    // 2018-12-31
-    "^(?:19[7-9]|[2-9]\\d\\d)\\d(?:-(?:0[1-9]|1[0-2])(?:-(?:0[1-9]|[12][0-9]|3[01])" +
-        // 01:13:46.123, 11:26:52
-        "(?: (?:[01]\\d|2[0-4]):(?:[0-5][0-9])(?::(?:[0-5][0-9]))?(?:\\.\\d{1,9})?)?)?)?$");
-    // 1, 5.2, 0.3, .9, -8, -0.5, +1.4
-    var numberRegExp = /^(?:\-|\+)?(?:\.\d+|\d+(?:\.\d+)?)$/;
-    var zonedDateRegExp = new RegExp(
-    // 2018-12-31
-    "^(?:19[7-9]|[2-9]\\d\\d)\\d-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12][0-9]|3[01])" +
-        // T12:34:46.123, T23:56:18
-        "[tT](?:[01]\\d|2[0-4]):(?:[0-5][0-9]):(?:[0-5][0-9])(?:\\.\\d{1,9})?" +
-        // Z, +0400, -05:00
-        "(?:[zZ]|[+-](?:[01]\\d|2[0-4]):?(?:[0-5][0-9]))$");
-    var calculatedRegExp = /[@$]\{.+\}/;
-    /**
-     * Tests the provided string with regular expressions
-     * @param text the target string
-     * @returns true if the string is date expression, false otherwise
-     */
-    function isDate(text) {
-        return calendarRegExp.test(text) || localDateRegExp.test(text) || zonedDateRegExp.test(text);
-    }
     var specificValueChecksMap = new Map([
         ["forecastssagroupmanualgroups", {
                 errMsg: "Incorrect group syntax",
@@ -580,11 +406,11 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
         function Setting(setting) {
             var _this = _super.call(this, setting) || this;
             /**
-             * Setting value.
+             * Setting value, specified in config.
              */
             _this.value = "";
             /**
-             * Setting values for multiline settings (mostly for colors and thresholds).
+             * Setting values for multiline settings (mostly for colors and thresholds), specified in config.
              */
             _this.values = [];
             return _this;
@@ -607,25 +433,25 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
             var _this = this;
             var result;
             // allows ${} and @{} expressions
-            if (calculatedRegExp.test(this.value)) {
+            if (CALCULATED_REGEXP.test(this.value)) {
                 return result;
             }
             switch (this.type) {
                 case "string": {
                     if (!/\S/.test(this.value)) {
-                        result = Util.createDiagnostic(range, this.displayName + " can not be empty");
+                        result = createDiagnostic(range, this.displayName + " can not be empty");
                         break;
                     }
                     if (this.enum.length > 0) {
                         if (this.value.split(/\s*,\s*/).some(function (s) { return _this.enum.indexOf(s) < 0; })) {
                             var enumList = this.enum.sort().join("\n * ");
-                            result = Util.createDiagnostic(range, this.displayName + " must contain only the following:\n * " + enumList);
+                            result = createDiagnostic(range, this.displayName + " must contain only the following:\n * " + enumList);
                         }
                         break;
                     }
                     var specCheck = specificValueChecksMap.get(this.name);
                     if (specCheck && specCheck.isIncorrect(this.value)) {
-                        result = Util.createDiagnostic(range, specCheck.errMsg);
+                        result = createDiagnostic(range, specCheck.errMsg);
                     }
                     break;
                 }
@@ -636,16 +462,16 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
                         this.minValue = typeof this.minValue === "object" ? this.minValue.value * 100 : this.minValue * 100;
                         this.value = persent[1];
                     }
-                    result = this.checkNumber(numberRegExp, this.displayName + " should be a real (floating-point) number.", range);
+                    result = this.checkNumber(NUMBER_REGEXP, this.displayName + " should be a real (floating-point) number.", range);
                     break;
                 }
                 case "integer": {
-                    result = this.checkNumber(integerRegExp, this.displayName + " should be an integer number.", range);
+                    result = this.checkNumber(INTEGER_REGEXP, this.displayName + " should be an integer number.", range);
                     break;
                 }
                 case "boolean": {
-                    if (!booleanRegExp.test(this.value)) {
-                        result = Util.createDiagnostic(range, this.displayName + " should be a boolean value. For example, " + this.example);
+                    if (!BOOLEAN_REGEXP.test(this.value)) {
+                        result = createDiagnostic(range, this.displayName + " should be a boolean value. For example, " + this.example);
                     }
                     break;
                 }
@@ -653,24 +479,25 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
                     var index = this.findIndexInEnum(this.value);
                     // Empty enum means that the setting is not allowed
                     if (this.enum.length === 0) {
-                        result = Util.createDiagnostic(range, illegalSetting(this.displayName));
+                        result = createDiagnostic(range, illegalSetting(this.displayName));
                     }
                     else if (index < 0) {
                         if (/percentile/.test(this.value) && /statistic/.test(this.name)) {
                             result = this.checkPercentile(range);
                             break;
                         }
-                        var enumList = this.enum.sort().join("\n * ")
-                            .replace(/percentile\\.+/, "percentile(n)");
-                        result = Util.createDiagnostic(range, this.displayName + " must be one of:\n * " + enumList);
+                        var enumList = this.enum.sort().
+                            join("\n * ").
+                            replace(/percentile\\.+/, "percentile(n)");
+                        result = createDiagnostic(range, this.displayName + " must be one of:\n * " + enumList);
                     }
                     break;
                 }
                 case "interval": {
-                    if (!intervalRegExp.test(this.value)) {
-                        var message = ".\nFor example, " + this.example + ". Supported units:\n * " + intervalUnits.join("\n * ");
+                    if (!INTERVAL_REGEXP.test(this.value)) {
+                        var message = ".\nFor example, " + this.example + ". Supported units:\n * " + INTERVAL_UNITS.join("\n * ");
                         if (this.name === "updateinterval" && /^\d+$/.test(this.value)) {
-                            result = Util.createDiagnostic(range, "Specifying the interval in seconds is deprecated.\nUse `count unit` format" + message, vscodeLanguageserverTypes.DiagnosticSeverity.Warning);
+                            result = createDiagnostic(range, "Specifying the interval in seconds is deprecated.\nUse `count unit` format" + message, vscodeLanguageserverTypes.DiagnosticSeverity.Warning);
                         }
                         else {
                             /**
@@ -679,20 +506,19 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
                              */
                             if (this.enum.length > 0) {
                                 if (this.findIndexInEnum(this.value) < 0) {
-                                    result = Util.createDiagnostic(range, "Use " + this.enum.sort().join(", ") + " or `count unit` format" + message);
+                                    result = createDiagnostic(range, "Use " + this.enum.sort().
+                                        join(", ") + " or `count unit` format" + message);
                                 }
                             }
                             else {
-                                result = Util.createDiagnostic(range, this.displayName + " should be set as `count unit`" + message);
+                                result = createDiagnostic(range, this.displayName + " should be set as `count unit`" + message);
                             }
                         }
                     }
                     break;
                 }
                 case "date": {
-                    if (!isDate(this.value)) {
-                        result = Util.createDiagnostic(range, this.displayName + " should be a date. For example, " + this.example);
-                    }
+                    // Is checked in RelatedSettingsRule.
                     break;
                 }
                 case "object": {
@@ -700,7 +526,7 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
                         JSON.parse(this.value);
                     }
                     catch (err) {
-                        result = Util.createDiagnostic(range, "Invalid object specified: " + err.message);
+                        result = createDiagnostic(range, "Invalid object specified: " + err.message);
                     }
                     break;
                 }
@@ -713,17 +539,25 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
         Setting.prototype.checkNumber = function (reg, message, range) {
             var example = " For example, " + this.example;
             if (!reg.test(this.value)) {
-                return Util.createDiagnostic(range, "" + message + example);
+                return createDiagnostic(range, "" + message + example);
             }
-            var minValue = typeof this.minValue === "object" ? this.minValue.value : this.minValue;
-            var minValueExcluded = typeof this.minValue === "object" ? this.minValue.excluded : false;
-            var maxValue = typeof this.maxValue === "object" ? this.maxValue.value : this.maxValue;
-            var maxValueExcluded = typeof this.maxValue === "object" ? this.maxValue.excluded : false;
+            var minValue = typeof this.minValue === "object" ?
+                this.minValue.value :
+                this.minValue;
+            var minValueExcluded = typeof this.minValue === "object" ?
+                this.minValue.excluded :
+                false;
+            var maxValue = typeof this.maxValue === "object" ?
+                this.maxValue.value :
+                this.maxValue;
+            var maxValueExcluded = typeof this.maxValue === "object" ?
+                this.maxValue.excluded :
+                false;
             var left = minValueExcluded ? "(" : "[";
             var right = maxValueExcluded ? ")" : "]";
             if (minValueExcluded && +this.value <= minValue || +this.value < minValue ||
                 maxValueExcluded && +this.value >= maxValue || +this.value > maxValue) {
-                return Util.createDiagnostic(range, this.displayName + " should be in range " + left + minValue + ", " + maxValue + right + "." + example);
+                return createDiagnostic(range, this.displayName + " should be in range " + left + minValue + ", " + maxValue + right + "." + example);
             }
             return undefined;
         };
@@ -732,931 +566,244 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
             var n = this.value.match(/[^percntil_()]+/);
             if (n && +n[0] >= 0 && +n[0] <= 100) {
                 if (/_/.test(this.value)) {
-                    result = Util.createDiagnostic(range, "Underscore is deprecated, use percentile(" + n[0] + ") instead", vscodeLanguageserverTypes.DiagnosticSeverity.Warning);
+                    result = createDiagnostic(range, "Underscore is deprecated, use percentile(" + n[0] + ") instead", vscodeLanguageserverTypes.DiagnosticSeverity.Warning);
                 }
                 else if (!new RegExp("\\(" + n[0] + "\\)").test(this.value)) {
-                    result = Util.createDiagnostic(range, "Wrong usage. Expected: percentile(" + n[0] + ").\nCurrent: " + this.value);
+                    result = createDiagnostic(range, "Wrong usage. Expected: percentile(" + n[0] + ").\nCurrent: " + this.value);
                 }
             }
             else {
-                result = Util.createDiagnostic(range, "n must be a decimal number between [0, 100]. Current: " + (n ? n[0] : n));
+                result = createDiagnostic(range, "n must be a decimal number between [0, 100]. Current: " + (n ?
+                    n[0] :
+                    n));
             }
             return result;
         };
         Setting.prototype.findIndexInEnum = function (value) {
-            var index = this.enum.findIndex(function (option) {
+            return this.enum.findIndex(function (option) {
                 return new RegExp("^" + option + "$", "i").test(value);
             });
-            return index;
         };
         return Setting;
     }(DefaultSetting));
 
+    var DIAGNOSTIC_SOURCE = "Axibase Charts";
     /**
-     * Provides hints for settings
+     * @param value the value to find
+     * @param map the map to search
+     * @returns true if at least one value in map is/contains the wanted value
      */
-    var HoverProvider = /** @class */ (function () {
-        function HoverProvider(document) {
-            this.text = document.getText();
-            this.document = document;
-        }
-        /**
-         * Provides hover for the required position
-         * @param position position where hover is requested
-         */
-        HoverProvider.prototype.provideHover = function (position) {
-            var range = this.calculateRange(this.positionToOffset(position));
-            if (range === null) {
-                return null;
-            }
-            var word = this.text.substring(range.start, range.end);
-            var name = Setting.clearSetting(word);
-            var setting = LanguageService.getResourcesProvider().getSetting(name);
-            if (setting == null || setting.description == null) {
-                return null;
-            }
-            return {
-                contents: setting.toString(),
-                range: vscodeLanguageserverTypes.Range.create(this.offsetToPosition(range.start), this.offsetToPosition(range.end)),
-            };
-        };
-        /**
-         * Converts Position to offset
-         * @param position the Position to be converted
-         */
-        HoverProvider.prototype.positionToOffset = function (position) {
-            return this.document.offsetAt(position);
-        };
-        /**
-         * Converts offset to Position
-         * @param offset the offset to be converted
-         */
-        HoverProvider.prototype.offsetToPosition = function (offset) {
-            return this.document.positionAt(offset);
-        };
-        /**
-         * Finds limits of a line in text
-         * @param position position from which to start
-         */
-        HoverProvider.prototype.lineLimits = function (position) {
-            return {
-                end: this.positionToOffset(vscodeLanguageserverTypes.Position.create(position.line + 1, 0)) - 1,
-                start: this.positionToOffset(vscodeLanguageserverTypes.Position.create(position.line, 0)),
-            };
-        };
-        /**
-         * Calculates the range where the setting is defined
-         * @param offset offset from which to start
-         */
-        HoverProvider.prototype.calculateRange = function (offset) {
-            var lineLimits = this.lineLimits(this.offsetToPosition(offset));
-            var line = this.text.substring(lineLimits.start, lineLimits.end);
-            var regexp = /\S.+?(?=\s*?=)/;
-            var match = regexp.exec(line);
-            if (match === null) {
-                return null;
-            }
-            var start = lineLimits.start + match.index;
-            var end = start + match[0].length;
-            if (offset >= start && offset <= end) {
-                return { end: end, start: start };
-            }
-            return null;
-        };
-        return HoverProvider;
-    }());
-
-    var LanguageService = /** @class */ (function () {
-        function LanguageService() {
-        }
-        LanguageService.initialize = function (resourcesProvider) {
-            LanguageService.resourcesProvider = resourcesProvider;
-        };
-        LanguageService.getResourcesProvider = function () {
-            if (LanguageService.resourcesProvider === undefined) {
-                throw new Error("LanguageService wasn't properly initialized with ResourcesProvider");
-            }
-            return LanguageService.resourcesProvider;
-        };
-        LanguageService.getCompletionProvider = function (textDocument, position) {
-            return new CompletionProvider(textDocument, position);
-        };
-        LanguageService.getValidator = function (text) {
-            return new Validator(text);
-        };
-        LanguageService.getHoverProvider = function (document) {
-            return new HoverProvider(document);
-        };
-        LanguageService.getFormatter = function (text, formattingOptions) {
-            return new Formatter(text, formattingOptions);
-        };
-        return LanguageService;
-    }());
-
-    /**
-     * Provides dynamic completion items.
-     */
-    var CompletionProvider = /** @class */ (function () {
-        function CompletionProvider(textDocument, position) {
-            var text = textDocument.getText().substr(0, textDocument.offsetAt(position));
-            this.text = Util.deleteScripts(Util.deleteComments(text));
-            var textList = this.text.split("\n");
-            this.currentLine = textList[textList.length - 1];
-        }
-        /**
-         * Creates completion items
-         */
-        CompletionProvider.prototype.getCompletionItems = function () {
-            var valueMatch = /^\s*(\S+)\s*=\s*/.exec(this.currentLine);
-            var bracketsMatch = /\s*(\[.*?)\s*/.exec(this.currentLine);
-            if (valueMatch) {
-                // completion requested at assign stage, i. e. type = <Ctrl + space>
-                return this.completeSettingValue(valueMatch[1]);
-            }
-            else if (bracketsMatch) {
-                // requested completion for section name in []
-                return this.completeSectionName();
-            }
-            else {
-                // completion requested at start of line (supposed that line is empty)
-                return this.completeSnippets().concat(this.completeIf(), this.completeFor(), this.completeSettingName(), this.completeSectionName(), this.completeControlKeyWord(), this.completeEndKeyword());
-            }
-        };
-        /**
-         * Creates a completion item containing `for` loop.
-         * `in` statement is generated based on previously declared lists and vars if any.
-         * Variable name is generated based on `in` statement.
-         * @returns completion item
-         */
-        CompletionProvider.prototype.completeFor = function () {
-            var regexp = /^[ \t]*(?:list|var)[ \t]+(\S+)[ \t]*=/mg;
-            var match = regexp.exec(this.text);
-            var lastMatch;
-            while (match) {
-                lastMatch = match;
-                match = regexp.exec(this.text);
-            }
-            var collection = "collection";
-            var item = "item";
-            if (lastMatch) {
-                collection = lastMatch[1];
-                if (collection.endsWith("s")) {
-                    item = collection.substr(0, collection.lastIndexOf("s"));
-                }
-            }
-            var completion = vscodeLanguageserverTypes.CompletionItem.create("for");
-            completion.insertText = "\nfor ${1:" + item + "} in ${2:" + collection + "}\n  ${3:entity = @{${1:" + item + "}}}\n  ${0}\nendfor";
-            completion.detail = "For loop";
-            completion.kind = vscodeLanguageserverTypes.CompletionItemKind.Keyword;
-            completion.insertTextFormat = vscodeLanguageserverTypes.InsertTextFormat.Snippet;
-            return completion;
-        };
-        /**
-         * Creates an array of completion items containing section names.
-         * @returns array containing snippets
-         */
-        CompletionProvider.prototype.completeControlKeyWord = function () {
-            var e_1, _a;
-            var items = [];
-            try {
-                for (var CONTROL_KEYWORDS_1 = __values(CONTROL_KEYWORDS), CONTROL_KEYWORDS_1_1 = CONTROL_KEYWORDS_1.next(); !CONTROL_KEYWORDS_1_1.done; CONTROL_KEYWORDS_1_1 = CONTROL_KEYWORDS_1.next()) {
-                    var keyword = CONTROL_KEYWORDS_1_1.value;
-                    items.push(this.fillCompletionItem({
-                        detail: "Control keyword: " + keyword,
-                        insertText: "" + keyword,
-                        kind: vscodeLanguageserverTypes.CompletionItemKind.Keyword,
-                        name: keyword
-                    }));
-                }
-            }
-            catch (e_1_1) { e_1 = { error: e_1_1 }; }
-            finally {
-                try {
-                    if (CONTROL_KEYWORDS_1_1 && !CONTROL_KEYWORDS_1_1.done && (_a = CONTROL_KEYWORDS_1.return)) _a.call(CONTROL_KEYWORDS_1);
-                }
-                finally { if (e_1) throw e_1.error; }
-            }
-            return items;
-        };
-        /**
-         * Completes keywords endings such as `endsql`, `endfor` etc
-         */
-        CompletionProvider.prototype.completeEndKeyword = function () {
-            // detected `end`
-            var endWordRegex = /^[ \t]*(end)[ \t]*/gm;
-            // detected any control keyword in previous code
-            var keywordsRegex = new RegExp("^[ \t]*(?:" + CONTROL_KEYWORDS.join("|") + ")[ \t]*", "mg");
-            var completions = [];
-            if (endWordRegex.test(this.text)) {
-                var keywordMatch = keywordsRegex.exec(this.text);
-                var keywordLastMatch = void 0;
-                while (keywordMatch) {
-                    keywordLastMatch = keywordMatch;
-                    keywordMatch = keywordsRegex.exec(this.text);
-                }
-                if (keywordLastMatch) {
-                    var keyword = keywordLastMatch[0].trim();
-                    completions.push(this.fillCompletionItem({
-                        detail: "Control keyword: " + keyword,
-                        insertText: "end" + keyword,
-                        kind: vscodeLanguageserverTypes.CompletionItemKind.Keyword,
-                    }));
-                }
-            }
-            return completions;
-        };
-        /**
-         * Creates an array of completion items containing `if` statement.
-         * Conditions are generated based on previously declared `for` loops.
-         * @returns array containing variants of `if` statement
-         */
-        CompletionProvider.prototype.completeIf = function () {
-            var regexp = /^[ \t]*for[ \t]+(\w+)[ \t]+in/img;
-            var endFor = /^[ \t]*endfor/img;
-            var match = regexp.exec(this.text);
-            var lastMatch;
-            while (match) {
-                var end = endFor.exec(this.text);
-                if (!end || end.index < match.index) {
-                    lastMatch = match;
-                }
-                match = regexp.exec(this.text);
-            }
-            var item = "item";
-            if (lastMatch) {
-                item = lastMatch[1];
-            }
-            var ifString = vscodeLanguageserverTypes.CompletionItem.create("if string");
-            ifString.detail = "if item equals text";
-            ifString.insertText = "\nif @{${1:" + item + "}} ${2:==} ${3:\"item1\"}\n  ${4:entity} = ${5:\"item2\"}\nelse\n  ${4:entity} = ${6:\"item3\"}\nendif\n${0}";
-            var ifNumber = vscodeLanguageserverTypes.CompletionItem.create("if number");
-            ifNumber.insertText = "\nif @{${1:" + item + "}} ${2:==} ${3:5}\n  ${4:entity} = ${5:\"item1\"}\nelse\n  ${4:entity} = ${6:\"item2\"}\nendif\n${0}";
-            ifNumber.detail = "if item equals number";
-            var ifElseIf = vscodeLanguageserverTypes.CompletionItem.create("if else if");
-            ifElseIf.detail = "if item equals number else if";
-            ifElseIf.insertText = "\nif @{${1:" + item + "}} ${2:==} ${3:5}\n  ${4:entity} = ${5:\"item1\"}\nelseif @{${1:" + item + "}} ${6:==} ${7:6}\n  ${4:entity} = ${8:\"item2\"}\nelse\n  ${4:entity} = ${9:\"item3\"}\nendif\n${0}";
-            return [ifString, ifNumber, ifElseIf].map(function (completion) {
-                completion.insertTextFormat = vscodeLanguageserverTypes.InsertTextFormat.Snippet;
-                completion.kind = vscodeLanguageserverTypes.CompletionItemKind.Snippet;
-                return completion;
-            });
-        };
-        /**
-         * Creates an array of completion items containing setting names.
-         * @returns array containing snippets
-         */
-        CompletionProvider.prototype.completeSettingName = function () {
-            var _this = this;
-            var items = [];
-            var map = Array.from(LanguageService.getResourcesProvider().settingsMap.values());
-            map.forEach(function (value) {
-                items.push(_this.fillCompletionItem({
-                    detail: (value.description ? value.description + "\n" : "") + "Example: " + value.example,
-                    insertText: value.displayName + " = ",
-                    kind: vscodeLanguageserverTypes.CompletionItemKind.Field,
-                    name: value.displayName
-                }));
-            });
-            return items;
-        };
-        /**
-         * Creates an array of completion items containing section names.
-         * @returns array containing snippets
-         */
-        CompletionProvider.prototype.completeSectionName = function () {
-            var e_2, _a;
-            var items = [];
-            var sectionNames = Object.keys(ResourcesProviderBase.sectionDepthMap);
-            try {
-                for (var sectionNames_1 = __values(sectionNames), sectionNames_1_1 = sectionNames_1.next(); !sectionNames_1_1.done; sectionNames_1_1 = sectionNames_1.next()) {
-                    var item = sectionNames_1_1.value;
-                    items.push(this.fillCompletionItem({
-                        detail: "Section name: [" + item + "]",
-                        insertText: "" + item,
-                        kind: vscodeLanguageserverTypes.CompletionItemKind.Struct,
-                        name: item
-                    }));
-                }
-            }
-            catch (e_2_1) { e_2 = { error: e_2_1 }; }
-            finally {
-                try {
-                    if (sectionNames_1_1 && !sectionNames_1_1.done && (_a = sectionNames_1.return)) _a.call(sectionNames_1);
-                }
-                finally { if (e_2) throw e_2.error; }
-            }
-            return items;
-        };
-        /**
-         * Creates an array of completion items containing possible values for settings.
-         * @param settingName name of the setting, for example "colors"
-         * @returns array containing completions
-         */
-        CompletionProvider.prototype.completeSettingValue = function (settingName) {
-            var setting = LanguageService.getResourcesProvider().getSetting(settingName);
-            if (!setting) {
-                return [];
-            }
-            switch (setting.type) {
-                case "string": {
-                    return this.completeStringSettingValue(setting);
-                }
-                case "number":
-                case "integer":
-                    if (setting.example) {
-                        return [this.fillCompletionItem({ insertText: setting.example.toString() })];
-                    }
-                    break;
-                case "boolean": {
-                    return this.getItemsArray(["true", "false"]);
-                }
-                case "enum": {
-                    return this.getItemsArray(setting.enum.map(function (el) {
-                        return el.replace(/percentile\\.+/, "percentile(n)");
-                    }));
-                }
-                case "interval": {
-                    return this.getItemsArray.apply(this, __spread([INTERVAL_UNITS], setting.enum));
-                }
-                case "date": {
-                    return this.getItemsArray(CALENDAR_KEYWORDS, new Date().toISOString());
-                }
-                default: {
-                    return [];
-                }
-            }
-            return [];
-        };
-        /**
-         * Creates an array of completion items containing snippets.
-         * @returns array containing snippets
-         */
-        CompletionProvider.prototype.completeSnippets = function () {
-            var _this = this;
-            var snippets = LanguageService.getResourcesProvider().readSnippets();
-            var items = Object.keys(snippets).map(function (key) {
-                var insertText = (typeof snippets[key].body === "string") ?
-                    snippets[key].body : snippets[key].body.join("\n");
-                return _this.fillCompletionItem({
-                    insertText: insertText, detail: snippets[key].description,
-                    name: key, insertTextFormat: vscodeLanguageserverTypes.InsertTextFormat.Snippet, kind: vscodeLanguageserverTypes.CompletionItemKind.Keyword
-                });
-            });
-            return items;
-        };
-        /**
-         * Creates an array of completion items containing possible values for settings with type = "string".
-         * @param setting the setting
-         * @returns array containing completions
-         */
-        CompletionProvider.prototype.completeStringSettingValue = function (setting) {
-            var _this = this;
-            var valueItems = [];
-            var scriptItems = [];
-            if (setting.possibleValues) {
-                valueItems = setting.possibleValues.map(function (v) {
-                    return _this.fillCompletionItem({ insertText: v.value, detail: v.detail });
-                });
-            }
-            if (setting.script) {
-                setting.script.fields.forEach(function (field) {
-                    var e_3, _a;
-                    if (field.type === "function") {
-                        var itemFields = { insertText: "", kind: vscodeLanguageserverTypes.CompletionItemKind.Function };
-                        if (field.args) {
-                            var requiredArgs = field.args.filter(function (a) { return a.required; });
-                            var optionalArgs = field.args.filter(function (a) { return !a.required; });
-                            var requiredArgsString = "" + requiredArgs.map(function (field) { return field.name; }).join(", ");
-                            itemFields.insertText = "" + field.name + (requiredArgsString !== "" ?
-                                "(" + requiredArgsString + ")" : "");
-                            scriptItems.push(_this.fillCompletionItem(itemFields));
-                            var args = "";
-                            try {
-                                for (var optionalArgs_1 = __values(optionalArgs), optionalArgs_1_1 = optionalArgs_1.next(); !optionalArgs_1_1.done; optionalArgs_1_1 = optionalArgs_1.next()) {
-                                    var arg = optionalArgs_1_1.value;
-                                    args = "" + (args !== "" ? args + ", " : "") + arg.name;
-                                    itemFields.insertText = field.name + "(" + (requiredArgsString !== "" ?
-                                        requiredArgsString + ", " : "") + args + ")";
-                                    scriptItems.push(_this.fillCompletionItem(itemFields));
-                                }
-                            }
-                            catch (e_3_1) { e_3 = { error: e_3_1 }; }
-                            finally {
-                                try {
-                                    if (optionalArgs_1_1 && !optionalArgs_1_1.done && (_a = optionalArgs_1.return)) _a.call(optionalArgs_1);
-                                }
-                                finally { if (e_3) throw e_3.error; }
-                            }
-                        }
-                        else {
-                            itemFields.insertText = field.name;
-                            scriptItems.push(_this.fillCompletionItem(itemFields));
-                        }
-                    }
-                    else {
-                        scriptItems.push(_this.fillCompletionItem({
-                            insertText: field.name,
-                            detail: "Type: " + field.type
-                        }));
-                    }
-                });
-            }
-            if (!setting.possibleValues && setting.example !== "") {
-                valueItems = [this.fillCompletionItem({
-                        insertText: setting.example.toString(),
-                        kind: vscodeLanguageserverTypes.CompletionItemKind.Field
-                    })];
-            }
-            return valueItems.concat(scriptItems);
-        };
-        /**
-         * Set fields for CompletionItem
-         * @param insertText text to be inserted with completion request
-         * @returns completion
-         */
-        CompletionProvider.prototype.fillCompletionItem = function (itemFields) {
-            var item = vscodeLanguageserverTypes.CompletionItem.create(itemFields.name || itemFields.insertText);
-            item.insertTextFormat = itemFields.insertTextFormat || vscodeLanguageserverTypes.InsertTextFormat.PlainText;
-            item.kind = itemFields.kind || vscodeLanguageserverTypes.CompletionItemKind.Value;
-            item.insertText = itemFields.insertText;
-            item.detail = itemFields.detail || itemFields.insertText;
-            item.sortText = item.kind.toString();
-            return item;
-        };
-        /**
-         * Сonverts the source array to array of completions
-         * @param processedArray the source array
-         * @param additionalStrings the strings to be processed and added to completions
-         * @returns completions
-         */
-        CompletionProvider.prototype.getItemsArray = function (processedArray) {
-            var e_4, _a;
-            var _this = this;
-            var additionalStrings = [];
-            for (var _i = 1; _i < arguments.length; _i++) {
-                additionalStrings[_i - 1] = arguments[_i];
-            }
-            var items = processedArray.map(function (el) { return _this.fillCompletionItem({ insertText: el }); });
-            try {
-                for (var additionalStrings_1 = __values(additionalStrings), additionalStrings_1_1 = additionalStrings_1.next(); !additionalStrings_1_1.done; additionalStrings_1_1 = additionalStrings_1.next()) {
-                    var s = additionalStrings_1_1.value;
-                    items.push(this.fillCompletionItem({ insertText: s }));
-                }
-            }
-            catch (e_4_1) { e_4 = { error: e_4_1 }; }
-            finally {
-                try {
-                    if (additionalStrings_1_1 && !additionalStrings_1_1.done && (_a = additionalStrings_1.return)) _a.call(additionalStrings_1);
-                }
-                finally { if (e_4) throw e_4.error; }
-            }
-            return items;
-        };
-        return CompletionProvider;
-    }());
-
-    /** Regular expressions for CSV syntax checking */
-    //  csv <name> =
-    //  <header1>, <header2>
-    var CSV_NEXT_LINE_HEADER_PATTERN = /(^[ \t]*csv[ \t]+)(\w+)[ \t]*(=)/m;
-    // csv <name> = <header1>, <header2>
-    var CSV_INLINE_HEADER_PATTERN = /=[ \t]*$/m;
-    // csv <name> from <url>
-    var CSV_FROM_URL_PATTERN = /(^[ \t]*csv[ \t]+)(\w+)[ \t]*(from)/m;
-    // blank line
-    var BLANK_LINE_PATTERN = /^[ \t]*$/m;
-    // csv
-    var CSV_KEYWORD_PATTERN = /\b(csv)\b/i;
-    /** Regular expressions to match SQL */
-    // sql = SELECT time, entity, value FROM cpu_busy
-    var ONE_LINE_SQL = /^\s*sql\s*=.*$/m;
-    // sql SELECT 1
-    var BLOCK_SQL_START_WITHOUT_LF = /(^\s*)sql\s*\S/;
-    /** Regular expressions to match script */
-    // script = console.log()
-    var ONE_LINE_SCRIPT = /^\s*script(?:\s+)*=\s+(.*)$/m;
-    // script alert("Hello, world!")
-    var BLOCK_SCRIPT_START_WITHOUT_LF = /(^\s*)script\s*\S/;
-    // script
-    var BLOCK_SCRIPT_START = /(?:^\s*)script(?!([\s\S]*=))/;
-    // endscript
-    var BLOCK_SCRIPT_END = /^\s*endscript\s*$/;
-    // =, ==, !=, >=, <=, >, <
-    var RELATIONS_REGEXP = new RegExp("(^\\s*.+?)(\\s*?)(" + RELATIONS.join("|") + ")(\\s*)");
-
-    /**
-     * Used in JavaScriptChecksQueue to ensure that the udf is placed earlier than it's first call
-     */
-    var CheckPriority;
-    (function (CheckPriority) {
-        CheckPriority[CheckPriority["High"] = 0] = "High";
-        CheckPriority[CheckPriority["Low"] = 1] = "Low";
-    })(CheckPriority || (CheckPriority = {}));
-
-    /**
-     * Contains the text and the position of the text
-     */
-    var TextRange = /** @class */ (function () {
-        function TextRange(text, range, canBeUnclosed) {
-            if (canBeUnclosed === void 0) { canBeUnclosed = false; }
-            /**
-             * Priority of the text, used in jsDomCaller: settings with higher priority are placed earlier in test js "file"
-             */
-            this.priority = CheckPriority.Low;
-            this.range = range;
-            this.text = text;
-            this.canBeUnclosed = canBeUnclosed;
-        }
-        /**
-         * Checks is current keyword closeable or not (can be closed like var-endvar)
-         * @param line the line containing the keyword
-         * @returns true if the keyword closeable
-         */
-        TextRange.isCloseAble = function (line) {
-            return /^[\s\t]*(?:for|if|list|sql|var|script[\s\t]*$|csv|else|elseif)\b/.test(line);
-        };
-        /**
-         * Checks does the keyword close a section or not
-         * @param line the line containing the keyword
-         * @returns true if the keyword closes a section
-         */
-        TextRange.isClosing = function (line) {
-            return /^[\s\t]*(?:end(?:for|if|list|var|script|sql|csv)|elseif|else)\b/.test(line);
-        };
-        /**
-         * Parses a keyword from the line and creates a TextRange.
-         * @param line the line containing the keyword
-         * @param i the index of the line
-         * @param canBeUnclosed whether keyword can exist in both closed and unclosed variant or not
-         */
-        TextRange.parse = function (line, i, canBeUnclosed) {
-            var match = TextRange.KEYWORD_REGEXP.exec(line);
-            if (match === null) {
-                return undefined;
-            }
-            var _a = __read(match, 3), indent = _a[1], keyword = _a[2];
-            return new TextRange(keyword, Util.createRange(indent.length, keyword.length, i), canBeUnclosed);
-        };
-        /**
-         * Determines if line contains a keyword that can be unclosed
-         * @param line the line containing the keyword
-         */
-        TextRange.canBeUnclosed = function (line) {
-            return TextRange.CAN_BE_UNCLOSED_REGEXP.some(function (regexp) {
-                return regexp.test(line);
-            });
-        };
-        Object.defineProperty(TextRange.prototype, "textPriority", {
-            /**
-             * priority property setter
-             */
-            set: function (value) {
-                this.priority = value;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        /**
-         * Matches a keyword
-         */
-        TextRange.KEYWORD_REGEXP = 
-        // tslint:disable-next-line: max-line-length
-        /^([ \t]*)(import|endvar|endcsv|endfor|elseif|endif|endscript|endlist|endsql|script|else|if|list|sql|for|csv|var)\b/i;
-        /**
-         * Regexps for keywords supporting both closed and unclosed syntax
-         */
-        TextRange.CAN_BE_UNCLOSED_REGEXP = [
-            CSV_FROM_URL_PATTERN,
-            ONE_LINE_SQL,
-            ONE_LINE_SCRIPT
-        ];
-        return TextRange;
-    }());
-
-    /**
-     * Formats the document
-     */
-    var Formatter = /** @class */ (function () {
-        function Formatter(text, formattingOptions) {
-            /**
-             * Currently used indent
-             */
-            this.currentIndent = "";
-            /**
-             * Current line number
-             */
-            this.currentLine = 0;
-            /**
-             * Created TextEdits
-             */
-            this.edits = [];
-            /**
-             * A flag used to determine are we inside of a keyword or not
-             */
-            this.insideKeyword = false;
-            /**
-             * Array containing indents at start of keywords to restore them later
-             */
-            this.keywordsLevels = [];
-            /**
-             * Indent of last keyword.
-             */
-            this.lastKeywordIndent = "";
-            this.lastAddedParent = {};
-            this.previousSection = {};
-            this.currentSection = {};
-            this.options = formattingOptions;
-            this.lines = text.split("\n");
-        }
-        /**
-         * Reads the document line by line and calls corresponding formatting functions
-         * @returns array of text edits to properly format document
-         */
-        Formatter.prototype.lineByLine = function () {
-            for (var line = this.getLine(this.currentLine); line !== void 0; line = this.nextLine()) {
-                if (Util.isEmpty(line)) {
-                    if (this.currentSection.name === "tags" && this.previousSection.name !== "widget") {
-                        Object.assign(this.currentSection, this.previousSection);
-                        this.decreaseIndent();
-                    }
-                    continue;
-                }
-                else if (this.isSectionDeclaration()) {
-                    this.calculateSectionIndent();
-                    this.checkIndent();
-                    this.increaseIndent();
-                    continue;
-                }
-                else if (BLOCK_SCRIPT_START.test(line)) {
-                    this.checkIndent();
-                    this.formatScript();
-                    this.checkIndent();
-                    continue;
-                }
-                else {
-                    this.checkSign();
-                }
-                if (TextRange.isClosing(line)) {
-                    var stackHead = this.keywordsLevels.pop();
-                    this.setIndent(stackHead);
-                    this.insideKeyword = false;
-                    this.lastKeywordIndent = "";
-                }
-                this.checkIndent();
-                if (TextRange.isCloseAble(line) && this.shouldBeClosed()) {
-                    this.keywordsLevels.push(this.currentIndent.length / Formatter.BASE_INDENT_SIZE);
-                    this.lastKeywordIndent = this.currentIndent;
-                    this.increaseIndent();
-                    this.insideKeyword = true;
-                }
-            }
-            return this.edits;
-        };
-        /**
-         * Formats JavaScript content inside script tags
-         */
-        Formatter.prototype.formatScript = function () {
-            var line = this.nextLine();
-            var startLine = this.currentLine;
-            // Get content between script tags
-            var buffer = [];
-            while (line !== undefined && !BLOCK_SCRIPT_END.test(line)) {
-                buffer.push(line);
-                line = this.nextLine();
-            }
-            if (!buffer.length) {
-                return;
-            }
-            var content = buffer.join("\n");
-            // Parse and format JavaScript
-            var parsedCode = esprima.parseScript(content);
-            var formattedCode = escodegen.generate(parsedCode, {
-                format: {
-                    indent: {
-                        base: (this.currentIndent.length / this.options.tabSize) + 1,
-                        style: " ".repeat(this.options.tabSize)
-                    }
-                }
-            });
-            var endLine = this.currentLine - 1;
-            var endCharacter = this.getLine(endLine).length;
-            this.edits.push(vscodeLanguageserverTypes.TextEdit.replace(vscodeLanguageserverTypes.Range.create(startLine, 0, endLine, endCharacter), formattedCode));
-        };
-        /**
-         * Checks how many spaces are between the sign and setting name
-         */
-        Formatter.prototype.checkSign = function () {
-            var line = this.getCurrentLine();
-            var match = RELATIONS_REGEXP.exec(line);
-            if (match === null) {
-                return;
-            }
-            var _a = __read(match, 5), declaration = _a[1], spacesBefore = _a[2], sign = _a[3], spacesAfter = _a[4];
-            if (spacesBefore !== " ") {
-                this.edits.push(vscodeLanguageserverTypes.TextEdit.replace(Util.createRange(declaration.length, spacesBefore.length, this.currentLine), " "));
-            }
-            if (spacesAfter !== " ") {
-                var start = line.indexOf(sign) + sign.length;
-                this.edits.push(vscodeLanguageserverTypes.TextEdit.replace(Util.createRange(start, spacesAfter.length, this.currentLine), " "));
-            }
-        };
-        /**
-         * Calculates current indent based on current state
-         */
-        Formatter.prototype.calculateSectionIndent = function () {
-            if (!this.match) {
-                throw new Error("this.match or/and this.current is not defined in calculateIndent");
-            }
-            Object.assign(this.previousSection, this.currentSection);
-            this.currentSection.name = this.match[2];
-            var depth = ResourcesProviderBase.sectionDepthMap[this.currentSection.name];
-            switch (depth) {
-                case 0: // [configuration]
-                case 1: // [group]
-                case 2: { // [widget]
-                    this.setIndent(depth - 1);
-                    this.lastAddedParent = { name: this.currentSection.name, indent: this.currentIndent };
-                    break;
-                }
-                case 3: { // [series], [dropdown], [column], ...
-                    if (ResourcesProviderBase.isNestedToPrevious(this.currentSection.name, this.previousSection.name)) {
-                        this.currentIndent = this.previousSection.indent;
-                        this.increaseIndent();
-                    }
-                    else {
-                        /**
-                         *     [tags]
-                         *       ...
-                         *  [series]
-                         *    ...
-                         */
-                        this.setIndent(depth - 1);
-                    }
-                    if (this.insideKeyword && this.currentIndent.length <= this.lastKeywordIndent.length) {
-                        this.currentIndent = this.lastKeywordIndent;
-                    }
-                    if (["series", "dropdown"].includes(this.currentSection.name)) {
-                        /**
-                         * Change parent only if current is [series] or [dropdown],
-                         * because only they could have child sections ([tag/tags] or [option]).
-                         */
-                        this.lastAddedParent = { name: this.currentSection.name, indent: this.currentIndent };
-                    }
-                    break;
-                }
-                case 4: { // [option], [properties], [tags]
-                    if (ResourcesProviderBase.isNestedToPrevious(this.currentSection.name, this.previousSection.name)) {
-                        this.currentIndent = this.previousSection.indent;
-                    }
-                    else {
-                        this.currentIndent = this.lastAddedParent.indent;
-                    }
-                    this.increaseIndent();
-                    break;
-                }
-            }
-            this.currentSection.indent = this.currentIndent;
-            if (this.insideKeyword) {
-                this.increaseIndent();
-            }
-        };
-        /**
-         * Creates a text edit if the current indent is incorrect
-         */
-        Formatter.prototype.checkIndent = function () {
-            this.match = /(^\s*)\S/.exec(this.getCurrentLine());
-            if (this.match && this.match[1] !== this.currentIndent) {
-                var indent = this.match[1];
-                this.edits.push(vscodeLanguageserverTypes.TextEdit.replace(vscodeLanguageserverTypes.Range.create(this.currentLine, 0, this.currentLine, indent.length), this.currentIndent));
-            }
-        };
-        /**
-         * Decreases the current indent by one
-         */
-        Formatter.prototype.decreaseIndent = function () {
-            if (this.currentIndent.length === 0) {
-                return;
-            }
-            var newLength = this.currentIndent.length;
-            if (this.options.insertSpaces) {
-                newLength -= this.options.tabSize;
-            }
-            else {
-                newLength--;
-            }
-            this.currentIndent = this.currentIndent.substring(0, newLength);
-        };
-        /**
-         * @returns current line
-         */
-        Formatter.prototype.getCurrentLine = function () {
-            var line = this.getLine(this.currentLine);
-            if (line === undefined) {
-                throw new Error("this.currentLine points to nowhere");
-            }
-            return line;
-        };
-        /**
-         * Caches last returned line in this.lastLineNumber
-         * To prevent several calls of removeExtraSpaces
-         * @param i the required line number
-         * @returns the required line
-         */
-        Formatter.prototype.getLine = function (i) {
-            if (!this.lastLine || this.lastLineNumber !== i) {
-                var line = this.lines[i];
-                if (line === undefined) {
-                    return undefined;
-                }
-                this.removeExtraSpaces(line);
-                this.lastLine = line;
-                this.lastLineNumber = i;
-            }
-            return this.lastLine;
-        };
-        /**
-         * Gets next line of text document
-         */
-        Formatter.prototype.nextLine = function () {
-            return this.getLine(++this.currentLine);
-        };
-        /**
-         * Increases current indent by one
-         */
-        Formatter.prototype.increaseIndent = function () {
-            var addition = "\t";
-            if (this.options.insertSpaces) {
-                addition = Array(this.options.tabSize)
-                    .fill(" ")
-                    .join("");
-            }
-            this.currentIndent += addition;
-        };
-        /**
-         * @returns true, if current line is section declaration
-         */
-        Formatter.prototype.isSectionDeclaration = function () {
-            this.match = /(^\s*)\[([a-z]+)\]/.exec(this.getCurrentLine());
-            return this.match !== null;
-        };
-        /**
-         * Removes trailing spaces (at the end and at the beginning)
-         * @param line the target line
-         */
-        Formatter.prototype.removeExtraSpaces = function (line) {
-            var match = / (\s +) $ /.exec(line);
-            if (match) {
-                this.edits.push(vscodeLanguageserverTypes.TextEdit.replace(vscodeLanguageserverTypes.Range.create(this.currentLine, line.length - match[1].length, this.currentLine, line.length), ""));
-            }
-        };
-        /**
-         * Sets current indent to the provided
-         * @param newIndentLenth the new indent
-         */
-        Formatter.prototype.setIndent = function (newIndentLenth) {
-            if (newIndentLenth === void 0) { newIndentLenth = 0; }
-            var newIndent = "";
-            for (; newIndentLenth > 0; newIndentLenth--) {
-                newIndent += "  ";
-            }
-            this.currentIndent = newIndent;
-        };
-        /**
-         * @returns true if current keyword should be closed
-         */
-        Formatter.prototype.shouldBeClosed = function () {
-            var line = this.getCurrentLine();
-            // If keyword supports unclosed syntax no need to check further
-            if (TextRange.canBeUnclosed(line)) {
-                return false;
-            }
-            this.match = /^[ \t]*((?:var|list|sql)|script[\s\t]*$)/.exec(line);
-            if (!this.match) {
-                return true;
-            }
-            switch (this.match[1]) {
-                case "var": {
-                    if (/=\s*(\[|\{)(|.*,)\s*$/m.test(line)) {
-                        return true;
-                    }
-                    break;
-                }
-                case "list": {
-                    if (/(=|,)[ \t]*$/m.test(line)) {
-                        return true;
-                    }
-                    break;
-                }
-                default: return true;
-            }
+    function isInMap(value, map) {
+        var e_1, _a, e_2, _b;
+        if (value == null) {
             return false;
-        };
-        /**
-         * Number of spaces between parent and child indents
-         */
-        Formatter.BASE_INDENT_SIZE = 2;
-        return Formatter;
-    }());
+        }
+        try {
+            for (var _c = __values(map.values()), _d = _c.next(); !_d.done; _d = _c.next()) {
+                var array = _d.value;
+                try {
+                    for (var array_1 = (e_2 = void 0, __values(array)), array_1_1 = array_1.next(); !array_1_1.done; array_1_1 = array_1.next()) {
+                        var item = array_1_1.value;
+                        if ((Array.isArray(item) && item.includes(value)) || (item === value)) {
+                            return true;
+                        }
+                    }
+                }
+                catch (e_2_1) { e_2 = { error: e_2_1 }; }
+                finally {
+                    try {
+                        if (array_1_1 && !array_1_1.done && (_b = array_1.return)) _b.call(array_1);
+                    }
+                    finally { if (e_2) throw e_2.error; }
+                }
+            }
+        }
+        catch (e_1_1) { e_1 = { error: e_1_1 }; }
+        finally {
+            try {
+                if (_d && !_d.done && (_a = _c.return)) _a.call(_c);
+            }
+            finally { if (e_1) throw e_1.error; }
+        }
+        return false;
+    }
+    /**
+     * @param target array of aliases
+     * @param array array to perform the search
+     * @returns true, if array contains a value from target
+     */
+    function isAnyInArray(target, array) {
+        var e_3, _a;
+        try {
+            for (var target_1 = __values(target), target_1_1 = target_1.next(); !target_1_1.done; target_1_1 = target_1.next()) {
+                var item = target_1_1.value;
+                if (array.includes(item)) {
+                    return true;
+                }
+            }
+        }
+        catch (e_3_1) { e_3 = { error: e_3_1 }; }
+        finally {
+            try {
+                if (target_1_1 && !target_1_1.done && (_a = target_1.return)) _a.call(target_1);
+            }
+            finally { if (e_3) throw e_3.error; }
+        }
+        return false;
+    }
+    /**
+     * Clears the passed argument and looks for a setting with the same name
+     * @param name name of the wanted setting
+     * @param range TextRange of the setting in text.
+     * @returns the wanted setting or undefined if not found
+     */
+    function getSetting(name, range) {
+        var clearedName = Setting.clearSetting(name);
+        var settingsMap = LanguageService.getResourcesProvider().settingsMap;
+        var defaultSetting = settingsMap.get(clearedName);
+        if (defaultSetting === undefined) {
+            return undefined;
+        }
+        var setting = new Setting(defaultSetting);
+        if (range) {
+            setting.textRange = range;
+        }
+        return setting;
+    }
+    /**
+     * Counts CSV columns using RegExp.
+     * @param line a CSV-formatted line
+     * @returns number of CSV columns in the line
+     */
+    function countCsvColumns(line) {
+        if (line.length === 0) {
+            return 0;
+        }
+        var lineWithoutEscapes = line.replace(/(['"]).+\1/g, ""); // remove strings in quotes "6,3" or "6 3"
+        return lineWithoutEscapes.split(",").length;
+    }
+    /**
+     * Short-hand to create a diagnostic with undefined code and a standardized source
+     * @param range Where is the mistake?
+     * @param severity How severe is that problem?
+     * @param message What message should be passed to the user?
+     */
+    function createDiagnostic(range, message, severity) {
+        if (severity === void 0) { severity = vscodeLanguageserverTypes.DiagnosticSeverity.Error; }
+        return vscodeLanguageserverTypes.Diagnostic.create(range, message, severity, undefined, DIAGNOSTIC_SOURCE);
+    }
+    /**
+     * Replaces all comments with spaces.
+     * We need to remember places of statements in the original configuration,
+     * that's why it is not possible to delete all comments, whereas they must be ignored.
+     * @param text the text to replace comments
+     * @returns the modified text
+     */
+    function deleteComments(text) {
+        var content = text;
+        var multiLine = /\/\*[\s\S]*?\*\//g;
+        var oneLine = /^[ \t]*#.*/mg;
+        var match = multiLine.exec(content);
+        if (match === null) {
+            match = oneLine.exec(content);
+        }
+        while (match !== null) {
+            var newLines = match[0].split("\n").length - 1;
+            var spaces = Array(match[0].length)
+                .fill(" ")
+                .concat(Array(newLines).fill("\n"))
+                .join("");
+            content = "" + content.substr(0, match.index) + spaces + content.substr(match.index + match[0].length);
+            match = multiLine.exec(content);
+            if (match === null) {
+                match = oneLine.exec(content);
+            }
+        }
+        return content;
+    }
+    /**
+     * Replaces scripts body with newline character
+     * @param text the text to perform modifications
+     * @returns the modified text
+     */
+    function deleteScripts(text) {
+        return text.replace(/\bscript\b([\s\S]+?)\bendscript\b/g, "script\nendscript");
+    }
+    /**
+     * @returns true if the current line contains white spaces or nothing, false otherwise
+     */
+    function isEmpty(str) {
+        return /^\s*$/.test(str);
+    }
+    /**
+     * Creates a diagnostic for a repeated setting. Warning if this setting was
+     * multi-line previously, but now it is deprecated, error otherwise.
+     * @param range The range where the diagnostic will be displayed
+     * @param declaredAbove The setting, which has been declared earlier
+     * @param current The current setting
+     */
+    function repetitionDiagnostic(range, declaredAbove, current) {
+        var diagnosticSeverity = (["script", "thresholds", "colors"].includes(current.name)) ?
+            vscodeLanguageserverTypes.DiagnosticSeverity.Warning : vscodeLanguageserverTypes.DiagnosticSeverity.Error;
+        var message;
+        switch (current.name) {
+            case "script": {
+                message =
+                    "Multi-line scripts are deprecated.\nGroup multiple scripts into blocks:\nscript\nendscript";
+                break;
+            }
+            case "thresholds": {
+                message = "Replace multiple `thresholds` settings with one, for example:\nthresholds = 0\nthresholds = 60\nthresholds = 80\n\nthresholds = 0, 60, 80";
+                declaredAbove.values.push(current.value);
+                break;
+            }
+            case "colors": {
+                message = "Replace multiple `colors` settings with one, for example:\ncolors = red\ncolors = yellow\ncolors = green\n\ncolors = red, yellow, green";
+                declaredAbove.values.push(current.value);
+                break;
+            }
+            default:
+                message = declaredAbove.displayName + " is already defined";
+        }
+        return createDiagnostic(range, message, diagnosticSeverity);
+    }
+    /**
+     * Creates Range object.
+     *
+     * @param start - The starting position in the string
+     * @param length - Length of the word to be highlighted
+     * @param lineNumber - Number of line, where is the word to be highlighted
+     * @returns Range object with start equal to `start` and end equal to `start+length` and line equal to `lineNumber`.
+     */
+    function createRange(start, length, lineNumber) {
+        return vscodeLanguageserverTypes.Range.create(vscodeLanguageserverTypes.Position.create(lineNumber, start), vscodeLanguageserverTypes.Position.create(lineNumber, start + length));
+    }
+    /**
+     * Returns value of setting with specified displayName:
+     *  a) searches setting in tree
+     *  c) if there is no setting in tree, returns default value.
+     *
+     * @param settingName - Display name of setting, which value is requested
+     * @param section - Start section, from which setting must be searched
+     * @returns Value of Setting with name `settingName`.
+     */
+    function getValueOfSetting(settingName, section) {
+        var value;
+        var setting = section.getSettingFromTree(settingName);
+        if (setting === undefined) {
+            /**
+             * Setting is not declared, thus looking for default value.
+             */
+            setting = getSetting(settingName);
+            if (setting !== undefined) {
+                value = setting.defaultValue;
+            }
+        }
+        else {
+            value = setting.value;
+        }
+        return value;
+    }
 
     var ResourcesProviderBase = /** @class */ (function () {
         function ResourcesProviderBase() {
@@ -1864,12 +1011,505 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
     }());
 
     /**
+     * Used in JavaScriptChecksQueue to ensure that the udf is placed earlier than it's first call
+     */
+    var CheckPriority;
+    (function (CheckPriority) {
+        CheckPriority[CheckPriority["High"] = 0] = "High";
+        CheckPriority[CheckPriority["Low"] = 1] = "Low";
+    })(CheckPriority || (CheckPriority = {}));
+
+    /**
+     * Contains the text and the position of the text
+     */
+    var TextRange = /** @class */ (function () {
+        function TextRange(text, range, canBeUnclosed) {
+            if (canBeUnclosed === void 0) { canBeUnclosed = false; }
+            /**
+             * Priority of the text, used in jsDomCaller: settings with higher priority are placed earlier in test js "file"
+             */
+            this.priority = CheckPriority.Low;
+            this.range = range;
+            this.text = text;
+            this.canBeUnclosed = canBeUnclosed;
+        }
+        /**
+         * Checks is current keyword closeable or not (can be closed like var-endvar)
+         * @param line the line containing the keyword
+         * @returns true if the keyword closeable
+         */
+        TextRange.isCloseAble = function (line) {
+            return /^[\s\t]*(?:for|if|list|sql|var|script[\s\t]*$|csv|else|elseif)\b/.test(line);
+        };
+        /**
+         * Checks does the keyword close a section or not
+         * @param line the line containing the keyword
+         * @returns true if the keyword closes a section
+         */
+        TextRange.isClosing = function (line) {
+            return /^[\s\t]*(?:end(?:for|if|list|var|script|sql|csv)|elseif|else)\b/.test(line);
+        };
+        /**
+         * Parses a keyword from the line and creates a TextRange.
+         * @param line the line containing the keyword
+         * @param i the index of the line
+         * @param canBeUnclosed whether keyword can exist in both closed and unclosed variant or not
+         */
+        TextRange.parse = function (line, i, canBeUnclosed) {
+            var match = TextRange.KEYWORD_REGEXP.exec(line);
+            if (match === null) {
+                return undefined;
+            }
+            var _a = __read(match, 3), indent = _a[1], keyword = _a[2];
+            return new TextRange(keyword, createRange(indent.length, keyword.length, i), canBeUnclosed);
+        };
+        /**
+         * Determines if line contains a keyword that can be unclosed
+         * @param line the line containing the keyword
+         */
+        TextRange.canBeUnclosed = function (line) {
+            return TextRange.CAN_BE_UNCLOSED_REGEXP.some(function (regexp) {
+                return regexp.test(line);
+            });
+        };
+        Object.defineProperty(TextRange.prototype, "textPriority", {
+            /**
+             * priority property setter
+             */
+            set: function (value) {
+                this.priority = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        /**
+         * Matches a keyword
+         */
+        TextRange.KEYWORD_REGEXP = 
+        // tslint:disable-next-line: max-line-length
+        /^([ \t]*)(import|endvar|endcsv|endfor|elseif|endif|endscript|endlist|endsql|script|else|if|list|sql|for|csv|var)\b/i;
+        /**
+         * Regexps for keywords supporting both closed and unclosed syntax
+         */
+        TextRange.CAN_BE_UNCLOSED_REGEXP = [
+            CSV_FROM_URL_PATTERN,
+            ONE_LINE_SQL,
+            ONE_LINE_SCRIPT
+        ];
+        return TextRange;
+    }());
+
+    /**
+     * Formats the document
+     */
+    var Formatter = /** @class */ (function () {
+        function Formatter(text, formattingOptions) {
+            /**
+             * Currently used indent
+             */
+            this.currentIndent = "";
+            /**
+             * Current line number
+             */
+            this.currentLine = 0;
+            /**
+             * Created TextEdits
+             */
+            this.edits = [];
+            /**
+             * A flag used to determine are we inside of a keyword or not
+             */
+            this.insideKeyword = false;
+            /**
+             * Array containing indents at start of keywords to restore them later
+             */
+            this.keywordsLevels = [];
+            /**
+             * Indent of last keyword.
+             */
+            this.lastKeywordIndent = "";
+            this.lastAddedParent = {};
+            this.previousSection = {};
+            this.currentSection = {};
+            this.options = formattingOptions;
+            this.lines = text.split("\n");
+        }
+        /**
+         * Reads the document line by line and calls corresponding formatting functions
+         * @returns array of text edits to properly format document
+         */
+        Formatter.prototype.lineByLine = function () {
+            for (var line = this.getLine(this.currentLine); line !== void 0; line = this.nextLine()) {
+                if (isEmpty(line)) {
+                    if (this.currentSection.name === "tags" && this.previousSection.name !== "widget") {
+                        Object.assign(this.currentSection, this.previousSection);
+                        this.decreaseIndent();
+                    }
+                    continue;
+                }
+                else if (this.isSectionDeclaration()) {
+                    this.calculateSectionIndent();
+                    this.checkIndent();
+                    this.increaseIndent();
+                    continue;
+                }
+                else if (BLOCK_SCRIPT_START.test(line)) {
+                    this.checkIndent();
+                    this.formatScript();
+                    this.checkIndent();
+                    continue;
+                }
+                else {
+                    this.checkSign();
+                }
+                if (TextRange.isClosing(line)) {
+                    var stackHead = this.keywordsLevels.pop();
+                    this.setIndent(stackHead);
+                    this.insideKeyword = false;
+                    this.lastKeywordIndent = "";
+                }
+                this.checkIndent();
+                if (TextRange.isCloseAble(line) && this.shouldBeClosed()) {
+                    this.keywordsLevels.push(this.currentIndent.length / Formatter.BASE_INDENT_SIZE);
+                    this.lastKeywordIndent = this.currentIndent;
+                    this.increaseIndent();
+                    this.insideKeyword = true;
+                }
+            }
+            return this.edits;
+        };
+        /**
+         * Formats JavaScript content inside script tags
+         */
+        Formatter.prototype.formatScript = function () {
+            var line = this.nextLine();
+            var startLine = this.currentLine;
+            // Get content between script tags
+            var buffer = [];
+            while (line !== undefined && !BLOCK_SCRIPT_END.test(line)) {
+                buffer.push(line);
+                line = this.nextLine();
+            }
+            if (!buffer.length) {
+                return;
+            }
+            var content = buffer.join("\n");
+            try {
+                /** Parse and format JavaScript */
+                var parsedCode = esprima.parseScript(content);
+                var formattedCode = escodegen.generate(parsedCode, {
+                    format: {
+                        indent: {
+                            base: (this.currentIndent.length / this.options.tabSize) + 1,
+                            style: " ".repeat(this.options.tabSize)
+                        }
+                    }
+                });
+                var endLine = this.currentLine - 1;
+                var endCharacter = this.getLine(endLine).length;
+                this.edits.push(vscodeLanguageserverTypes.TextEdit.replace(vscodeLanguageserverTypes.Range.create(startLine, 0, endLine, endCharacter), formattedCode));
+            }
+            catch (error) {
+                /** If we didn't manage to format script just continue */
+            }
+        };
+        /**
+         * Checks how many spaces are between the sign and setting name
+         */
+        Formatter.prototype.checkSign = function () {
+            var line = this.getCurrentLine();
+            var match = RELATIONS_REGEXP.exec(line);
+            if (match === null) {
+                return;
+            }
+            var _a = __read(match, 5), declaration = _a[1], spacesBefore = _a[2], sign = _a[3], spacesAfter = _a[4];
+            if (spacesBefore !== " ") {
+                this.edits.push(vscodeLanguageserverTypes.TextEdit.replace(createRange(declaration.length, spacesBefore.length, this.currentLine), " "));
+            }
+            if (spacesAfter !== " ") {
+                var start = line.indexOf(sign) + sign.length;
+                this.edits.push(vscodeLanguageserverTypes.TextEdit.replace(createRange(start, spacesAfter.length, this.currentLine), " "));
+            }
+        };
+        /**
+         * Calculates current indent based on current state
+         */
+        Formatter.prototype.calculateSectionIndent = function () {
+            if (!this.match) {
+                throw new Error("this.match or/and this.current is not defined in calculateIndent");
+            }
+            Object.assign(this.previousSection, this.currentSection);
+            this.currentSection.name = this.match[2];
+            var depth = ResourcesProviderBase.sectionDepthMap[this.currentSection.name];
+            switch (depth) {
+                case 0: // [configuration]
+                case 1: // [group]
+                case 2: { // [widget]
+                    this.setIndent(depth - 1);
+                    this.lastAddedParent = { name: this.currentSection.name, indent: this.currentIndent };
+                    break;
+                }
+                case 3: { // [series], [dropdown], [column], ...
+                    if (ResourcesProviderBase.isNestedToPrevious(this.currentSection.name, this.previousSection.name)) {
+                        this.currentIndent = this.previousSection.indent;
+                        this.increaseIndent();
+                    }
+                    else {
+                        /**
+                         *     [tags]
+                         *       ...
+                         *  [series]
+                         *    ...
+                         */
+                        this.setIndent(depth - 1);
+                    }
+                    if (this.insideKeyword && this.currentIndent.length <= this.lastKeywordIndent.length) {
+                        this.currentIndent = this.lastKeywordIndent;
+                    }
+                    if (["series", "dropdown"].includes(this.currentSection.name)) {
+                        /**
+                         * Change parent only if current is [series] or [dropdown],
+                         * because only they could have child sections ([tag/tags] or [option]).
+                         */
+                        this.lastAddedParent = { name: this.currentSection.name, indent: this.currentIndent };
+                    }
+                    break;
+                }
+                case 4: { // [option], [properties], [tags]
+                    if (ResourcesProviderBase.isNestedToPrevious(this.currentSection.name, this.previousSection.name)) {
+                        this.currentIndent = this.previousSection.indent;
+                    }
+                    else {
+                        this.currentIndent = this.lastAddedParent.indent;
+                    }
+                    this.increaseIndent();
+                    break;
+                }
+            }
+            this.currentSection.indent = this.currentIndent;
+            if (this.insideKeyword) {
+                this.increaseIndent();
+            }
+        };
+        /**
+         * Creates a text edit if the current indent is incorrect
+         */
+        Formatter.prototype.checkIndent = function () {
+            this.match = /(^\s*)\S/.exec(this.getCurrentLine());
+            if (this.match && this.match[1] !== this.currentIndent) {
+                var indent = this.match[1];
+                this.edits.push(vscodeLanguageserverTypes.TextEdit.replace(vscodeLanguageserverTypes.Range.create(this.currentLine, 0, this.currentLine, indent.length), this.currentIndent));
+            }
+        };
+        /**
+         * Decreases the current indent by one
+         */
+        Formatter.prototype.decreaseIndent = function () {
+            if (this.currentIndent.length === 0) {
+                return;
+            }
+            var newLength = this.currentIndent.length;
+            if (this.options.insertSpaces) {
+                newLength -= this.options.tabSize;
+            }
+            else {
+                newLength--;
+            }
+            this.currentIndent = this.currentIndent.substring(0, newLength);
+        };
+        /**
+         * @returns current line
+         */
+        Formatter.prototype.getCurrentLine = function () {
+            var line = this.getLine(this.currentLine);
+            if (line === undefined) {
+                throw new Error("this.currentLine points to nowhere");
+            }
+            return line;
+        };
+        /**
+         * Caches last returned line in this.lastLineNumber
+         * To prevent several calls of removeExtraSpaces
+         * @param i the required line number
+         * @returns the required line
+         */
+        Formatter.prototype.getLine = function (i) {
+            if (!this.lastLine || this.lastLineNumber !== i) {
+                var line = this.lines[i];
+                if (line === undefined) {
+                    return undefined;
+                }
+                this.removeExtraSpaces(line);
+                this.lastLine = line;
+                this.lastLineNumber = i;
+            }
+            return this.lastLine;
+        };
+        /**
+         * Gets next line of text document
+         */
+        Formatter.prototype.nextLine = function () {
+            return this.getLine(++this.currentLine);
+        };
+        /**
+         * Increases current indent by one
+         */
+        Formatter.prototype.increaseIndent = function () {
+            var addition = "\t";
+            if (this.options.insertSpaces) {
+                addition = Array(this.options.tabSize)
+                    .fill(" ")
+                    .join("");
+            }
+            this.currentIndent += addition;
+        };
+        /**
+         * @returns true, if current line is section declaration
+         */
+        Formatter.prototype.isSectionDeclaration = function () {
+            this.match = /(^\s*)\[([a-z]+)\]/.exec(this.getCurrentLine());
+            return this.match !== null;
+        };
+        /**
+         * Removes trailing spaces (at the end and at the beginning)
+         * @param line the target line
+         */
+        Formatter.prototype.removeExtraSpaces = function (line) {
+            var match = / (\s +) $ /.exec(line);
+            if (match) {
+                this.edits.push(vscodeLanguageserverTypes.TextEdit.replace(vscodeLanguageserverTypes.Range.create(this.currentLine, line.length - match[1].length, this.currentLine, line.length), ""));
+            }
+        };
+        /**
+         * Sets current indent to the provided
+         * @param newIndentLength the new indent
+         */
+        Formatter.prototype.setIndent = function (newIndentLength) {
+            if (newIndentLength === void 0) { newIndentLength = 0; }
+            var newIndent = "";
+            for (; newIndentLength > 0; newIndentLength--) {
+                newIndent += "  ";
+            }
+            this.currentIndent = newIndent;
+        };
+        /**
+         * @returns true if current keyword should be closed
+         */
+        Formatter.prototype.shouldBeClosed = function () {
+            var line = this.getCurrentLine();
+            // If keyword supports unclosed syntax no need to check further
+            if (TextRange.canBeUnclosed(line)) {
+                return false;
+            }
+            this.match = /^[ \t]*((?:var|list|sql)|script[\s\t]*$)/.exec(line);
+            if (!this.match) {
+                return true;
+            }
+            switch (this.match[1]) {
+                case "var": {
+                    if (/=\s*(\[|\{)(|.*,)\s*$/m.test(line)) {
+                        return true;
+                    }
+                    break;
+                }
+                case "list": {
+                    if (/(=|,)[ \t]*$/m.test(line)) {
+                        return true;
+                    }
+                    break;
+                }
+                default: return true;
+            }
+            return false;
+        };
+        /**
+         * Number of spaces between parent and child indents
+         */
+        Formatter.BASE_INDENT_SIZE = 2;
+        return Formatter;
+    }());
+
+    /**
+     * Provides hints for settings
+     */
+    var HoverProvider = /** @class */ (function () {
+        function HoverProvider(document) {
+            this.text = document.getText();
+            this.document = document;
+        }
+        /**
+         * Provides hover for the required position
+         * @param position position where hover is requested
+         */
+        HoverProvider.prototype.provideHover = function (position) {
+            var range = this.calculateRange(this.positionToOffset(position));
+            if (range === null) {
+                return null;
+            }
+            var word = this.text.substring(range.start, range.end);
+            var name = Setting.clearSetting(word);
+            var setting = getSetting(name);
+            if (setting == null || setting.description == null) {
+                return null;
+            }
+            return {
+                contents: setting.toString(),
+                range: vscodeLanguageserverTypes.Range.create(this.offsetToPosition(range.start), this.offsetToPosition(range.end)),
+            };
+        };
+        /**
+         * Converts Position to offset
+         * @param position the Position to be converted
+         */
+        HoverProvider.prototype.positionToOffset = function (position) {
+            return this.document.offsetAt(position);
+        };
+        /**
+         * Converts offset to Position
+         * @param offset the offset to be converted
+         */
+        HoverProvider.prototype.offsetToPosition = function (offset) {
+            return this.document.positionAt(offset);
+        };
+        /**
+         * Finds limits of a line in text
+         * @param position position from which to start
+         */
+        HoverProvider.prototype.lineLimits = function (position) {
+            return {
+                end: this.positionToOffset(vscodeLanguageserverTypes.Position.create(position.line + 1, 0)) - 1,
+                start: this.positionToOffset(vscodeLanguageserverTypes.Position.create(position.line, 0)),
+            };
+        };
+        /**
+         * Calculates the range where the setting is defined
+         * @param offset offset from which to start
+         */
+        HoverProvider.prototype.calculateRange = function (offset) {
+            var lineLimits = this.lineLimits(this.offsetToPosition(offset));
+            var line = this.text.substring(lineLimits.start, lineLimits.end);
+            var regexp = /\S.+?(?=\s*?=)/;
+            var match = regexp.exec(line);
+            if (match === null) {
+                return null;
+            }
+            var start = lineLimits.start + match.index;
+            var end = start + match[0].length;
+            if (offset >= start && offset <= end) {
+                return { end: end, start: start };
+            }
+            return null;
+        };
+        return HoverProvider;
+    }());
+
+    /**
      * Stores config lines as array, removes comments.
      */
     var Config = /** @class */ (function () {
         function Config(text) {
             this.currentLineNumber = -1;
-            this.lines = Util.deleteComments(text)
+            this.lines = deleteComments(text)
                 .toLowerCase()
                 .split("\n");
         }
@@ -1925,6 +1565,11 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
     }());
 
     /**
+     * Settings, that are frequently used in conditions checks,
+     * see requiredSettings.ts, uselessSettings.ts and date checks.
+     */
+    var sectionScopeSettings = ["type", "mode", "endtime", "timezone"];
+    /**
      * ConfigTree node.
      */
     var Section = /** @class */ (function () {
@@ -1934,7 +1579,10 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
          */
         function Section(range, settings) {
             this.children = [];
-            this.scope = {};
+            /**
+             * Caches frequently used settings to reduce search in tree.
+             */
+            this.scope = new Map();
             this.range = range;
             this.name = range.text;
             this.settings = settings;
@@ -1943,18 +1591,18 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
             var e_1, _a;
             if (this.parent !== undefined) {
                 /**
-                 * We are not at [configuration].
+                 * We are not at [configuration]. Inherit parent scope.
                  */
-                this.scope = Object.create(this.parent.scope);
+                this.scope = new Map(this.parent.scope);
             }
             try {
                 for (var _b = __values(this.settings), _c = _b.next(); !_c.done; _c = _b.next()) {
                     var setting = _c.value;
-                    if (setting.name === "type") {
-                        this.scope.widgetType = setting.value;
-                    }
-                    else if (setting.name === "mode") {
-                        this.scope.mode = setting.value;
+                    /**
+                     * Override parent scope.
+                     */
+                    if (sectionScopeSettings.includes(setting.name)) {
+                        this.scope.set(setting.name, setting);
                     }
                 }
             }
@@ -1977,16 +1625,21 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
             return this.settings.find(function (s) { return s.name === cleared; });
         };
         /**
-         * Searches setting in the tree by it's displayName,
+         * Returns setting with specified display name. If setting is frequently used, tries to get it from section's scope,
+         * otherwise searches setting in the tree by it's displayName,
          * starting from the current section and ending root, returns the closest one.
          *
          * @param settingName - Setting.displayName
          * @returns Setting with displayname equal to `settingName`
          */
         Section.prototype.getSettingFromTree = function (settingName) {
+            var value = this.getScopeSetting(settingName);
+            if (value != null) {
+                return value;
+            }
             var currentSection = this;
             while (currentSection) {
-                var value = currentSection.getSetting(settingName);
+                value = currentSection.getSetting(settingName);
                 if (value !== void 0) {
                     return value;
                 }
@@ -1994,8 +1647,9 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
             }
             return undefined;
         };
-        Section.prototype.getScopeValue = function (settingName) {
-            return settingName === "type" ? this.scope.widgetType : this.scope.mode;
+        Section.prototype.getScopeSetting = function (settingName) {
+            var cleared = Setting.clearSetting(settingName);
+            return this.scope.get(cleared);
         };
         /**
          * Returns true if section passes all of conditions, otherwise returns false.
@@ -2118,43 +1772,6 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
     }());
 
     /**
-     * Settings, that are frequently used in conditions checks,
-     * see requiredSettings.ts and uselessSettings.ts.
-     */
-    var frequentlyUsed = ["mode", "type"];
-    /**
-     * Returns value of setting with specified displayName:
-     *  a) if setting is frequently used, tries to get it from section's scope;
-     *  b) otherwise searches setting in tree
-     *  c) if there is no setting in tree, returns default value.
-     *
-     * @param settingName - Name of setting, which value is requisted
-     * @param section - Start section, from which setting must be searched
-     * @returns Value of Setting with name `settingName`.
-     */
-    function getValueOfCheckedSetting(settingName, section) {
-        var value;
-        if (frequentlyUsed.includes(settingName)) {
-            value = section.getScopeValue(settingName);
-        }
-        else {
-            var setting = section.getSettingFromTree(settingName);
-            if (setting === undefined) {
-                /**
-                 * Setting is not declared, thus loooking for default value.
-                 */
-                setting = LanguageService.getResourcesProvider().getSetting(settingName);
-                if (setting !== undefined) {
-                    value = setting.defaultValue;
-                }
-            }
-            else {
-                value = setting.value;
-            }
-        }
-        return value;
-    }
-    /**
      * Returns function, which validates value of specified setting.
      *
      * @param settingName - Name of the setting
@@ -2163,7 +1780,7 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
      */
     function requiredCondition(settingName, possibleValues) {
         return function (section) {
-            var value = getValueOfCheckedSetting(settingName, section);
+            var value = getValueOfSetting(settingName, section);
             return value ? new RegExp(possibleValues.join("|")).test(value.toString()) : true;
         };
     }
@@ -2178,7 +1795,7 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
      */
     function isNotUselessIf(settingName, possibleValues) {
         return function (section) {
-            var value = getValueOfCheckedSetting(settingName, section);
+            var value = getValueOfSetting(settingName, section);
             var valueIsOk = value ? new RegExp(possibleValues.join("|")).test(value.toString()) : true;
             if (!valueIsOk) {
                 if (possibleValues.length > 1) {
@@ -2266,9 +1883,8 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
             ]
         ],
         [
-            "ticks", [
-                isNotUselessIf("type", ["calendar", "treemap", "gauge"]),
-                isNotUselessIf("mode", ["half", "default"])
+            "palette-ticks", [
+                isNotUselessIf("type", ["calendar", "treemap"])
             ]
         ],
         [
@@ -2295,7 +1911,7 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
                 }
                 var msg = conditions.map(function (condition) { return condition(section); }).filter(function (m) { return m; });
                 if (msg.length > 0) {
-                    diagnostics.push(Util.createDiagnostic(dependentSetting.textRange, uselessScope(dependentSetting.displayName, "" + msg.join(", ")), vscodeLanguageserverTypes.DiagnosticSeverity.Warning));
+                    diagnostics.push(createDiagnostic(dependentSetting.textRange, uselessScope(dependentSetting.displayName, "" + msg.join(", ")), vscodeLanguageserverTypes.DiagnosticSeverity.Warning));
                 }
             });
             return diagnostics;
@@ -2308,6 +1924,18 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
     var noUselessSettingsForSeries = {
         check: getRule(checks),
         name: "Checks absence of useless settings in [series]"
+    };
+
+    var rule = {
+        name: "Start-time, end-time and timespan mustn't be declared sumultaneously",
+        check: function (section) {
+            var startTime = section.getSettingFromTree("start-time");
+            var endTime = section.getSettingFromTree("end-time");
+            var timespan = section.getSettingFromTree("timespan");
+            if (startTime && endTime && timespan) {
+                return createDiagnostic(section.range.range, simultaneousTimeSettingsWarning(), vscodeLanguageserverTypes.DiagnosticSeverity.Warning);
+            }
+        }
     };
 
     /**
@@ -2332,15 +1960,6 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
                     requiredCondition("mode", ["half", "default"])
                 ],
                 requiredSetting: "thresholds"
-            }
-        ],
-        [
-            "forecast-style", {
-                conditions: [
-                    requiredCondition("type", ["chart"]),
-                    requiredCondition("mode", ["column", "column-stack"])
-                ],
-                requiredSetting: "data-type"
             }
         ],
         [
@@ -2447,7 +2066,7 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
             }
         ]
     ]);
-    var rule = {
+    var rule$1 = {
         name: "Checks presence of required setting if dependent is specified",
         check: function (section) {
             var diagnostics = [];
@@ -2487,14 +2106,14 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
                     msg = noRequiredSetting(dependent, reqNames);
                 }
                 if (required === undefined) {
-                    diagnostics.push(Util.createDiagnostic(section.range.range, msg));
+                    diagnostics.push(createDiagnostic(section.range.range, msg));
                 }
             });
             return diagnostics;
         }
     };
 
-    var rule$1 = {
+    var rule$2 = {
         name: "Checks colors is less than thresholds by 1",
         check: function (section) {
             var colorsValues;
@@ -2511,7 +2130,7 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
             }
             var thresholdsSetting = section.getSettingFromTree("thresholds");
             if (thresholdsSetting === undefined) {
-                return Util.createDiagnostic(section.range.range, "thresholds is required if colors is specified");
+                return createDiagnostic(section.range.range, "thresholds is required if colors is specified");
             }
             if (colorsSetting.values.length > 0) {
                 colorsSetting.values.push(colorsSetting.value);
@@ -2535,12 +2154,12 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
             }
             var expected = thresholdsValues.length - 1;
             if (colorsValues.length !== expected) {
-                return Util.createDiagnostic(colorsSetting.textRange, incorrectColors("" + colorsValues.length, "" + expected));
+                return createDiagnostic(colorsSetting.textRange, incorrectColors("" + colorsValues.length, "" + expected));
             }
         }
     };
 
-    var rule$2 = {
+    var rule$3 = {
         name: "Checks forecast-ssa-group-auto-count is greater than forecast-ssa-decompose-eigentriple-limit",
         check: function (section) {
             var groupAutoCount = section.getSettingFromTree("forecast-ssa-group-auto-count");
@@ -2549,41 +2168,689 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
             }
             var forecastLimit = section.getSettingFromTree("forecast-ssa-decompose-eigentriple-limit");
             var eigentripleLimitValue = forecastLimit ?
-                forecastLimit.value : LanguageService.getResourcesProvider().getSetting("forecast-ssa-decompose-eigentriple-limit").defaultValue;
+                forecastLimit.value : getSetting("forecast-ssa-decompose-eigentriple-limit").defaultValue;
             if (eigentripleLimitValue <= groupAutoCount.value) {
-                return Util.createDiagnostic(groupAutoCount.textRange, "forecast-ssa-group-auto-count " +
+                return createDiagnostic(groupAutoCount.textRange, "forecast-ssa-group-auto-count " +
                     "must be less than forecast-ssa-decompose-eigentriple-limit (default 0)");
             }
         }
     };
 
-    var rule$3 = {
-        name: "Checks forecast-horizon-end-time is greater than end-time",
+    var TimeParseError = /** @class */ (function (_super) {
+        __extends(TimeParseError, _super);
+        /**
+         * Constructs error, thrown during time settings parsing.
+         * @param wrongValue - Incorrect value, which is the reason of the error
+         * @param message - Specific description of the error
+         */
+        function TimeParseError(wrongValue, message) {
+            var _this = _super.call(this, message) || this;
+            _this.message = message + ": " + wrongValue;
+            _this.wrongValue = wrongValue;
+            _this.name = _this.constructor.name;
+            if (Error.captureStackTrace) {
+                Error.captureStackTrace(_this, _this.constructor);
+            }
+            else {
+                _this.stack = (new Error()).stack;
+            }
+            return _this;
+        }
+        return TimeParseError;
+    }(Error));
+
+    // yyyy-mm-dd hh:mm:ss
+    var ISO_LIKE_DATE_TEMPLATE = 
+    // tslint:disable-next-line:max-line-length
+    /^\s*(([0-9]{1,4}-)*[0-9]{1,4})?(\s+|^|$)([0-9]{1,2}:[0-9]{2}(:[0-9]{2}(\.[0-9]*)?)?)?(\s+([+\-])([0-9]{2})([0-9]{2}))?\s*$/;
+    /**
+     * Returns 00:00:00 of the current day.
+     *
+     * @param d - Date object, which is used as base to construct target Date object
+     * @param isUTC - If true, constructs target object as UTC date
+     * @returns Date object, corresponding to 00:00:00 of the current day.
+     */
+    function getToday(d, isUTC) {
+        var target = getCurrentHour(d, isUTC);
+        (isUTC ? target.setUTCHours : target.setHours).call(target, 0);
+        return target;
+    }
+    /**
+     * Returns current time rounded to the beginning of the current hour.
+     *
+     * @param d - Date object, which is used as base to construct target Date object
+     * @param isUTC - If true, constructs target object as UTC date
+     * @returns Date object, corresponding to 00 minutes and 00 seconds of the current hour.
+     */
+    function getCurrentHour(d, isUTC) {
+        (isUTC ? d.setUTCMinutes : d.setMinutes).call(getCurrentMinute(d, isUTC), 0);
+        return d;
+    }
+    /**
+     * Returns current time rounded to the beginning of the current minute.
+     *
+     * @param d - Date object, which is used as base to construct target Date object
+     * @param isUTC - If true, constructs target object as UTC date
+     * @returns Date object, corresponding to 00 seconds and 00 milliseconds of the current minute.
+     */
+    function getCurrentMinute(d, isUTC) {
+        (isUTC ? d.setUTCSeconds : d.setSeconds).call(d, 0);
+        (isUTC ? d.setUTCMilliseconds : d.setMilliseconds).call(d, 0);
+        return d;
+    }
+    /**
+     * Returns day, shifted to specified offset.
+     *
+     * @param d - Date object, which is used as base to construct target Date object
+     * @param offset - Shift value
+     * @param isUTC - If true, constructs target object as UTC date
+     * @returns Date object, corresponding to shifted day.
+     */
+    function shiftDay(d, offset, isUTC) {
+        if (offset) {
+            (isUTC ? d.setUTCDate : d.setDate).call(d, (isUTC ? d.getUTCDate() : d.getDate()) + offset);
+        }
+        return d;
+    }
+    /**
+     * Returns hour, shifted to specified offset.
+     *
+     * @param d - Date object, which is used as base to construct target Date object
+     * @param offset - Shift value
+     * @param isUTC - If true, constructs target object as UTC date
+     * @returns Date object, corresponding to shifted hour.
+     */
+    function shiftHour(d, offset, isUTC) {
+        if (offset) {
+            (isUTC ? d.setUTCHours : d.setHours).call(d, (isUTC ? d.getUTCHours() : d.getHours()) + offset);
+        }
+        return d;
+    }
+    /**
+     * Returns minute, shifted to specified offset.
+     *
+     * @param d - Date object, which is used as base to construct target Date object
+     * @param offset - Shift value
+     * @param isUTC - If true, constructs target object as UTC date
+     * @returns Date object, corresponding to shifted minute.
+     */
+    function shiftMinute(d, offset, isUTC) {
+        if (offset) {
+            (isUTC ? d.setUTCMinutes : d.setMinutes).call(d, (isUTC ? d.getUTCMinutes() : d.getMinutes()) + offset);
+        }
+        return d;
+    }
+    /**
+     * Returns number of days in current month.
+     *
+     * @param d - Date object, which is used as base to calculate days
+     * @param isUTC - If true, evaluates d object as UTC date
+     * @returns Number of days in month, corresponding to `d`.
+     */
+    function daysInMonth(d, isUTC) {
+        var copy = new Date(d);
+        (isUTC ? d.setUTCDate : d.setDate).call(copy, 32);
+        (isUTC ? d.setUTCDate : d.setDate).call(copy, 0);
+        return (isUTC ? d.getUTCDate : d.getDate).call(copy);
+    }
+    /**
+     * Returns true if day is sat or sun.
+     *
+     * @param n - Index of day to be checked
+     * @returns True if `n` is 6 or 0.
+     */
+    function isWorkingDay(n) {
+        return (n + 7) % 7 % 6;
+    }
+
+    var TimeParser = /** @class */ (function () {
+        function TimeParser(timezoneValue) {
+            var _this = this;
+            if (timezoneValue === void 0) { timezoneValue = ""; }
+            /**
+             * If true, {@link parseDateTemplate} constructs target Date object as UTC date.
+             */
+            this.isUTC = false;
+            this.calendarKeywords = new Map([
+                ["time", function () {
+                        return Date.now();
+                    }],
+                ["now", function () {
+                        return Date.now();
+                    }],
+                ["date", function () {
+                        return new Date();
+                    }],
+                ["sec", function () {
+                        return 1000;
+                    }],
+                ["second", function () {
+                        return 1000;
+                    }],
+                ["min", function () {
+                        return 60000;
+                    }],
+                ["minute", function () {
+                        return 60000;
+                    }],
+                ["hour", function () {
+                        return 3600000;
+                    }],
+                ["day", function () {
+                        return 86400000;
+                    }],
+                ["week", function () {
+                        return 604800000;
+                    }],
+                ["month", function () {
+                        return 2592000000;
+                    }],
+                ["year", function () {
+                        return 31536000000;
+                    }],
+                ["current_minute", function (d) {
+                        return getCurrentMinute(d, _this.isUTC);
+                    }],
+                ["current_hour", function (d) {
+                        return getCurrentHour(d, _this.isUTC);
+                    }],
+                ["current_day", function (d) {
+                        return getToday(d, _this.isUTC);
+                    }],
+                ["today", function (d) {
+                        return getToday(d, _this.isUTC);
+                    }],
+                ["current_week", this.cw],
+                ["current_month", this.cm],
+                ["first_day", this.cm],
+                ["current_quarter", function (d) {
+                        return _this._setMonth(_this.cm(d), Math.floor(_this._getMonth(d) / 3) * 3);
+                    }],
+                ["current_year", function (d) {
+                        return _this._setMonth(_this.cm(d), 0);
+                    }],
+                ["previous_minute", function (d) {
+                        getCurrentMinute(d, _this.isUTC);
+                        return shiftMinute(d, -1, _this.isUTC);
+                    }],
+                ["previous_hour", function (d) {
+                        getCurrentHour(d, _this.isUTC);
+                        return shiftHour(d, -1, _this.isUTC);
+                    }],
+                ["previous_day", this.pd],
+                ["yesterday", this.pd],
+                ["previous_week", function (d) {
+                        shiftDay(d, -7, _this.isUTC);
+                        return _this.cw(d);
+                    }],
+                ["previous_month", function (d) {
+                        return _this._setMonth(_this.cm(d), _this._getMonth(d) - 1);
+                    }],
+                ["previous_quarter", function (d) {
+                        return _this._setMonth(_this.cm(d), (Math.floor(_this._getMonth(d) / 3) - 1) * 3);
+                    }],
+                ["previous_year", function (d) {
+                        return _this._setMonth(_this.cm(d), -12);
+                    }],
+                ["previous_working_day", this.pwd],
+                ["previous_vacation_day", this.pvd],
+                ["next_minute", function (d) {
+                        getCurrentMinute(d, _this.isUTC);
+                        return shiftMinute(d, 1, _this.isUTC);
+                    }],
+                ["next_hour", function (d) {
+                        getCurrentHour(d, _this.isUTC);
+                        return shiftHour(d, 1, _this.isUTC);
+                    }],
+                ["next_day", this.nd],
+                ["tomorrow", this.nd],
+                ["next_week", function (d) {
+                        shiftDay(d, 7, _this.isUTC);
+                        return _this.cw(d);
+                    }],
+                ["next_month", function (d) {
+                        return _this._setMonth(_this.cm(d), _this._getMonth(d) + 1);
+                    }],
+                ["next_quarter", function (d) {
+                        return _this._setMonth(_this.cm(d), (Math.floor(_this._getMonth(d) / 3) + 1) * 3);
+                    }],
+                ["next_year", function (d) {
+                        return _this._setMonth(_this.cm(d), 12);
+                    }],
+                ["next_working_day", this.nwd],
+                ["next_vacation_day", this.nvd],
+                ["last_day", this.ld],
+                ["last_working_day", function (d) {
+                        var lastDay = _this.ld(d);
+                        return isWorkingDay(_this._getDay(lastDay)) ? lastDay : _this.pwd(lastDay);
+                    }],
+                ["last_vacation_day", function (d) {
+                        var lastDay = _this.ld(d);
+                        return isWorkingDay(_this._getDay(lastDay)) ? _this.pvd(lastDay) : lastDay;
+                    }],
+                ["first_working_day", function (d) {
+                        var firstDay = _this.cm(d);
+                        return isWorkingDay(_this._getDay(firstDay)) ? firstDay : _this.nwd(firstDay);
+                    }],
+                ["first_vacation_day", function (d) {
+                        var firstDay = _this.cm(d);
+                        return isWorkingDay(_this._getDay(firstDay)) ? _this.nvd(firstDay) : firstDay;
+                    }],
+                ["sunday", this.dayOfWeek(0)],
+                ["sun", this.dayOfWeek(0)],
+                ["monday", this.dayOfWeek(1)],
+                ["mon", this.dayOfWeek(1)],
+                ["tuesday", this.dayOfWeek(2)],
+                ["tue", this.dayOfWeek(2)],
+                ["wednesday", this.dayOfWeek(3)],
+                ["wed", this.dayOfWeek(3)],
+                ["thursday", this.dayOfWeek(4)],
+                ["thu", this.dayOfWeek(4)],
+                ["friday", this.dayOfWeek(5)],
+                ["fri", this.dayOfWeek(5)],
+                ["saturday", this.dayOfWeek(6)],
+                ["sat", this.dayOfWeek(6)]
+            ]);
+            this.isUTC = /^utc$/i.test(timezoneValue);
+        }
+        /**
+         * Main parsing method. Parses time setting value to Date object in the following order:
+         *  a) tries to parse as ISO-like string or Unix timestamp as string;
+         *  b) if fails (null is produced), tries to parse as calendar expression.
+         *
+         * @param settingValue - Date template string, which need to be parsed.
+         *                       Can be either ISO-like string or calendar expression
+         * @returns Date object, corresponding to `settingValue` template.
+         */
+        TimeParser.prototype.parseDateTemplate = function (settingValue) {
+            var v = settingValue.trim();
+            var now = Date.now();
+            var d = this.parseIsoLikeTemplate(v, now);
+            if (d !== null) {
+                return d;
+            }
+            // start-time = current_day + 9 hour + 50 minute
+            var baseAndSpan = v.split(/([+\-])/);
+            var base = baseAndSpan[0]; // current_day
+            var parsedKeyword = this.parseCalendarKeyword(base, now);
+            if (parsedKeyword == null) {
+                throw new TimeParseError(settingValue, "Incorrect time template");
+            }
+            var baseTime = new Date(parsedKeyword);
+            var span = v.substr(base.length); //  + 9 hour + 50 minute
+            return span.length === 0 ? baseTime : this.parseIntervalExpression(span, baseTime);
+        };
+        /**
+         * Parses span part of calendar expression and adds it to parsed base part. For example,
+         * for expression "current_day + 9 hour + 50 minute", base part is "current_day"
+         * and timespan is "+ 9 hour + 50 minute".
+         *
+         * @param timespan - Span part of calendar expression to be parsed and processed
+         * @param baseTime - Parsed base part of calendar expression
+         * @returns Date object, corresponding to parsed calendar expression.
+         * @throws TimeParseError The following restrictions are applied to `timespan`:
+         *                          1) must be in `<[+,-] count [*] unit>` format, e.g. "8 hour", "1 day";
+         *                          2) unit must be one of
+         *                            [year, quarter, month, week, day, hour, minute, min, second, sec, millisecond].
+         */
+        TimeParser.prototype.parseIntervalExpression = function (timespan, baseTime) {
+            // <[+,-] count [*] unit>, e.g. -0.5*hour, + 1 day
+            var CHECK_SPAN_SYNTAX = /^\s*(([+\-])\s*\d+(\.\d+)?\s*\*?\s*[A-Za-z]+\s*)*$/g;
+            if (!CHECK_SPAN_SYNTAX.test(timespan)) {
+                throw new TimeParseError(timespan, "Incorrect interval syntax");
+            }
+            var sign = 1;
+            var PARSE_SPAN_SYNTAX = /\s*([+\-])\s*(\d+(?:\.\d+)?)\s*\*?\s*([A-Za-z]+)\s*/g;
+            var m = PARSE_SPAN_SYNTAX.exec(timespan);
+            while (m) {
+                var count = void 0;
+                var unit = void 0;
+                var currentSign = m[1] === "-" ? -sign : sign;
+                count = currentSign * +m[2];
+                unit = m[3].toLowerCase();
+                switch (unit) {
+                    case "year":
+                        baseTime.setFullYear(baseTime.getFullYear() + count);
+                        break;
+                    case "quarter":
+                        baseTime.setMonth(baseTime.getMonth() + 3 * count);
+                        break;
+                    case "month":
+                        baseTime.setMonth(baseTime.getMonth() + count);
+                        break;
+                    case "week":
+                        baseTime.setTime(baseTime.getTime() + count * 604800000);
+                        break;
+                    case "day":
+                        baseTime.setTime(baseTime.getTime() + count * 86400000);
+                        break;
+                    case "hour":
+                        baseTime.setTime(baseTime.getTime() + count * 3600000);
+                        break;
+                    case "min": /* alias to 'minute' */
+                    case "minute":
+                        baseTime.setTime(baseTime.getTime() + count * 60000);
+                        break;
+                    case "sec": /* alias to 'second' */
+                    case "second":
+                        baseTime.setTime(baseTime.getTime() + count * 1000);
+                        break;
+                    case "millisecond":
+                        baseTime.setTime(baseTime.getTime() + count);
+                        break;
+                    default:
+                        throw new TimeParseError(unit, "Incorrect interval unit");
+                }
+                m = PARSE_SPAN_SYNTAX.exec(timespan);
+            }
+            return baseTime;
+        };
+        /**
+         * Parses date part and returns Date object, corresponding to date template.
+         *
+         * @param dateTemplate - Date template string in format yyyy-mm-dd
+         * @param d - Date object, which is used as base to construct target Date object
+         * @returns Date object, corresponding to `dateTemplate`.
+         */
+        TimeParser.prototype.parseDate = function (dateTemplate, d) {
+            var dateComponents = dateTemplate.split("-");
+            var year;
+            if (dateComponents[0].length > 2 || dateComponents.length === 3) {
+                year = +dateComponents[0];
+            }
+            var month;
+            if (year != null) {
+                month = +dateComponents[1] || 1;
+            }
+            else if (dateComponents.length === 2) {
+                month = +dateComponents[0];
+            }
+            var day;
+            if (year != null) {
+                day = +dateComponents[2] || 1;
+            }
+            else {
+                day = month != null ? dateComponents[1] : dateComponents[0];
+            }
+            if (month != null) {
+                month = (month <= 0) ? 1 : (month > 12) ? 12 : month;
+                /* bound month number */
+                month = +month - 1;
+                /* in JavaScript month are counted from 0 */
+            }
+            // Set only year and month, because number of days depends on the specified month and year.
+            if (year != null) {
+                if (this.isUTC) {
+                    d.setUTCFullYear(+year, +month, 1);
+                }
+                else {
+                    d.setFullYear(+year, +month, 1);
+                }
+            }
+            else {
+                if (month != null) {
+                    if (this.isUTC) {
+                        d.setUTCMonth(+month, 1);
+                    }
+                    else {
+                        d.setMonth(+month, 1);
+                    }
+                }
+            }
+            day = (day <= 0) ? 1 : Math.min(+day, daysInMonth(d, this.isUTC));
+            if (this.isUTC) {
+                d.setUTCDate(day);
+            }
+            else {
+                d.setDate(day);
+            }
+            return d;
+        };
+        /**
+         * Parses time part and returns Date object, corresponding to time template.
+         *
+         * @param match - Date template string, parsed to RegExpMatchArray
+         * @param d - Date object, which is used as base to construct target Date object
+         * @returns Date object, corresponding to time part of `match`.
+         */
+        TimeParser.prototype.parseTime = function (match, d) {
+            var timeComponents = match[4] ? match[4].split(/[:.]/) : null;
+            if (timeComponents !== null) {
+                (this.isUTC ? d.setUTCHours : d.setHours).call(d, +timeComponents[0]);
+                (this.isUTC ? d.setUTCMinutes : d.setMinutes).call(d, +timeComponents[1]);
+                (this.isUTC ? d.setUTCSeconds : d.setSeconds).call(d, +timeComponents[2] || 0);
+                (this.isUTC ? d.setUTCMilliseconds : d.setMilliseconds)
+                    .call(d, timeComponents[3] ? Math.round(+("0." + timeComponents[3]) * 1000) : 0);
+            }
+            else {
+                getToday(d, this.isUTC);
+            }
+            if (match[7]) {
+                var dm = +(match[8] + 1) * (+match[9] * 60 + +match[10]);
+                if (isFinite(dm)) {
+                    if (!this.isUTC) {
+                        dm += d.getTimezoneOffset();
+                    }
+                    if (dm) {
+                        d.setMinutes(d.getMinutes() - dm);
+                    }
+                }
+            }
+            return d;
+        };
+        /**
+         * Parses template string to Date object. In addition to formats, accepted by Date constructor,
+         * there are some others ISO-like yyyy-mm-dd hh:mm:ss,
+         * see timeParser.parseDate.test.ts and timeParser.parseTime.test.ts.
+         *
+         * @param template - Date template string.
+         * @param t - Unix timestamp, which is used as base to construct target Date object
+         * @returns Date object, corresponding to `template`.
+         * @throws TimeParseError Date must be greater than start of Unix epoch.
+         */
+        TimeParser.prototype.parseIsoLikeTemplate = function (template, t) {
+            var d;
+            /**
+             * For example, "2016-06-09 12:15:04.005":
+             * m[1] = 2016-06-09
+             * m[4] = 12:15:04.005
+             */
+            var m = template.match(ISO_LIKE_DATE_TEMPLATE);
+            if (m != null && (m[1] != null || m[4] != null)) {
+                d = new Date(t);
+                if (m[1] != null) {
+                    d = this.parseDate(m[1], d);
+                }
+                d = this.parseTime(m, d);
+            }
+            else {
+                d = new Date(template);
+                if (d == null || !isFinite(+d)) {
+                    return null;
+                }
+            }
+            var testDate = this.isUTC ? new Date("1970-01-01T00:00:00Z") : new Date("1970-01-01 00:00:00");
+            if (d <= testDate) {
+                throw new TimeParseError(template, "Date must be greater than 1970-01-01 00:00:00");
+            }
+            return d;
+        };
+        TimeParser.prototype._getDay = function (d) {
+            return this.isUTC ? d.getUTCDay() : d.getDay();
+        };
+        TimeParser.prototype._getDate = function (d) {
+            return this.isUTC ? d.getUTCDate() : d.getDate();
+        };
+        TimeParser.prototype._getMonth = function (d) {
+            return this.isUTC ? d.getUTCMonth() : d.getMonth();
+        };
+        TimeParser.prototype._setMonth = function (d, v) {
+            if (this.isUTC) {
+                d.setUTCMonth(v);
+            }
+            else {
+                d.setMonth(v);
+            }
+            return d;
+        };
+        TimeParser.prototype.cw = function (d) {
+            return this.calendarKeywords.get("mon")(d);
+        };
+        TimeParser.prototype.cm = function (d) {
+            var today = getToday(d, this.isUTC);
+            return shiftDay(today, 1 - this._getDate(today), this.isUTC);
+        };
+        TimeParser.prototype.pd = function (d) {
+            var today = getToday(d, this.isUTC);
+            return shiftDay(today, -1, this.isUTC);
+        };
+        TimeParser.prototype.pwd = function (d) {
+            return isWorkingDay(this._getDay(d) - 1) ? this.pd(d) : this.calendarKeywords.get("fri")(d);
+        };
+        TimeParser.prototype.pvd = function (d) {
+            return isWorkingDay(this._getDay(d) - 1) ? this.calendarKeywords.get("sun")(d) : this.pd(d);
+        };
+        TimeParser.prototype.nd = function (d) {
+            var today = getToday(d, this.isUTC);
+            return shiftDay(today, 1, this.isUTC);
+        };
+        TimeParser.prototype.nwd = function (d) {
+            return isWorkingDay(this._getDay(d) + 1) ? this.nd(d) : this.calendarKeywords.get("mon")(d, true);
+        };
+        TimeParser.prototype.nvd = function (d) {
+            return isWorkingDay(this._getDay(d) + 1) ? this.calendarKeywords.get("sat")(d, true) : this.nd(d);
+        };
+        TimeParser.prototype.ld = function (d) {
+            var today = getToday(d, this.isUTC);
+            return shiftDay(today, daysInMonth(today, this.isUTC) - this._getDate(today), this.isUTC);
+        };
+        /**
+         * Returns function, which returns date corresponding to specified day of week.
+         *
+         * @param day - Index of day
+         * @returns Function, which constructs date object corresponding to `day`.
+         */
+        TimeParser.prototype.dayOfWeek = function (day) {
+            var _this = this;
+            return function (d, next) {
+                if (next === void 0) { next = false; }
+                var today = getToday(d, _this.isUTC);
+                return shiftDay(today, (day - _this._getDay(today) + (next ? 7 : -7)) % 7, _this.isUTC);
+            };
+        };
+        /**
+         * Parses base part of calendar expression to Date or timestamp.
+         *
+         * @param value - Date template string, which need to be parsed
+         * @param now - Unix timestamp, which is used as base to construct target Date object
+         * @returns Date object or timestamp, corresponding to `value` template.
+         * @see calendarKeywords
+         */
+        TimeParser.prototype.parseCalendarKeyword = function (value, now) {
+            var v = value.trim();
+            var parse = this.calendarKeywords.get(v);
+            if (parse == null) {
+                return null;
+            }
+            var boundParse = parse.bind(this);
+            return boundParse(new Date(now));
+        };
+        return TimeParser;
+    }());
+
+    var timeParseCache = new Map();
+    /**
+     * Parses value of time setting, adds diagnostic to `errors` if any error during parsing was thrown.
+     *
+     * @param timeSetting - Date setting, which value is need to be parsed
+     * @param timeParser - Util class, containig methods for date parsing
+     * @param errors - Array of diagnosics, to which information about error is added
+     * @returns Value of `timeSetting`, parsed to Date.
+     */
+    function parseTimeValue(timeSetting, section, errors) {
+        var parsedValue;
+        if (timeSetting != null) {
+            if (timeParseCache.has(timeSetting)) {
+                var cached = timeParseCache.get(timeSetting);
+                if (cached instanceof Date) {
+                    return cached;
+                }
+                return null;
+            }
+            try {
+                var timeZoneValue = getValueOfSetting("time-zone", section);
+                var timeParser = new TimeParser(timeZoneValue);
+                parsedValue = timeParser.parseDateTemplate(timeSetting.value);
+                timeParseCache.set(timeSetting, parsedValue);
+            }
+            catch (err) {
+                if (err instanceof TimeParseError) {
+                    var diagnostic = createDiagnostic(timeSetting.textRange, dateError(err.message, timeSetting.displayName));
+                    errors.push(diagnostic);
+                }
+                else {
+                    throw err;
+                }
+            }
+        }
+        return parsedValue;
+    }
+
+    var rule$4 = {
+        name: "Validates forecast-horizon/end-time values and checks forecast-horizon-end-time is greater than end-time",
         check: function (section) {
             var forecast = section.getSettingFromTree("forecast-horizon-end-time");
-            if (forecast === undefined) {
-                return;
-            }
             var end = section.getSettingFromTree("end-time");
-            if (end === undefined) {
+            if (forecast === undefined && end === undefined) {
                 return;
             }
-            if (end.value >= forecast.value) {
-                return Util.createDiagnostic(end.textRange, forecast.displayName + " must be greater than " + end.displayName, vscodeLanguageserverTypes.DiagnosticSeverity.Error);
+            var errors = [];
+            var parsedEnd = parseTimeValue(end, section, errors);
+            var parsedForecast = parseTimeValue(forecast, section, errors);
+            if (parsedForecast != null && parsedEnd != null) {
+                if (parsedEnd >= parsedForecast) {
+                    errors.push(createDiagnostic(end.textRange, forecast.displayName + " must be greater than " + end.displayName, vscodeLanguageserverTypes.DiagnosticSeverity.Error));
+                }
+            }
+            if (errors.length > 0) {
+                return errors;
             }
         }
     };
 
-    var rule$4 = {
-        name: "Checks start-time is greater than end-time",
+    var rule$5 = {
+        name: "Validates forecast-horizon-start-time value",
+        check: function (section) {
+            var forecast = section.getSettingFromTree("forecast-horizon-start-time");
+            if (forecast === undefined) {
+                return;
+            }
+            var errors = [];
+            parseTimeValue(forecast, section, errors);
+            if (errors.length > 0) {
+                return errors[0];
+            }
+        }
+    };
+
+    var rule$6 = {
+        name: "Validates start/end-time values and checks start-time is greater than end-time",
         check: function (section) {
             var end = section.getSettingFromTree("end-time");
             var start = section.getSettingFromTree("start-time");
-            if (end === undefined || start === undefined) {
+            if (end === undefined && start === undefined) {
                 return;
             }
-            if (start.value >= end.value) {
-                return Util.createDiagnostic(end.textRange, end.displayName + " must be greater than " + start.displayName, vscodeLanguageserverTypes.DiagnosticSeverity.Error);
+            var errors = [];
+            var parsedEnd = parseTimeValue(end, section, errors);
+            var parsedStart = parseTimeValue(start, section, errors);
+            if (parsedStart != null && parsedEnd != null) {
+                if (parsedStart >= parsedEnd) {
+                    errors.push(createDiagnostic(end.textRange, end.displayName + " must be greater than " + start.displayName, vscodeLanguageserverTypes.DiagnosticSeverity.Error));
+                }
+            }
+            if (errors.length > 0) {
+                return errors;
             }
         }
     };
@@ -2591,17 +2858,19 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
     var rulesBySection = new Map([
         [
             "series", [
-                rule$1,
-                rule$3,
                 rule$2,
-                rule,
+                rule$4,
+                rule$5,
+                rule$3,
+                rule$1,
                 noUselessSettingsForSeries
             ]
         ],
         [
             "widget", [
-                rule$4,
-                noUselessSettingsForWidget
+                rule$6,
+                noUselessSettingsForWidget,
+                rule
             ]
         ]
     ]);
@@ -2643,7 +2912,6 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
     // tslint:disable-next-line:max-classes-per-file
     var ConfigTreeWalker = /** @class */ (function () {
         function ConfigTreeWalker(сonfigTree) {
-            this.requestedSections = [];
             this.tree = сonfigTree;
         }
         /**
@@ -2653,6 +2921,7 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
          * @returns Array of sections with name `sectionName`
          */
         ConfigTreeWalker.prototype.getSectionsByName = function (sectionName) {
+            this.requestedSections = [];
             if (this.tree.getRoot) {
                 this.walk(sectionName, this.tree.getRoot);
             }
@@ -2701,7 +2970,7 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
             this.keywordsStack.push(foundKeyword);
             var match = BLOCK_SQL_START_WITHOUT_LF.exec(line);
             if (match !== null) {
-                this.diagnostics.push(Util.createDiagnostic(Util.createRange(match[1].length, "sql".length, foundKeyword.range.start.line), lineFeedRequired("sql")));
+                this.diagnostics.push(createDiagnostic(createRange(match[1].length, "sql".length, foundKeyword.range.start.line), lineFeedRequired("sql")));
             }
         };
         /**
@@ -2711,14 +2980,14 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
             var ifConditionRegex = /^[\s].*if\s*(.*)/;
             var ifCondition = ifConditionRegex.exec(line)[1];
             if (ifCondition.trim() === "") {
-                this.diagnostics.push(Util.createDiagnostic(foundKeyword.range, "If condition can not be empty"));
+                this.diagnostics.push(createDiagnostic(foundKeyword.range, "If condition can not be empty"));
                 return;
             }
             try {
                 Function("return " + ifCondition);
             }
             catch (err) {
-                this.diagnostics.push(Util.createDiagnostic(Util.createRange(line.indexOf(ifCondition), ifCondition.length, foundKeyword.range.start.line), err.message));
+                this.diagnostics.push(createDiagnostic(createRange(line.indexOf(ifCondition), ifCondition.length, foundKeyword.range.start.line), err.message));
             }
         };
         KeywordHandler.prototype.handleScript = function (line, foundKeyword) {
@@ -2728,7 +2997,7 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
             this.keywordsStack.push(foundKeyword);
             var match = BLOCK_SCRIPT_START_WITHOUT_LF.exec(line);
             if (match !== null) {
-                this.diagnostics.push(Util.createDiagnostic(Util.createRange(match[1].length, "script".length, foundKeyword.range.start.line), lineFeedRequired("script")));
+                this.diagnostics.push(createDiagnostic(createRange(match[1].length, "script".length, foundKeyword.range.start.line), lineFeedRequired("script")));
             }
         };
         return KeywordHandler;
@@ -3014,7 +3283,7 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
             return node ? node.range : null;
         };
         SectionStack.prototype.createErrorDiagnostic = function (section, message) {
-            return Util.createDiagnostic(section.range, message, vscodeLanguageserverTypes.DiagnosticSeverity.Error);
+            return createDiagnostic(section.range, message, vscodeLanguageserverTypes.DiagnosticSeverity.Error);
         };
         SectionStack.prototype.checkDependenciesResolved = function (startIndex) {
             var stack = this.stack;
@@ -3260,7 +3529,7 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
             var declaredAbove = result.find(function (v) { return v.name === variable.name; });
             if (declaredAbove !== undefined) {
                 var range = this.createRange(indent.length, name.length);
-                this.result.push(Util.repetitionDiagnostic(range, declaredAbove, variable));
+                this.result.push(repetitionDiagnostic(range, declaredAbove, variable));
             }
             else {
                 result.push(variable);
@@ -3297,7 +3566,7 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
             }
             var _a = __read(this.match, 3), indent = _a[1], variable = _a[2];
             if (array.includes(variable)) {
-                this.result.push(Util.createDiagnostic(this.createRange(indent.length, variable.length), variable + " is already defined"));
+                this.result.push(createDiagnostic(this.createRange(indent.length, variable.length), variable + " is already defined"));
             }
             else {
                 result.push(variable);
@@ -3315,9 +3584,9 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
                 return map;
             }
             var _a = __read(this.match, 3), indent = _a[1], variable = _a[2];
-            if (Util.isInMap(variable, map)) {
+            if (isInMap(variable, map)) {
                 var startPosition = this.match.index + indent.length;
-                this.result.push(Util.createDiagnostic(this.createRange(startPosition, variable.length), variable + " is already defined"));
+                this.result.push(createDiagnostic(this.createRange(startPosition, variable.length), variable + " is already defined"));
             }
             else {
                 var array = map.get(key);
@@ -3347,7 +3616,7 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
             var _this = this;
             this.deAliases.forEach(function (deAlias) {
                 if (!_this.aliases.includes(deAlias.text)) {
-                    _this.result.push(Util.createDiagnostic(deAlias.range, unknownToken(deAlias.text)));
+                    _this.result.push(createDiagnostic(deAlias.range, unknownToken(deAlias.text)));
                 }
             });
         };
@@ -3366,12 +3635,12 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
                 return;
             }
             if (!this.areWeIn(expectedEnd)) {
-                this.result.push(Util.createDiagnostic(this.foundKeyword.range, noMatching(this.foundKeyword.text, expectedEnd)));
+                this.result.push(createDiagnostic(this.foundKeyword.range, noMatching(this.foundKeyword.text, expectedEnd)));
             }
             else {
                 var index = this.keywordsStack.findIndex(function (keyword) { return keyword.text === expectedEnd; });
                 this.keywordsStack.splice(index, 1);
-                this.result.push(Util.createDiagnostic(this.foundKeyword.range, expectedEnd + " has finished before " + lastKeyword));
+                this.result.push(createDiagnostic(this.foundKeyword.range, expectedEnd + " has finished before " + lastKeyword));
             }
         };
         /**
@@ -3390,7 +3659,7 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
                     var item = _d.value;
                     if (setting.excludes.includes(item.displayName)) {
                         var range = this.createRange(indent.length, name.length);
-                        this.result.push(Util.createDiagnostic(range, setting.displayName + " can not be specified simultaneously with " + item.displayName));
+                        this.result.push(createDiagnostic(range, setting.displayName + " can not be specified simultaneously with " + item.displayName));
                     }
                 }
             }
@@ -3406,7 +3675,7 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
             var line = this.config.getCurrentLine();
             this.match = /<\/?#.*?\/?>/.exec(line);
             if (this.match !== null) {
-                this.result.push(Util.createDiagnostic(this.createRange(this.match.index, this.match[0].length), "Freemarker expressions are deprecated.\nUse a native collection: list, csv table, var object." +
+                this.result.push(createDiagnostic(this.createRange(this.match.index, this.match[0].length), "Freemarker expressions are deprecated.\nUse a native collection: list, csv table, var object." +
                     "\nMigration examples are available at " +
                     "https://github.com/axibase/charts/blob/master/syntax/freemarker.md", vscodeLanguageserverTypes.DiagnosticSeverity.Information));
                 this.match = /(as\s*(\S+)>)/.exec(line);
@@ -3457,14 +3726,14 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
                         }
                     }
                     var optionsNames = options.map(function (s) { return s.name; });
-                    if (Util.isAnyInArray(optionsNames, this.currentSettings.map(function (s) { return s.name; }))) {
+                    if (isAnyInArray(optionsNames, this.currentSettings.map(function (s) { return s.name; }))) {
                         continue;
                     }
                     try {
                         for (var _h = (e_5 = void 0, __values(this.parentSettings.values())), _j = _h.next(); !_j.done; _j = _h.next()) {
                             var array = _j.value;
                             // Trying to find in this section parents
-                            if (Util.isAnyInArray(optionsNames, array.map(function (s) { return s.name; }))) {
+                            if (isAnyInArray(optionsNames, array.map(function (s) { return s.name; }))) {
                                 continue required;
                             }
                         }
@@ -3481,7 +3750,7 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
                             for (var _k = (e_6 = void 0, __values(this.ifSettings.values())), _l = _k.next(); !_l.done; _l = _k.next()) {
                                 var array = _l.value;
                                 // Trying to find in each one of if-elseif-else... statement
-                                if (!Util.isAnyInArray(optionsNames, array.map(function (s) { return s.name; }))) {
+                                if (!isAnyInArray(optionsNames, array.map(function (s) { return s.name; }))) {
                                     notFound.push(displayName);
                                     continue required;
                                 }
@@ -3539,7 +3808,7 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
             try {
                 for (var notFound_1 = __values(notFound), notFound_1_1 = notFound_1.next(); !notFound_1_1.done; notFound_1_1 = notFound_1.next()) {
                     var option = notFound_1_1.value;
-                    this.result.push(Util.createDiagnostic(this.currentSection.range, option + " is required"));
+                    this.result.push(createDiagnostic(this.currentSection.range, option + " is required"));
                 }
             }
             catch (e_8_1) { e_8 = { error: e_8_1 }; }
@@ -3571,7 +3840,7 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
                 var declaredAbove = this.currentSettings.find(function (v) { return v.name === setting.name; });
                 if (declaredAbove !== undefined) {
                     // The setting was defined before if
-                    this.result.push(Util.repetitionDiagnostic(range, declaredAbove, setting));
+                    this.result.push(repetitionDiagnostic(range, declaredAbove, setting));
                     return;
                 }
             }
@@ -3591,7 +3860,7 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
                     if (nestedConstruction.canBeUnclosed) {
                         continue;
                     }
-                    this.result.push(Util.createDiagnostic(nestedConstruction.range, noMatching(nestedConstruction.text, "end" + nestedConstruction.text)));
+                    this.result.push(createDiagnostic(nestedConstruction.range, noMatching(nestedConstruction.text, "end" + nestedConstruction.text)));
                 }
             }
             catch (e_9_1) { e_9 = { error: e_9_1 }; }
@@ -3633,7 +3902,7 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
                 }
                 this.match = /(^\s*\[)(\w+)\s*$/.exec(line);
                 if (this.match !== null) {
-                    this.result.push(Util.createDiagnostic(this.createRange(this.match[1].length, this.match[2].length), "Section tag is unclosed"));
+                    this.result.push(createDiagnostic(this.createRange(this.match[1].length, this.match[2].length), "Section tag is unclosed"));
                 }
             }
         };
@@ -3697,7 +3966,7 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
                     return setting;
                 }
                 var message = unknownToken(settingName);
-                this.result.push(Util.createDiagnostic(this.createRange(this.match[1].length, settingName.length), message));
+                this.result.push(createDiagnostic(this.createRange(this.match[1].length, settingName.length), message));
                 return undefined;
             }
             setting = setting.applyScope({
@@ -3726,11 +3995,11 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
                     header = line.substring(this.match.index + 1);
                 }
                 else {
-                    this.result.push(Util.createDiagnostic(this.foundKeyword.range, getCsvErrorMessage(line)));
+                    this.result.push(createDiagnostic(this.foundKeyword.range, getCsvErrorMessage(line)));
                 }
             }
             this.addToStringMap(this.variables, "csvNames");
-            this.csvColumns = (header === null) ? 0 : Util.countCsvColumns(header);
+            this.csvColumns = (header === null) ? 0 : countCsvColumns(header);
         };
         /**
          * Creates a diagnostic if `else` is found, but `if` is not
@@ -3749,7 +4018,7 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
                 message = this.foundKeyword.text + " has started before " + this.getLastKeyword() + " has finished";
             }
             if (message !== undefined) {
-                this.result.push(Util.createDiagnostic(this.foundKeyword.range, message));
+                this.result.push(createDiagnostic(this.foundKeyword.range, message));
             }
         };
         /**
@@ -3811,18 +4080,18 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
                         }
                         catch (err) {
                             var start = line.indexOf(collection);
-                            this.result.push(Util.createDiagnostic(this.createRange(start, collection.length), "Incorrect collection declaration."));
+                            this.result.push(createDiagnostic(this.createRange(start, collection.length), "Incorrect collection declaration."));
                         }
                     }
-                    else if (!Util.isInMap(varName, this.variables)) {
+                    else if (!isInMap(varName, this.variables)) {
                         var message = unknownToken(varName);
                         var start = line.lastIndexOf(varName);
-                        this.result.push(Util.createDiagnostic(this.createRange(start, varName.length), message));
+                        this.result.push(createDiagnostic(this.createRange(start, varName.length), message));
                     }
                 }
                 else {
                     var start = this.match[0].indexOf("in");
-                    this.result.push(Util.createDiagnostic(this.createRange(start, "in".length), "Empty 'in' statement"));
+                    this.result.push(createDiagnostic(this.createRange(start, "in".length), "Empty 'in' statement"));
                 }
                 this.addToStringMap(this.variables, "forVariables");
             }
@@ -3933,7 +4202,7 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
                 var _a = __read(this.match, 3), indent = _a[1], name = _a[2];
                 var setting = this.getSetting(name);
                 if (this.isAllowedWidget(setting)) {
-                    this.result.push(Util.createDiagnostic(this.createRange(indent.length, name.length), settingNameInTags(name), vscodeLanguageserverTypes.DiagnosticSeverity.Information));
+                    this.result.push(createDiagnostic(this.createRange(indent.length, name.length), settingNameInTags(name), vscodeLanguageserverTypes.DiagnosticSeverity.Information));
                 }
             }
         };
@@ -3990,10 +4259,10 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
              * Show hint if setting is deprecated
              */
             if (setting.deprecated) {
-                this.result.push(Util.createDiagnostic(setting.textRange, setting.deprecated, vscodeLanguageserverTypes.DiagnosticSeverity.Warning));
+                this.result.push(createDiagnostic(setting.textRange, setting.deprecated, vscodeLanguageserverTypes.DiagnosticSeverity.Warning));
             }
             if (!this.isAllowedInSection(setting)) {
-                this.result.push(Util.createDiagnostic(setting.textRange, illegalSetting(setting.displayName), vscodeLanguageserverTypes.DiagnosticSeverity.Error));
+                this.result.push(createDiagnostic(setting.textRange, illegalSetting(setting.displayName), vscodeLanguageserverTypes.DiagnosticSeverity.Error));
             }
             if (setting.name === "type") {
                 this.currentWidget = this.match[3];
@@ -4034,11 +4303,11 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
                     var range = this.createRange(start, settingName.length);
                     if (this.currentSection.text === "tags") {
                         if (!/^["].+["]$/.test(settingName)) {
-                            this.result.push(Util.createDiagnostic(range, tagNameWithWhitespaces(settingName), vscodeLanguageserverTypes.DiagnosticSeverity.Warning));
+                            this.result.push(createDiagnostic(range, tagNameWithWhitespaces(settingName), vscodeLanguageserverTypes.DiagnosticSeverity.Warning));
                         }
                     }
                     else if (this.currentSection.text !== "properties") {
-                        this.result.push(Util.createDiagnostic(range, settingsWithWhitespaces(settingName), vscodeLanguageserverTypes.DiagnosticSeverity.Warning));
+                        this.result.push(createDiagnostic(range, settingsWithWhitespaces(settingName), vscodeLanguageserverTypes.DiagnosticSeverity.Warning));
                     }
                 }
             }
@@ -4060,7 +4329,7 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
             var word = this.match[2];
             var range = this.createRange(indent, word.length);
             if (word === "tag") {
-                this.result.push(Util.createDiagnostic(range, deprecatedTagSection, vscodeLanguageserverTypes.DiagnosticSeverity.Warning));
+                this.result.push(createDiagnostic(range, deprecatedTagSection, vscodeLanguageserverTypes.DiagnosticSeverity.Warning));
             }
         };
         /**
@@ -4155,9 +4424,9 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
          */
         Validator.prototype.validateCsv = function () {
             var line = this.config.getCurrentLine();
-            var columns = Util.countCsvColumns(line);
+            var columns = countCsvColumns(line);
             if (columns !== this.csvColumns && !/^[ \t]*$/m.test(line)) {
-                this.result.push(Util.createDiagnostic(this.createRange(0, line.length), "Expected " + this.csvColumns + " columns, but found " + columns));
+                this.result.push(createDiagnostic(this.createRange(0, line.length), "Expected " + this.csvColumns + " columns, but found " + columns));
             }
         };
         /**
@@ -4180,10 +4449,10 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
                         continue;
                     }
                     var variable = this.match[0];
-                    if (!Util.isInMap(variable, this.variables)) {
+                    if (!isInMap(variable, this.variables)) {
                         var position = startPosition + this.match.index;
                         var message = unknownToken(variable);
-                        this.result.push(Util.createDiagnostic(this.createRange(position, variable.length), message));
+                        this.result.push(createDiagnostic(this.createRange(position, variable.length), message));
                     }
                     this.match = varRegexp.exec(substr);
                 }
@@ -4194,7 +4463,7 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
             var line = this.config.getCurrentLine();
             var start = line.indexOf(name);
             var range = (start > -1) ? this.createRange(start, name.length) : undefined;
-            return LanguageService.getResourcesProvider().getSetting(name, range);
+            return getSetting(name, range);
         };
         Validator.prototype.checkUrlPlaceholders = function () {
             var phs = this.getUrlPlaceholders();
@@ -4211,11 +4480,11 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
                     return phSectionSettings_1.find(function (s) { return s.name === cleared; }) == null;
                 });
                 if (missingPhs.length > 0) {
-                    this.result.push(Util.createDiagnostic(placeholderRange.range, "Missing placeholders: " + missingPhs.join(", ") + ".", vscodeLanguageserverTypes.DiagnosticSeverity.Error));
+                    this.result.push(createDiagnostic(placeholderRange.range, "Missing placeholders: " + missingPhs.join(", ") + ".", vscodeLanguageserverTypes.DiagnosticSeverity.Error));
                 }
                 var unnecessaryPhs = phSectionSettings_1.filter(function (s) { return !phs.includes(s.name); }).map(function (s) { return s.name; });
                 if (unnecessaryPhs.length > 0) {
-                    this.result.push(Util.createDiagnostic(placeholderRange.range, "Unnecessary placeholders: " + unnecessaryPhs.join(", ") + ".", vscodeLanguageserverTypes.DiagnosticSeverity.Warning));
+                    this.result.push(createDiagnostic(placeholderRange.range, "Unnecessary placeholders: " + unnecessaryPhs.join(", ") + ".", vscodeLanguageserverTypes.DiagnosticSeverity.Warning));
                 }
             }
         };
@@ -4257,18 +4526,417 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
          * @returns Range object with start equal to `start` and end equal to `start+length`
          */
         Validator.prototype.createRange = function (start, length) {
-            return Util.createRange(start, length, this.config.currentLineNumber);
+            return createRange(start, length, this.config.currentLineNumber);
         };
         return Validator;
+    }());
+
+    var LanguageService = /** @class */ (function () {
+        function LanguageService() {
+        }
+        LanguageService.initialize = function (resourcesProvider) {
+            LanguageService.resourcesProvider = resourcesProvider;
+        };
+        LanguageService.getResourcesProvider = function () {
+            if (LanguageService.resourcesProvider === undefined) {
+                throw new Error("LanguageService wasn't properly initialized with ResourcesProvider");
+            }
+            return LanguageService.resourcesProvider;
+        };
+        LanguageService.getCompletionProvider = function (textDocument, position) {
+            return new CompletionProvider(textDocument, position);
+        };
+        LanguageService.getValidator = function (text) {
+            return new Validator(text);
+        };
+        LanguageService.getHoverProvider = function (document) {
+            return new HoverProvider(document);
+        };
+        LanguageService.getFormatter = function (text, formattingOptions) {
+            return new Formatter(text, formattingOptions);
+        };
+        return LanguageService;
+    }());
+
+    var snippets = require("../../snippets/snippets.json");
+    /**
+     * Provides dynamic completion items.
+     */
+    var CompletionProvider = /** @class */ (function () {
+        function CompletionProvider(textDocument, position) {
+            var text = textDocument.getText().substr(0, textDocument.offsetAt(position));
+            this.text = deleteScripts(deleteComments(text));
+            var textList = this.text.split("\n");
+            this.currentLine = textList[textList.length - 1];
+        }
+        /**
+         * Creates completion items
+         */
+        CompletionProvider.prototype.getCompletionItems = function () {
+            var valueMatch = /^\s*(\S+)\s*=\s*/.exec(this.currentLine);
+            var bracketsMatch = /\s*(\[.*?)\s*/.exec(this.currentLine);
+            if (valueMatch) {
+                // completion requested at assign stage, i. e. type = <Ctrl + space>
+                return this.completeSettingValue(valueMatch[1]);
+            }
+            else if (bracketsMatch) {
+                // requested completion for section name in []
+                return this.completeSectionName();
+            }
+            else {
+                // completion requested at start of line (supposed that line is empty)
+                return this.completeSnippets().concat(this.completeIf(), this.completeFor(), this.completeSettingName(), this.completeSectionName(), this.completeControlKeyWord(), this.completeEndKeyword());
+            }
+        };
+        /**
+         * Creates a completion item containing `for` loop.
+         * `in` statement is generated based on previously declared lists and vars if any.
+         * Variable name is generated based on `in` statement.
+         * @returns completion item
+         */
+        CompletionProvider.prototype.completeFor = function () {
+            var regexp = /^[ \t]*(?:list|var)[ \t]+(\S+)[ \t]*=/mg;
+            var match = regexp.exec(this.text);
+            var lastMatch;
+            while (match) {
+                lastMatch = match;
+                match = regexp.exec(this.text);
+            }
+            var collection = "collection";
+            var item = "item";
+            if (lastMatch) {
+                collection = lastMatch[1];
+                if (collection.endsWith("s")) {
+                    item = collection.substr(0, collection.lastIndexOf("s"));
+                }
+            }
+            var completion = vscodeLanguageserverTypes.CompletionItem.create("for");
+            completion.insertText = "\nfor ${1:" + item + "} in ${2:" + collection + "}\n  ${3:entity = @{${1:" + item + "}}}\n  ${0}\nendfor";
+            completion.detail = "For loop";
+            completion.kind = vscodeLanguageserverTypes.CompletionItemKind.Keyword;
+            completion.insertTextFormat = vscodeLanguageserverTypes.InsertTextFormat.Snippet;
+            return completion;
+        };
+        /**
+         * Creates an array of completion items containing section names.
+         * @returns array containing snippets
+         */
+        CompletionProvider.prototype.completeControlKeyWord = function () {
+            var e_1, _a;
+            var items = [];
+            try {
+                for (var CONTROL_KEYWORDS_1 = __values(CONTROL_KEYWORDS), CONTROL_KEYWORDS_1_1 = CONTROL_KEYWORDS_1.next(); !CONTROL_KEYWORDS_1_1.done; CONTROL_KEYWORDS_1_1 = CONTROL_KEYWORDS_1.next()) {
+                    var keyword = CONTROL_KEYWORDS_1_1.value;
+                    items.push(this.fillCompletionItem({
+                        detail: "Control keyword: " + keyword,
+                        insertText: "" + keyword,
+                        kind: vscodeLanguageserverTypes.CompletionItemKind.Keyword,
+                        name: keyword
+                    }));
+                }
+            }
+            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            finally {
+                try {
+                    if (CONTROL_KEYWORDS_1_1 && !CONTROL_KEYWORDS_1_1.done && (_a = CONTROL_KEYWORDS_1.return)) _a.call(CONTROL_KEYWORDS_1);
+                }
+                finally { if (e_1) throw e_1.error; }
+            }
+            return items;
+        };
+        /**
+         * Completes keywords endings such as `endsql`, `endfor` etc
+         */
+        CompletionProvider.prototype.completeEndKeyword = function () {
+            // detected `end`
+            var endWordRegex = /^[ \t]*(end)[ \t]*/gm;
+            // detected any control keyword in previous code
+            var keywordsRegex = new RegExp("^[ \t]*(?:" + CONTROL_KEYWORDS.join("|") + ")[ \t]*", "mg");
+            var completions = [];
+            if (endWordRegex.test(this.text)) {
+                var keywordMatch = keywordsRegex.exec(this.text);
+                var keywordLastMatch = void 0;
+                while (keywordMatch) {
+                    keywordLastMatch = keywordMatch;
+                    keywordMatch = keywordsRegex.exec(this.text);
+                }
+                if (keywordLastMatch) {
+                    var keyword = keywordLastMatch[0].trim();
+                    completions.push(this.fillCompletionItem({
+                        detail: "Control keyword: " + keyword,
+                        insertText: "end" + keyword,
+                        kind: vscodeLanguageserverTypes.CompletionItemKind.Keyword,
+                    }));
+                }
+            }
+            return completions;
+        };
+        /**
+         * Creates an array of completion items containing `if` statement.
+         * Conditions are generated based on previously declared `for` loops.
+         * @returns array containing variants of `if` statement
+         */
+        CompletionProvider.prototype.completeIf = function () {
+            var regexp = /^[ \t]*for[ \t]+(\w+)[ \t]+in/img;
+            var endFor = /^[ \t]*endfor/img;
+            var match = regexp.exec(this.text);
+            var lastMatch;
+            while (match) {
+                var end = endFor.exec(this.text);
+                if (!end || end.index < match.index) {
+                    lastMatch = match;
+                }
+                match = regexp.exec(this.text);
+            }
+            var item = "item";
+            if (lastMatch) {
+                item = lastMatch[1];
+            }
+            var ifString = vscodeLanguageserverTypes.CompletionItem.create("if string");
+            ifString.detail = "if item equals text";
+            ifString.insertText = "\nif @{${1:" + item + "}} ${2:==} ${3:\"item1\"}\n  ${4:entity} = ${5:\"item2\"}\nelse\n  ${4:entity} = ${6:\"item3\"}\nendif\n${0}";
+            var ifNumber = vscodeLanguageserverTypes.CompletionItem.create("if number");
+            ifNumber.insertText = "\nif @{${1:" + item + "}} ${2:==} ${3:5}\n  ${4:entity} = ${5:\"item1\"}\nelse\n  ${4:entity} = ${6:\"item2\"}\nendif\n${0}";
+            ifNumber.detail = "if item equals number";
+            var ifElseIf = vscodeLanguageserverTypes.CompletionItem.create("if else if");
+            ifElseIf.detail = "if item equals number else if";
+            ifElseIf.insertText = "\nif @{${1:" + item + "}} ${2:==} ${3:5}\n  ${4:entity} = ${5:\"item1\"}\nelseif @{${1:" + item + "}} ${6:==} ${7:6}\n  ${4:entity} = ${8:\"item2\"}\nelse\n  ${4:entity} = ${9:\"item3\"}\nendif\n${0}";
+            return [ifString, ifNumber, ifElseIf].map(function (completion) {
+                completion.insertTextFormat = vscodeLanguageserverTypes.InsertTextFormat.Snippet;
+                completion.kind = vscodeLanguageserverTypes.CompletionItemKind.Snippet;
+                return completion;
+            });
+        };
+        /**
+         * Creates an array of completion items containing setting names.
+         * @returns array containing snippets
+         */
+        CompletionProvider.prototype.completeSettingName = function () {
+            var e_2, _a;
+            var items = [];
+            var settingsMap = LanguageService.getResourcesProvider().settingsMap;
+            try {
+                for (var settingsMap_1 = __values(settingsMap), settingsMap_1_1 = settingsMap_1.next(); !settingsMap_1_1.done; settingsMap_1_1 = settingsMap_1.next()) {
+                    var _b = __read(settingsMap_1_1.value, 2), value = _b[1];
+                    items.push(this.fillCompletionItem({
+                        detail: (value.description ? value.description + "\n" : "") + "Example: " + value.example,
+                        insertText: value.displayName + " = ",
+                        kind: vscodeLanguageserverTypes.CompletionItemKind.Field,
+                        name: value.displayName
+                    }));
+                }
+            }
+            catch (e_2_1) { e_2 = { error: e_2_1 }; }
+            finally {
+                try {
+                    if (settingsMap_1_1 && !settingsMap_1_1.done && (_a = settingsMap_1.return)) _a.call(settingsMap_1);
+                }
+                finally { if (e_2) throw e_2.error; }
+            }
+            return items;
+        };
+        /**
+         * Creates an array of completion items containing section names.
+         * @returns array containing snippets
+         */
+        CompletionProvider.prototype.completeSectionName = function () {
+            var e_3, _a;
+            var items = [];
+            var sectionNames = Object.keys(ResourcesProviderBase.sectionDepthMap);
+            try {
+                for (var sectionNames_1 = __values(sectionNames), sectionNames_1_1 = sectionNames_1.next(); !sectionNames_1_1.done; sectionNames_1_1 = sectionNames_1.next()) {
+                    var item = sectionNames_1_1.value;
+                    items.push(this.fillCompletionItem({
+                        detail: "Section name: [" + item + "]",
+                        insertText: "" + item,
+                        kind: vscodeLanguageserverTypes.CompletionItemKind.Struct,
+                        name: item
+                    }));
+                }
+            }
+            catch (e_3_1) { e_3 = { error: e_3_1 }; }
+            finally {
+                try {
+                    if (sectionNames_1_1 && !sectionNames_1_1.done && (_a = sectionNames_1.return)) _a.call(sectionNames_1);
+                }
+                finally { if (e_3) throw e_3.error; }
+            }
+            return items;
+        };
+        /**
+         * Creates an array of completion items containing possible values for settings.
+         * @param settingName name of the setting, for example "colors"
+         * @returns array containing completions
+         */
+        CompletionProvider.prototype.completeSettingValue = function (settingName) {
+            var setting = getSetting(settingName);
+            if (!setting) {
+                return [];
+            }
+            switch (setting.type) {
+                case "string": {
+                    return this.completeStringSettingValue(setting);
+                }
+                case "number":
+                case "integer":
+                    if (setting.example) {
+                        return [this.fillCompletionItem({ insertText: setting.example.toString() })];
+                    }
+                    break;
+                case "boolean": {
+                    return this.getItemsArray(["true", "false"]);
+                }
+                case "enum": {
+                    return this.getItemsArray(setting.enum.map(function (el) {
+                        return el.replace(/percentile\\.+/, "percentile(n)");
+                    }));
+                }
+                case "interval": {
+                    return this.getItemsArray.apply(this, __spread([INTERVAL_UNITS], setting.enum));
+                }
+                case "date": {
+                    return this.getItemsArray(CALENDAR_KEYWORDS, new Date().toISOString());
+                }
+                default: {
+                    return [];
+                }
+            }
+            return [];
+        };
+        /**
+         * Creates an array of completion items containing snippets.
+         * @returns array containing snippets
+         */
+        CompletionProvider.prototype.completeSnippets = function () {
+            var _this = this;
+            var items = Object.keys(snippets).map(function (key) {
+                var insertText = (typeof snippets[key].body === "string") ?
+                    snippets[key].body : snippets[key].body.join("\n");
+                return _this.fillCompletionItem({
+                    insertText: insertText, detail: snippets[key].description,
+                    name: key, insertTextFormat: vscodeLanguageserverTypes.InsertTextFormat.Snippet, kind: vscodeLanguageserverTypes.CompletionItemKind.Keyword
+                });
+            });
+            return items;
+        };
+        /**
+         * Creates an array of completion items containing possible values for settings with type = "string".
+         * @param setting the setting
+         * @returns array containing completions
+         */
+        CompletionProvider.prototype.completeStringSettingValue = function (setting) {
+            var _this = this;
+            var valueItems = [];
+            var scriptItems = [];
+            if (setting.possibleValues) {
+                valueItems = setting.possibleValues.map(function (v) {
+                    return _this.fillCompletionItem({ insertText: v.value, detail: v.detail });
+                });
+            }
+            if (setting.script) {
+                setting.script.fields.forEach(function (field) {
+                    var e_4, _a;
+                    if (field.type === "function") {
+                        var itemFields = { insertText: "", kind: vscodeLanguageserverTypes.CompletionItemKind.Function };
+                        if (field.args) {
+                            var requiredArgs = field.args.filter(function (a) { return a.required; });
+                            var optionalArgs = field.args.filter(function (a) { return !a.required; });
+                            var requiredArgsString = "" + requiredArgs.map(function (field) { return field.name; }).join(", ");
+                            itemFields.insertText = "" + field.name + (requiredArgsString !== "" ?
+                                "(" + requiredArgsString + ")" : "");
+                            scriptItems.push(_this.fillCompletionItem(itemFields));
+                            var args = "";
+                            try {
+                                for (var optionalArgs_1 = __values(optionalArgs), optionalArgs_1_1 = optionalArgs_1.next(); !optionalArgs_1_1.done; optionalArgs_1_1 = optionalArgs_1.next()) {
+                                    var arg = optionalArgs_1_1.value;
+                                    args = "" + (args !== "" ? args + ", " : "") + arg.name;
+                                    itemFields.insertText = field.name + "(" + (requiredArgsString !== "" ?
+                                        requiredArgsString + ", " : "") + args + ")";
+                                    scriptItems.push(_this.fillCompletionItem(itemFields));
+                                }
+                            }
+                            catch (e_4_1) { e_4 = { error: e_4_1 }; }
+                            finally {
+                                try {
+                                    if (optionalArgs_1_1 && !optionalArgs_1_1.done && (_a = optionalArgs_1.return)) _a.call(optionalArgs_1);
+                                }
+                                finally { if (e_4) throw e_4.error; }
+                            }
+                        }
+                        else {
+                            itemFields.insertText = field.name;
+                            scriptItems.push(_this.fillCompletionItem(itemFields));
+                        }
+                    }
+                    else {
+                        scriptItems.push(_this.fillCompletionItem({
+                            insertText: field.name,
+                            detail: "Type: " + field.type
+                        }));
+                    }
+                });
+            }
+            if (!setting.possibleValues && setting.example !== "") {
+                valueItems = [this.fillCompletionItem({
+                        insertText: setting.example.toString(),
+                        kind: vscodeLanguageserverTypes.CompletionItemKind.Field
+                    })];
+            }
+            return valueItems.concat(scriptItems);
+        };
+        /**
+         * Set fields for CompletionItem
+         * @param insertText text to be inserted with completion request
+         * @returns completion
+         */
+        CompletionProvider.prototype.fillCompletionItem = function (itemFields) {
+            var item = vscodeLanguageserverTypes.CompletionItem.create(itemFields.name || itemFields.insertText);
+            item.insertTextFormat = itemFields.insertTextFormat || vscodeLanguageserverTypes.InsertTextFormat.PlainText;
+            item.kind = itemFields.kind || vscodeLanguageserverTypes.CompletionItemKind.Value;
+            item.insertText = itemFields.insertText;
+            item.detail = itemFields.detail || itemFields.insertText;
+            item.sortText = item.kind.toString();
+            return item;
+        };
+        /**
+         * Сonverts the source array to array of completions
+         * @param processedArray the source array
+         * @param additionalStrings the strings to be processed and added to completions
+         * @returns completions
+         */
+        CompletionProvider.prototype.getItemsArray = function (processedArray) {
+            var e_5, _a;
+            var _this = this;
+            var additionalStrings = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                additionalStrings[_i - 1] = arguments[_i];
+            }
+            var items = processedArray.map(function (el) { return _this.fillCompletionItem({ insertText: el }); });
+            try {
+                for (var additionalStrings_1 = __values(additionalStrings), additionalStrings_1_1 = additionalStrings_1.next(); !additionalStrings_1_1.done; additionalStrings_1_1 = additionalStrings_1.next()) {
+                    var s = additionalStrings_1_1.value;
+                    items.push(this.fillCompletionItem({ insertText: s }));
+                }
+            }
+            catch (e_5_1) { e_5 = { error: e_5_1 }; }
+            finally {
+                try {
+                    if (additionalStrings_1_1 && !additionalStrings_1_1.done && (_a = additionalStrings_1.return)) _a.call(additionalStrings_1);
+                }
+                finally { if (e_5) throw e_5.error; }
+            }
+            return items;
+        };
+        return CompletionProvider;
     }());
 
     exports.CompletionProvider = CompletionProvider;
     exports.DefaultSetting = DefaultSetting;
     exports.Formatter = Formatter;
+    exports.HoverProvider = HoverProvider;
     exports.LanguageService = LanguageService;
     exports.ResourcesProviderBase = ResourcesProviderBase;
     exports.Setting = Setting;
-    exports.Util = Util;
     exports.Validator = Validator;
 
     Object.defineProperty(exports, '__esModule', { value: true });

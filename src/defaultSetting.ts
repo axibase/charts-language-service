@@ -1,5 +1,6 @@
 import { PossibleValue } from "./possibleValue";
 import { Script } from "./script";
+import { Setting } from "./setting";
 
 export interface SettingScope {
     widget: string;
@@ -137,7 +138,8 @@ export class DefaultSetting {
             .map((override) => override.setting);
 
         if (matchingOverrides.length > 0) {
-            return Object.assign(this, ...matchingOverrides);
+            let copy = Object.create(Setting.prototype);
+            return Object.assign(copy, this, ...matchingOverrides);
         } else {
             return this;
         }
@@ -161,7 +163,7 @@ export class DefaultSetting {
         if (this.defaultValue != null && this.defaultValue !== "") {
             result += `Default value: ${this.defaultValue}  \n`;
         }
-        if (this.enum == null && this.enum.length === 0) {
+        if (this.enum != null && this.enum.length > 0) {
             result += `Possible values: ${this.enum.join()}  \n`;
         }
         if (this.excludes != null && this.excludes.length !== 0) {

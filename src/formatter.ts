@@ -3,8 +3,8 @@ import { parseScript } from "esprima";
 import { FormattingOptions, Range, TextEdit } from "vscode-languageserver-types";
 import { BLOCK_SCRIPT_END, BLOCK_SCRIPT_START, RELATIONS_REGEXP } from "./regExpressions";
 import { TextRange } from "./textRange";
-import { Util } from "./util";
-import { ResourcesProviderBase } from ".";
+import { createRange, isEmpty } from "./util";
+import { ResourcesProviderBase } from "./resourcesProviderBase";
 
 interface Section {
     indent?: string;
@@ -79,7 +79,7 @@ export class Formatter {
      */
     public lineByLine(): TextEdit[] {
         for (let line = this.getLine(this.currentLine); line !== void 0; line = this.nextLine()) {
-            if (Util.isEmpty(line)) {
+            if (isEmpty(line)) {
                 if (this.currentSection.name === "tags" && this.previousSection.name !== "widget") {
                     Object.assign(this.currentSection, this.previousSection);
                     this.decreaseIndent();
@@ -135,24 +135,28 @@ export class Formatter {
         }
         const content = buffer.join("\n");
 
-        // Parse and format JavaScript
-        const parsedCode = parseScript(content);
-        const formattedCode = generate(parsedCode, {
-            format: {
-                indent: {
-                    base: (this.currentIndent.length / this.options.tabSize) + 1,
-                    style: " ".repeat(this.options.tabSize)
+        try {
+            /** Parse and format JavaScript */
+            const parsedCode = parseScript(content);
+            const formattedCode = generate(parsedCode, {
+                format: {
+                    indent: {
+                        base: (this.currentIndent.length / this.options.tabSize) + 1,
+                        style: " ".repeat(this.options.tabSize)
+                    }
                 }
-            }
-        });
+            });
 
-        const endLine = this.currentLine - 1;
-        const endCharacter = this.getLine(endLine).length;
+            const endLine = this.currentLine - 1;
+            const endCharacter = this.getLine(endLine).length;
 
-        this.edits.push(TextEdit.replace(
-            Range.create(startLine, 0, endLine, endCharacter),
-            formattedCode
-        ));
+            this.edits.push(TextEdit.replace(
+                Range.create(startLine, 0, endLine, endCharacter),
+                formattedCode
+            ));
+        } catch (error) {
+            /** If we didn't manage to format script just continue */
+        }
     }
 
     /**
@@ -168,7 +172,7 @@ export class Formatter {
         if (spacesBefore !== " ") {
             this.edits.push(
                 TextEdit.replace(
-                    Util.createRange(declaration.length, spacesBefore.length, this.currentLine),
+                    createRange(declaration.length, spacesBefore.length, this.currentLine),
                     " ",
                 ),
             );
@@ -177,7 +181,7 @@ export class Formatter {
             const start = line.indexOf(sign) + sign.length;
             this.edits.push(
                 TextEdit.replace(
-                    Util.createRange(start, spacesAfter.length, this.currentLine),
+                    createRange(start, spacesAfter.length, this.currentLine),
                     " ",
                 ),
             );
@@ -349,11 +353,11 @@ export class Formatter {
 
     /**
      * Sets current indent to the provided
-     * @param newIndentLenth the new indent
+     * @param newIndentLength the new indent
      */
-    private setIndent(newIndentLenth: number = 0): void {
+    private setIndent(newIndentLength: number = 0): void {
         let newIndent = "";
-        for (; newIndentLenth > 0; newIndentLenth--) {
+        for (; newIndentLength > 0; newIndentLength--) {
             newIndent += "  ";
         }
         this.currentIndent = newIndent;

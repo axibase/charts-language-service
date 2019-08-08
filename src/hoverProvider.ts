@@ -1,6 +1,6 @@
 import { Hover, Position, Range, TextDocument } from "vscode-languageserver-types";
 import { Setting } from "./setting";
-import { LanguageService } from "./languageService";
+import { getSetting } from "./util";
 
 interface IRange {
     start: number;
@@ -36,7 +36,7 @@ export class HoverProvider {
         }
         const word: string = this.text.substring(range.start, range.end);
         const name: string = Setting.clearSetting(word);
-        const setting: Setting | undefined = LanguageService.getResourcesProvider().getSetting(name);
+        const setting: Setting | undefined = getSetting(name);
         if (setting == null || setting.description == null) {
             return null;
         }

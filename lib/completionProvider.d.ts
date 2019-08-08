@@ -1,4 +1,5 @@
 import { CompletionItem, CompletionItemKind, InsertTextFormat, Position, TextDocument } from "vscode-languageserver-types";
+export declare const snippets: any;
 export interface ItemFields {
     insertTextFormat?: InsertTextFormat;
     kind?: CompletionItemKind;

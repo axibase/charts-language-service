@@ -1,18 +1,16 @@
 import { Diagnostic, Range } from "vscode-languageserver-types";
 import { DefaultSetting } from "./defaultSetting";
-export declare const intervalUnits: string[];
-export declare const calendarKeywords: string[];
 /**
  * In addition to DefaultSetting contains specific fields.
  */
 export declare class Setting extends DefaultSetting {
     textRange: Range;
     /**
-     * Setting value.
+     * Setting value, specified in config.
      */
     value: string;
     /**
-     * Setting values for multiline settings (mostly for colors and thresholds).
+     * Setting values for multiline settings (mostly for colors and thresholds), specified in config.
      */
     values: string[];
     /**

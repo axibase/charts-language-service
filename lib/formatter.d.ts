@@ -111,7 +111,7 @@ export declare class Formatter {
     private removeExtraSpaces;
     /**
      * Sets current indent to the provided
-     * @param newIndentLenth the new indent
+     * @param newIndentLength the new indent
      */
     private setIndent;
     /**

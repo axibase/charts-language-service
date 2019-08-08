@@ -18,8 +18,14 @@ export declare const illegalSetting: MessageFactoryMethod;
  * @returns csv error message
  */
 export declare const getCsvErrorMessage: MessageFactoryMethod;
+/**
+ * If start-time, end-time and timespan are declared simultaneously, show the warning
+ */
+export declare const simultaneousTimeSettingsWarning: MessageFactoryMethod;
 export declare const noRequiredSetting: MessageFactoryMethod;
 export declare const noRequiredSettings: MessageFactoryMethod;
 export declare const noMatching: MessageFactoryMethod;
 export declare const lineFeedRequired: MessageFactoryMethod;
+export declare const supportedUnits: MessageFactoryMethod;
+export declare const dateError: MessageFactoryMethod;
 export {};

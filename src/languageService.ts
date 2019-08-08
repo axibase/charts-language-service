@@ -1,6 +1,9 @@
-import { ResourcesProviderBase, CompletionProvider, Validator, Formatter } from ".";
-import { TextDocument, Position, FormattingOptions } from "vscode-languageserver-types";
+import { CompletionProvider } from "./completionProvider";
+import { Formatter } from "./formatter";
 import { HoverProvider } from "./hoverProvider";
+import { ResourcesProviderBase } from "./resourcesProviderBase";
+import { Validator } from "./validator";
+import { TextDocument, FormattingOptions, Position } from "vscode-languageserver-types";
 
 export class LanguageService {
     private static resourcesProvider: ResourcesProviderBase;

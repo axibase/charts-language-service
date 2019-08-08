@@ -7,7 +7,7 @@ import {
     ONE_LINE_SQL
 } from "./regExpressions";
 import { TextRange } from "./textRange";
-import { Util } from "./util";
+import { createDiagnostic, createRange } from "./util";
 
 export class KeywordHandler {
     public diagnostics: Diagnostic[] = [];
@@ -25,8 +25,8 @@ export class KeywordHandler {
         const match = BLOCK_SQL_START_WITHOUT_LF.exec(line);
         if (match !== null) {
             this.diagnostics.push(
-                Util.createDiagnostic(
-                    Util.createRange(match[1].length, "sql".length, foundKeyword.range.start.line),
+                createDiagnostic(
+                    createRange(match[1].length, "sql".length, foundKeyword.range.start.line),
                     lineFeedRequired("sql")
                 ));
         }
@@ -41,7 +41,7 @@ export class KeywordHandler {
 
         if (ifCondition.trim() === "") {
             this.diagnostics.push(
-                Util.createDiagnostic(foundKeyword.range, "If condition can not be empty")
+                createDiagnostic(foundKeyword.range, "If condition can not be empty")
             );
             return;
         }
@@ -49,7 +49,7 @@ export class KeywordHandler {
         try {
             Function(`return ${ifCondition}`);
         } catch (err) {
-            this.diagnostics.push(Util.createDiagnostic(Util.createRange(
+            this.diagnostics.push(createDiagnostic(createRange(
                 line.indexOf(ifCondition),
                 ifCondition.length,
                 foundKeyword.range.start.line
@@ -64,8 +64,8 @@ export class KeywordHandler {
         this.keywordsStack.push(foundKeyword);
         const match = BLOCK_SCRIPT_START_WITHOUT_LF.exec(line);
         if (match !== null) {
-            this.diagnostics.push(Util.createDiagnostic(
-                Util.createRange(match[1].length, "script".length, foundKeyword.range.start.line),
+            this.diagnostics.push(createDiagnostic(
+                createRange(match[1].length, "script".length, foundKeyword.range.start.line),
                 lineFeedRequired("script")
             ));
         }
