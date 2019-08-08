@@ -1,15 +1,13 @@
 {
   "name": "@axibase/charts-language-service",
   "version": "0.0.1",
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "author": "Axibase Developers",
   "license": "Apache-2.0",
   "scripts": {
-    "build": "npm run build-lib && npm run build-amd",
-    "clean": "rimraf dist lib",
-    "build-lib": "tsc -p tsconfig.json",
-    "build-amd": "rollup -c rollup.config.js && terser -c -o dist/amd/build.min.js dist/amd/build.js"
+    "build": "npm run clean && tsc -p tsconfig.json",
+    "clean": "rimraf dist"
   },
   "dependencies": {
     "@types/escodegen": "^0.0.6",

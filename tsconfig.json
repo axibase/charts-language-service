@@ -2,16 +2,15 @@
 	"compilerOptions": {
 		"target": "es6",
 		"lib": ["es5"],
-		"module": "commonjs",
+		"module": "amd",
 		"moduleResolution": "node",
 		"declaration": true,
-		"outDir": "lib",
+		"outFile": "dist/index.js",
 		"rootDir": "src",
 		"downlevelIteration": true
 	},
 	"exclude": [
 		"node_modules",
-		"dist",
-		"lib"
+		"dist"
 	]
 }
