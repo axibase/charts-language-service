@@ -4930,10 +4930,6 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
         return CompletionProvider;
     }());
 
-    var descriptions = require("./resources/descriptions.md");
-    var dictionary = require("./resources/dictionary.json");
-    var snippets = require("./resources/snippets/snippets.json");
-
     exports.CompletionProvider = CompletionProvider;
     exports.DefaultSetting = DefaultSetting;
     exports.Formatter = Formatter;
@@ -4942,9 +4938,6 @@ define('charts-language-service', ['exports', 'vscode-languageserver-types', 'es
     exports.ResourcesProviderBase = ResourcesProviderBase;
     exports.Setting = Setting;
     exports.Validator = Validator;
-    exports.descriptions = descriptions;
-    exports.dictionary = dictionary;
-    exports.snippets = snippets;
 
     Object.defineProperty(exports, '__esModule', { value: true });
 

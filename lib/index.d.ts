@@ -6,7 +6,4 @@ import { LanguageService } from "./languageService";
 import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { Setting } from "./setting";
 import { Validator } from "./validator";
-declare const descriptions: any;
-declare const dictionary: any;
-declare const snippets: any;
-export { DefaultSetting, Formatter, HoverProvider, LanguageService, CompletionProvider, ResourcesProviderBase, Setting, Validator, descriptions, dictionary, snippets };
+export { DefaultSetting, Formatter, HoverProvider, LanguageService, CompletionProvider, ResourcesProviderBase, Setting, Validator };

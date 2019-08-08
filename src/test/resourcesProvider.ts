@@ -15,14 +15,14 @@ export class ResourcesProvider extends ResourcesProviderBase {
      * @returns snippets JSON contents
      */
     public readSnippets(): string {
-        return require("../../snippets/snippets.json");
+        return require("src/resources/snippets/snippets.json");
     }
     /**
      * Reads dictionary from "dictionary.json" file
      * @returns array of settings from the file
      */
     protected readSettings(): Setting[] {
-        const dictionaryFilePath: string = join(__dirname, "..", "dictionary.json");
+        const dictionaryFilePath: string = join(__dirname, "..", "resources/dictionary.json");
         const jsonContent: string = readFileSync(dictionaryFilePath, "UTF-8");
         const dictionary: IDictionary = JSON.parse(jsonContent) as IDictionary;
 
@@ -34,7 +34,7 @@ export class ResourcesProvider extends ResourcesProviderBase {
      * @returns map of settings names and descriptions
      */
     protected readDescriptions(): Map<string, string> {
-        const descriptionsPath: string = join(__dirname, "..", "descriptions.md");
+        const descriptionsPath: string = join(__dirname, "..", "resources/descriptions.md");
         const content: string = readFileSync(descriptionsPath, "UTF-8");
         const map: Map<string, string> = new Map();
         // ## settingname\n\nsetting description[url](hello#html)\n
