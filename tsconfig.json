@@ -7,11 +7,13 @@
 		"declaration": true,
 		"outDir": "lib",
 		"rootDir": "src",
+		"declarationDir": "types",
 		"downlevelIteration": true
 	},
 	"exclude": [
 		"node_modules",
 		"lib",
-		"test"
+		"test",
+		"types"
 	]
 }

@@ -1,7 +1,7 @@
 import { readFileSync } from "fs";
+import { Setting } from "../../setting";
+import { ResourcesProviderBase } from "../../resourcesProviderBase";
 import { join } from "path";
-import { ResourcesProviderBase } from "../resourcesProviderBase";
-import { Setting } from "../setting";
 
 interface IDictionary { $schema: string; settings: Setting[]; }
 
@@ -15,14 +15,15 @@ export class ResourcesProvider extends ResourcesProviderBase {
      * @returns snippets JSON contents
      */
     public readSnippets(): string {
-        return require("src/resources/snippets/snippets.json");
+        const snippetsPath: string = join(__dirname, "../../..", "src/resources/snippets/snippets.json");
+        return require(snippetsPath);
     }
     /**
      * Reads dictionary from "dictionary.json" file
      * @returns array of settings from the file
      */
     protected readSettings(): Setting[] {
-        const dictionaryFilePath: string = join(__dirname, "..", "resources/dictionary.json");
+        const dictionaryFilePath: string = join(__dirname, "../../..", "src/resources/dictionary.json");
         const jsonContent: string = readFileSync(dictionaryFilePath, "UTF-8");
         const dictionary: IDictionary = JSON.parse(jsonContent) as IDictionary;
 
@@ -34,7 +35,7 @@ export class ResourcesProvider extends ResourcesProviderBase {
      * @returns map of settings names and descriptions
      */
     protected readDescriptions(): Map<string, string> {
-        const descriptionsPath: string = join(__dirname, "..", "resources/descriptions.md");
+        const descriptionsPath: string = join(__dirname, "../../..", "src/resources/descriptions.md");
         const content: string = readFileSync(descriptionsPath, "UTF-8");
         const map: Map<string, string> = new Map();
         // ## settingname\n\nsetting description[url](hello#html)\n

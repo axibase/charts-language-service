@@ -2,14 +2,14 @@
   "name": "@axibase/charts-language-service",
   "version": "0.0.1",
   "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "types": "types/index.d.ts",
   "author": "Axibase Developers",
   "license": "Apache-2.0",
   "scripts": {
     "build": "npm run clean && npm run build-lib",
-    "clean": "rimraf dist lib",
+    "clean": "rimraf lib",
     "build-lib": "tsc -p tsconfig.json",
-    "test": "node node_modules/vscode/bin/test --node-ipc"
+    "test": "mocha --require lib/test/helpers/initResources.js --ui tdd --reporter spec lib/test/*.js"
   },
   "dependencies": {
     "@types/escodegen": "^0.0.6",
@@ -24,6 +24,8 @@
   "devDependencies": {
     "@types/jsdom": "^12.2.4",
     "@types/mocha": "^5.2.7",
+    "chai": "^4.2.0",
+    "mocha": "^6.2.0",
     "vscode": "^1.1.33"
   }
 }

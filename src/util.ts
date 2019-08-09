@@ -1,7 +1,7 @@
 import { Diagnostic, DiagnosticSeverity, Position, Range } from "vscode-languageserver-types";
 import { Section } from "./configTree/section";
 import { Setting } from "./setting";
-import { LanguageService } from ".";
+import { LanguageService } from "./languageService";
 
 const DIAGNOSTIC_SOURCE: string = "Axibase Charts";
 

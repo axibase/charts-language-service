@@ -10,16 +10,16 @@ import { Validator } from "../validator";
  * Stub section validator to allow incomplete configs in tests
  */
 // tslint:disable-next-line:no-object-literal-type-assertion
-const sectionStackStub: SectionStack  = {
+const sectionStackStub: SectionStack = {
     stack: [],
     finalize(): null { return null; },
     getCurrentSetting(): null { return null; },
     getLastSection(): null { return null; },
     getSectionRange(): null { return null; },
     getSectionSettings() { return new Map(); },
-    insertCurrentSetting() { /* void */},
-    insertSection(): null {  return null;  },
-    requireSections() { /* void */},
+    insertCurrentSetting() { /* void */ },
+    insertSection(): null { return null; },
+    requireSections() { /* void */ },
     setSectionRequirements() { /* void */ },
 } as any;
 
@@ -95,7 +95,7 @@ export class Test {
             assert.deepStrictEqual(new HoverProvider(this.document).provideHover(this.position), this.expected);
         });
     }
-    
+
     /**
      * Tests CompletionProvider
      */
