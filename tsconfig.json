@@ -2,7 +2,7 @@
 	"compilerOptions": {
 		"target": "es6",
 		"lib": ["es5"],
-		"module": "umd",
+		"module": "commonjs",
 		"moduleResolution": "node",
 		"declaration": true,
 		"outDir": "lib",
