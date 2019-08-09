@@ -9,7 +9,7 @@
     "build": "npm run clean && npm run build-lib",
     "clean": "rimraf lib",
     "build-lib": "tsc -p tsconfig.json",
-    "test": "mocha --require lib/test/helpers/initResources.js --ui tdd --reporter spec lib/test/*.js"
+    "test": "mocha --recursive --require lib/test/helpers/initResources.js --ui tdd --reporter spec lib/test"
   },
   "dependencies": {
     "escodegen": "^1.11.1",
