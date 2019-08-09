@@ -1,3 +1,6 @@
+import { INTERVAL_UNITS } from "./constants";
+import { CSV_FROM_URL_MISSING_NAME_PATTERN } from "./regExpressions";
+
 type MessageFactoryMethod = (found?: string, msg?: any) => string;
 /**
  * Creates a error message for unknown setting or value.
@@ -31,7 +34,7 @@ export const settingNameInTags: MessageFactoryMethod = (found: string): string =
   "enclose in double-quotes to send it to the server without\na warning.";
 
 export const uselessScope: MessageFactoryMethod = (found: string, msg: string): string =>
-  `${found} setting is appplied only if ${msg}.`;
+  `${found} setting is applied only if ${msg}.`;
 
 export const incorrectColors: MessageFactoryMethod = (found: string, msg: string): string =>
   `Number of colors (if specified) must be equal to\nnumber of thresholds minus 1.
@@ -41,10 +44,6 @@ export const illegalSetting: MessageFactoryMethod = (found: string): string =>
   `${found} setting is not allowed here.`;
 
 /**
- * RegExp for: 'csv from <url>'
- */
-const CSV_FROM_URL_MISSING_NAME_PATTERN = /(^[ \t]*csv[ \t]+)[ \t]*(from)/;
-/**
  * If SCV pattern didn't match any known RegExp, compose error message
  * @param line line of code instruction
  * @returns csv error message
@@ -53,6 +52,12 @@ export const getCsvErrorMessage: MessageFactoryMethod = (line: string): string =
   return (CSV_FROM_URL_MISSING_NAME_PATTERN.test(line)) ? `<name> in 'csv <name> from <url>' is missing` :
     `The line should contain a '=' or 'from' keyword`;
 };
+
+/**
+ * If start-time, end-time and timespan are declared simultaneously, show the warning
+ */
+export const simultaneousTimeSettingsWarning: MessageFactoryMethod = (): string =>
+`'start-time', 'end-time' and 'timespan' can not be declared simultaneously. 'timespan' will be ignored.`;
 
 export const noRequiredSetting: MessageFactoryMethod = (dependent: string, required: string): string =>
   `${required} is required if ${dependent} is specified`;
@@ -66,3 +71,11 @@ export const noMatching: MessageFactoryMethod = (dependent: string, required: st
 
 export const lineFeedRequired: MessageFactoryMethod = (dependent: string): string =>
   `A linefeed character after '${dependent}' keyword is required`;
+
+export const supportedUnits: MessageFactoryMethod = (): string =>
+  `Supported units:\n * ${INTERVAL_UNITS.join("\n * ")}`;
+
+export const dateError: MessageFactoryMethod = (specificMsg: string, name: string): string =>
+  `${specificMsg}. ${name} must be a date or calendar expression, for example:
+ * current_hour + 1 minute
+ * 2019-04-01T10:15:00Z`;

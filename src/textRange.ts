@@ -1,7 +1,7 @@
 import { Range } from "vscode-languageserver-types";
 import { CheckPriority } from "./checkPriority";
 import { CSV_FROM_URL_PATTERN, ONE_LINE_SCRIPT, ONE_LINE_SQL } from "./regExpressions";
-import { Util } from "./util";
+import { createRange } from "./util";
 
 /**
  * Contains the text and the position of the text
@@ -54,7 +54,7 @@ export class TextRange {
         }
         const [, indent, keyword] = match;
 
-        return new TextRange(keyword, Util.createRange(indent.length, keyword.length, i), canBeUnclosed);
+        return new TextRange(keyword, createRange(indent.length, keyword.length, i), canBeUnclosed);
     }
 
     /**

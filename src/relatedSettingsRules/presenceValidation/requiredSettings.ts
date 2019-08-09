@@ -2,7 +2,7 @@ import { Diagnostic } from "vscode-languageserver-types";
 import { Section } from "../../configTree/section";
 import { noRequiredSetting, noRequiredSettings } from "../../messageUtil";
 import { Setting } from "../../setting";
-import { Util } from "../../util";
+import { createDiagnostic } from "../../util";
 import { requiredCondition } from "../utils/condition";
 import { RelatedSettingsRule, Requirement } from "../utils/interfaces";
 
@@ -28,14 +28,6 @@ const checks: Map<string, Requirement> = new Map<string, Requirement>([
                 requiredCondition("mode", ["half", "default"])
             ],
             requiredSetting: "thresholds"
-        }],
-    [
-        "forecast-style", {
-            conditions: [
-                requiredCondition("type", ["chart"]),
-                requiredCondition("mode", ["column", "column-stack"])
-            ],
-            requiredSetting: "data-type"
         }],
     [
         "forecast-horizon-start-time", {
@@ -157,7 +149,7 @@ const rule: RelatedSettingsRule = {
                 msg = noRequiredSetting(dependent, reqNames);
             }
             if (required === undefined) {
-                diagnostics.push(Util.createDiagnostic(section.range.range, msg));
+                diagnostics.push(createDiagnostic(section.range.range, msg));
             }
         });
         return diagnostics;

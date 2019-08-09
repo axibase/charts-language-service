@@ -1,8 +1,9 @@
 import { Diagnostic, DiagnosticSeverity, Position, Range } from "vscode-languageserver-types";
 import { Setting } from "./setting";
 import { TextRange } from "./textRange";
-import { Util } from "./util";
-import { LanguageService, ResourcesProviderBase } from ".";
+import { createDiagnostic } from "./util";
+import { LanguageService } from "./languageService";
+import { ResourcesProviderBase } from "./resourcesProviderBase";
 
 interface DependencyResolveInfo {
     resolvedCount: number;
@@ -233,7 +234,7 @@ export class SectionStack {
     }
 
     private createErrorDiagnostic(section: TextRange, message: string): Diagnostic {
-        return Util.createDiagnostic(
+        return createDiagnostic(
             section.range,
             message,
             DiagnosticSeverity.Error,
@@ -279,7 +280,7 @@ export class SectionStack {
                 let errorMessage = `Unexpected section [${section}]. `;
                 let expectedSections: string[] = Object.entries(ResourcesProviderBase.sectionDepthMap)
                     .filter(([, depth]) => depth === expectedDepth)
-                    .map(([key,]) => `[${key}]`);
+                    .map(([key, ]) => `[${key}]`);
 
                 if (expectedSections.length > 1) {
                     errorMessage += `Expected one of ${expectedSections.join(", ")}.`;

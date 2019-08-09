@@ -4,9 +4,9 @@ import {
 import { CALENDAR_KEYWORDS, CONTROL_KEYWORDS, INTERVAL_UNITS } from "./constants";
 import { Field } from "./field";
 import { Setting } from "./setting";
+import { deleteComments, deleteScripts, getSetting } from "./util";
+import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { LanguageService } from "./languageService";
-import { Util } from "./util";
-import { ResourcesProviderBase } from ".";
 
 export interface ItemFields {
     insertTextFormat?: InsertTextFormat;
@@ -25,7 +25,7 @@ export class CompletionProvider {
 
     public constructor(textDocument: TextDocument, position: Position) {
         const text: string = textDocument.getText().substr(0, textDocument.offsetAt(position));
-        this.text = Util.deleteScripts(Util.deleteComments(text));
+        this.text = deleteScripts(deleteComments(text));
         let textList = this.text.split("\n");
         this.currentLine = textList[textList.length - 1];
     }
@@ -215,15 +215,15 @@ endif
      */
     private completeSettingName(): CompletionItem[] {
         const items: CompletionItem[] = [];
-        const map = Array.from(LanguageService.getResourcesProvider().settingsMap.values());
-        map.forEach(value => {
+        const settingsMap = LanguageService.getResourcesProvider().settingsMap;
+        for (let [, value] of settingsMap) {
             items.push(this.fillCompletionItem({
                 detail: `${value.description ? value.description + "\n" : ""}Example: ${value.example}`,
                 insertText: `${value.displayName} = `,
                 kind: CompletionItemKind.Field,
                 name: value.displayName
             }));
-        });
+        }
         return items;
     }
 
@@ -234,7 +234,6 @@ endif
     private completeSectionName(): CompletionItem[] {
         const items: CompletionItem[] = [];
         const sectionNames = Object.keys(ResourcesProviderBase.sectionDepthMap);
-
         for (let item of sectionNames) {
             items.push(this.fillCompletionItem({
                 detail: `Section name: [${item}]`,
@@ -253,7 +252,7 @@ endif
      * @returns array containing completions
      */
     private completeSettingValue(settingName: string): CompletionItem[] {
-        const setting = LanguageService.getResourcesProvider().getSetting(settingName);
+        const setting = getSetting(settingName);
         if (!setting) {
             return [];
         }

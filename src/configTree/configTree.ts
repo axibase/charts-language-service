@@ -1,7 +1,7 @@
-import { ResourcesProviderBase } from "../resourcesProviderBase";
 import { Setting } from "../setting";
 import { TextRange } from "../textRange";
 import { Section } from "./section";
+import { ResourcesProviderBase } from "../resourcesProviderBase";
 
 /**
  * Stores sections with corresponding settings in tree order.
