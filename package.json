@@ -12,8 +12,6 @@
     "test": "mocha --require lib/test/helpers/initResources.js --ui tdd --reporter spec lib/test/*.js"
   },
   "dependencies": {
-    "@types/escodegen": "^0.0.6",
-    "@types/esprima": "^4.0.2",
     "escodegen": "^1.11.1",
     "esprima": "^4.0.1",
     "jsdom": "^15.1.1",
@@ -22,10 +20,12 @@
     "vscode-languageserver-types": "^3.14.0"
   },
   "devDependencies": {
+    "@types/escodegen": "^0.0.6",
+    "@types/esprima": "^4.0.2",
+    "@types/chai": "^4.2.0",
     "@types/jsdom": "^12.2.4",
     "@types/mocha": "^5.2.7",
     "chai": "^4.2.0",
-    "mocha": "^6.2.0",
-    "vscode": "^1.1.33"
+    "mocha": "^6.2.0"
   }
 }
