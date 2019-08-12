@@ -71,6 +71,11 @@ export declare class DefaultSetting {
      */
     readonly script?: Script;
     /**
+     * Indicates that value is a list of given type
+     * For example, string[] is comma separated strings list
+     */
+    readonly multiple: boolean;
+    /**
      * The section, where the setting is applicable.
      * For example, "widget" or "series".
      */

@@ -287,6 +287,11 @@ export declare class Validator {
     private getSetting;
     private checkUrlPlaceholders;
     /**
+     * Check that multiple type setting has right value format
+     * @param setting - config setting to test
+     */
+    private checkMultipleSetting;
+    /**
      * Returns all placeholders declared before the current line.
      */
     private getUrlPlaceholders;

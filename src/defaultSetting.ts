@@ -83,6 +83,11 @@ export class DefaultSetting {
      */
     public readonly script?: Script;
     /**
+     * Indicates that value is a list of given type
+     * For example, string[] is comma separated strings list
+     */
+    public readonly multiple: boolean = false;
+    /**
      * The section, where the setting is applicable.
      * For example, "widget" or "series".
      */
