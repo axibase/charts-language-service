@@ -1,6 +1,6 @@
 {
   "name": "@axibase/charts-language-service",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "main": "lib/index.js",
   "types": "types/index.d.ts",
   "author": "Axibase Developers",
