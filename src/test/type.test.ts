@@ -684,11 +684,12 @@ suite("string[] type tests", () => {
               [column]
                   [series]
                   entity = b
+                  evaluate-expression = c LIKE 'cpu*'
                   metrics = c d e`;
     const validator = new Validator(config);
     const actualDiagnostics = validator.lineByLine();
     const expectedDiagnostic = createDiagnostic(
-      Range.create(Position.create(8, 18), Position.create(8, 25)),
+      Range.create(Position.create(9, 18), Position.create(9, 25)),
       "metrics should be a comma separated list. For example, disk_used, memused",
       DiagnosticSeverity.Error
     );
@@ -704,11 +705,12 @@ suite("string[] type tests", () => {
               [column]
                   [series]
                   entity = b
+                  evaluate-expression = c LIKE 'cpu*'
                   metrics = c, d e`;
     const validator = new Validator(config);
     const actualDiagnostics = validator.lineByLine();
     const expectedDiagnostic = createDiagnostic(
-      Range.create(Position.create(8, 18), Position.create(8, 25)),
+      Range.create(Position.create(9, 18), Position.create(9, 25)),
       "metrics should be a comma separated list. For example, disk_used, memused",
       DiagnosticSeverity.Error
     );
@@ -724,6 +726,7 @@ suite("string[] type tests", () => {
               [column]
                   [series]
                   entity = b
+                  evaluate-expression = c LIKE 'cpu*'
                   metrics = c,d,e`;
     const validator = new Validator(config);
     const actualDiagnostics = validator.lineByLine();
@@ -739,6 +742,7 @@ suite("string[] type tests", () => {
               [column]
                   [series]
                   entity = b
+                  evaluate-expression = c LIKE 'cpu*'
                   metrics = c, d, e`;
     const validator = new Validator(config);
     const actualDiagnostics = validator.lineByLine();
@@ -754,6 +758,7 @@ suite("string[] type tests", () => {
               [column]
                   [series]
                   entity = b
+                  evaluate-expression = c LIKE 'cpu*'
                   metrics = c`;
     const validator = new Validator(config);
     const actualDiagnostics = validator.lineByLine();
@@ -769,6 +774,7 @@ suite("string[] type tests", () => {
               [column]
                   [series]
                   entity = b
+                  evaluate-expression = c LIKE 'cpu*'
                   metrics = c,d, e`;
     const validator = new Validator(config);
     const actualDiagnostics = validator.lineByLine();
