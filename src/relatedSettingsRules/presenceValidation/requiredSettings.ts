@@ -118,6 +118,10 @@ const checks: Map<string, Requirement> = new Map<string, Requirement>([
                 requiredCondition("type", ["pie", "gauge"])
             ],
             requiredSetting: "caption"
+        }],
+    [
+        "metrics", {
+            requiredSetting: "evaluate-expression"
         }]
 ]);
 
