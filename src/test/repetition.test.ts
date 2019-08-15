@@ -313,6 +313,17 @@ script = document.head.appendChild(stylesheet);`,
   tags-dropdowns-style = color: red`,
             [],
         ),
+        new Test(
+            "evaluate-expression can be multi-line",
+            `[widget]
+            type = chart
+            [series]
+              entity = a
+              metric = b
+              evaluate-expression = @{logr_expr}; @{std_expr};
+              evaluate-expression = wa = wavg(A, B, '1 minute');`,
+            [],
+        ),
     ];
 
     tests.forEach((test: Test) => { test.validationTest(); });
