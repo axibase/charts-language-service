@@ -2,14 +2,21 @@ import { generate } from "escodegen";
 import { parseScript } from "esprima";
 import { FormattingOptions, Range, TextEdit } from "vscode-languageserver-types";
 import { BLOCK_SCRIPT_END, BLOCK_SCRIPT_START, RELATIONS_REGEXP } from "./regExpressions";
+import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { TextRange } from "./textRange";
 import { createRange, isEmpty } from "./util";
-import { ResourcesProviderBase } from "./resourcesProviderBase";
 
 interface Section {
     indent?: string;
     name?: string;
 }
+
+/** Default document formatting options */
+export const DEFAULT_FORMATTING_OPTIONS: FormattingOptions = {
+    insertSpaces: true,
+    tabSize: 2
+};
+
 /**
  * Formats the document
  */
@@ -84,11 +91,13 @@ export class Formatter {
                     Object.assign(this.currentSection, this.previousSection);
                     this.decreaseIndent();
                 }
+                this.deleteExtraBlankLines();
                 continue;
-            } else if (this.isSectionDeclaration()) {
+            } else if (this.isSectionDeclaration(line)) {
                 this.calculateSectionIndent();
                 this.checkIndent();
                 this.increaseIndent();
+                this.insertLineBeforeSection();
                 continue;
             } else if (BLOCK_SCRIPT_START.test(line)) {
                 this.checkIndent();
@@ -317,6 +326,45 @@ export class Formatter {
     }
 
     /**
+     * Inserts blank line before section except for configuration
+     */
+    private insertLineBeforeSection(): void {
+        const currentLine = this.getCurrentLine();
+        const previousLineNumber = this.currentLine - 1;
+        const previousLine = this.getLine(previousLineNumber);
+
+        if (this.currentSection.name === "configuration" || isEmpty(previousLine)) {
+            return;
+        }
+        this.edits.push(TextEdit.replace(
+            Range.create(this.currentLine, 0, this.currentLine, currentLine.length),
+            "\n" + currentLine,
+        ));
+    }
+
+    /**
+     * Deletes extra blank lines in the document
+     */
+    private deleteExtraBlankLines(): void {
+        const nextLineNumber = this.currentLine + 1;
+        const nextLine = this.getLine(nextLineNumber);
+
+        /* If next is section declaration other than [configuration], don't delete blank line */
+        if (nextLine === void 0 || (this.isSectionDeclaration(nextLine) && !/\[configuration\]/.test(nextLine))) {
+            return;
+        }
+
+        this.edits.push(TextEdit.replace(
+            Range.create(
+                this.currentLine,
+                0,
+                this.currentLine + 1, 0
+            ),
+            "",
+        ));
+    }
+
+    /**
      * Increases current indent by one
      */
     private increaseIndent(): void {
@@ -330,10 +378,10 @@ export class Formatter {
     }
 
     /**
-     * @returns true, if current line is section declaration
+     * @returns true, if line is section declaration
      */
-    private isSectionDeclaration(): boolean {
-        this.match = /(^\s*)\[([a-z]+)\]/.exec(this.getCurrentLine());
+    private isSectionDeclaration(line: string): boolean {
+        this.match = /(^\s*)\[([a-z]+)\]/.exec(line);
 
         return this.match !== null;
     }
