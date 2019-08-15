@@ -122,6 +122,13 @@ const checks: Map<string, Requirement> = new Map<string, Requirement>([
     [
         "metrics", {
             requiredSetting: "evaluate-expression"
+        }],
+    [
+        "summary-text", {
+            conditions: [
+                requiredCondition("type", ["console"])
+            ],
+            requiredSetting: "collapsible"
         }]
 ]);
 
