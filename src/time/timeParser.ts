@@ -372,6 +372,9 @@ export class TimeParser {
             }
             d = this.parseTime(m, d);
         } else {
+            /**
+             * For example, "2019 08 14" - August 14th.
+             */
             d = new Date(template);
             if (d == null || !isFinite(+d)) {
                 return null;
