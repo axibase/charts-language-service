@@ -172,7 +172,7 @@ export class TimeParser {
         const v: string = settingValue.trim();
         const now = Date.now();
         const d = this.parseIsoLikeTemplate(v, now);
-        if (d !== null) {
+        if (d != null) {
             return d;
         }
         // start-time = current_day + 9 hour + 50 minute
@@ -358,6 +358,7 @@ export class TimeParser {
      */
     private parseIsoLikeTemplate(template: string, t: number): Date | null {
         let d;
+        template = template.toUpperCase();
         /**
          * For example, "2016-06-09 12:15:04.005":
          * m[1] = 2016-06-09
