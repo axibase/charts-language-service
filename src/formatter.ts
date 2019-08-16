@@ -1,7 +1,7 @@
 import { generate } from "escodegen";
 import { parseScript } from "esprima";
 import { FormattingOptions, Range, TextEdit } from "vscode-languageserver-types";
-import { BLANK_LINE_PATTERN, BLOCK_SCRIPT_END, BLOCK_SCRIPT_START, RELATIONS_REGEXP } from "./regExpressions";
+import { BLOCK_SCRIPT_END, BLOCK_SCRIPT_START, RELATIONS_REGEXP } from "./regExpressions";
 import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { TextRange } from "./textRange";
 import { createRange, isEmpty } from "./util";
@@ -362,7 +362,7 @@ export class Formatter {
         }
 
         /** Don't delete blank lines at the end */
-        if (this.configNotFinished(this.currentLine)) {
+        if (!this.configFinished()) {
             this.edits.push(TextEdit.replace(
                 Range.create(
                     this.currentLine,
@@ -376,21 +376,18 @@ export class Formatter {
 
     /**
      * Checks if config has content left except for blank lines
-     * @param startLineNumber - line number from which begin to look through config
      */
-    private configNotFinished(startLineNumber: number): boolean {
-        let contentNext = false;
+    private configFinished(): boolean {
         let blankLinesCount = 0;
         for (let i = this.currentLine; i < this.lines.length; i++) {
-            if (!BLANK_LINE_PATTERN.test(this.lines[i]) || blankLinesCount >= this.options.blankLinesAtEnd) {
-                contentNext = true;
-                break;
+            if (!isEmpty(this.lines[i])) {
+                return false;
             } else {
                 blankLinesCount++;
             }
         }
 
-        return contentNext;
+        return true;
     }
 
     /**
