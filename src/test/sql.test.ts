@@ -1,5 +1,5 @@
 import assert = require("assert");
-import { DEFAULT_FORMATTING_OPTIONS, Formatter } from "../formatter";
+import { Formatter, FORMATTING_OPTIONS } from "../formatter";
 import { lineFeedRequired, noMatching } from "../messageUtil";
 import { createDiagnostic, createRange } from "../util";
 import { Validator } from "../validator";
@@ -86,6 +86,6 @@ suite("Formatter: SQL indents tests", () => {
         "    endsql\n\n" +
         "    [series]\n"
         ;
-    const formatter = new Formatter(config, DEFAULT_FORMATTING_OPTIONS);
+    const formatter = new Formatter(config, FORMATTING_OPTIONS());
     assert.deepStrictEqual(formatter.lineByLine(), []);
 });

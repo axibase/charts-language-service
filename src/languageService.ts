@@ -1,9 +1,9 @@
-import { CompletionProvider } from "./completionProvider";
-import { Formatter } from "./formatter";
-import { HoverProvider } from "./hoverProvider";
-import { ResourcesProviderBase } from "./resourcesProviderBase";
-import { Validator } from "./validator";
-import { TextDocument, FormattingOptions, Position } from "vscode-languageserver-types";
+import {Position, TextDocument} from "vscode-languageserver-types";
+import {CompletionProvider} from "./completionProvider";
+import {AxibaseFormattingOptions, Formatter} from "./formatter";
+import {HoverProvider} from "./hoverProvider";
+import {ResourcesProviderBase} from "./resourcesProviderBase";
+import {Validator} from "./validator";
 
 export class LanguageService {
     private static resourcesProvider: ResourcesProviderBase;
@@ -31,7 +31,7 @@ export class LanguageService {
         return new HoverProvider(document);
     }
 
-    public static getFormatter(text: string, formattingOptions: FormattingOptions) {
+    public static getFormatter(text: string, formattingOptions: AxibaseFormattingOptions) {
         return new Formatter(text, formattingOptions);
     }
 }

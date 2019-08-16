@@ -1,6 +1,6 @@
 import { deepStrictEqual } from "assert";
 import { FormattingOptions, Position, Range, TextEdit } from "vscode-languageserver-types";
-import { DEFAULT_FORMATTING_OPTIONS, Formatter } from "../formatter";
+import { Formatter, FORMATTING_OPTIONS } from "../formatter";
 
 suite("JavasScript code formatting", () => {
     test("Unformatted code inside script tag alone", () => {
@@ -9,7 +9,7 @@ suite("JavasScript code formatting", () => {
         return Math.round(value / 10) * 10;
         };
 endscript`;
-        const options: FormattingOptions = DEFAULT_FORMATTING_OPTIONS;
+        const options: FormattingOptions = FORMATTING_OPTIONS();
         const expected: TextEdit[] = [
             TextEdit.replace(Range.create(
                 Position.create(1, 0),
@@ -26,7 +26,7 @@ endscript`;
         const text = `script
         window.userFunction = function () {return Math.round(value / 10) * 10;};
 endscript`;
-        const options: FormattingOptions = DEFAULT_FORMATTING_OPTIONS;
+        const options: FormattingOptions = FORMATTING_OPTIONS();
         const expected: TextEdit[] = [
             TextEdit.replace(Range.create(
                 Position.create(1, 0),
@@ -46,7 +46,7 @@ endscript`;
     return Math.round(value / 10) * 10;
     };
   endscript`;
-        const options: FormattingOptions = DEFAULT_FORMATTING_OPTIONS;
+        const options: FormattingOptions = FORMATTING_OPTIONS();
         const expected: TextEdit[] = [
             TextEdit.replace(Range.create(
                 Position.create(2, 0),
@@ -67,7 +67,7 @@ endscript`;
     return Math.round(value / 10) * 10;
     };
   endscript`;
-        const options: FormattingOptions = DEFAULT_FORMATTING_OPTIONS;
+        const options: FormattingOptions = FORMATTING_OPTIONS();
         const expected: TextEdit[] = [
             TextEdit.replace(Range.create(
                 Position.create(3, 0),
@@ -89,7 +89,7 @@ endscript`;
             + `  return Math.round(value / 10) * 10;` +
             `};`
             + `endscript`;
-        const options: FormattingOptions = DEFAULT_FORMATTING_OPTIONS;
+        const options: FormattingOptions = FORMATTING_OPTIONS();
         const expected: TextEdit[] = [];
         const formatter = new Formatter(text, options);
         const actual = formatter.lineByLine();

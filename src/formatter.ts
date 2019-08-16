@@ -11,10 +11,17 @@ interface Section {
     name?: string;
 }
 
-/** Default document formatting options */
-export const DEFAULT_FORMATTING_OPTIONS: FormattingOptions = {
-    insertSpaces: true,
-    tabSize: 2
+/** Extended formatting options, supporting blank lines formatting possibility */
+export interface AxibaseFormattingOptions extends FormattingOptions {
+    blankLinesAtEnd?: number;
+}
+
+/** Document formatting options */
+export const FORMATTING_OPTIONS = (blankLinesAtEnd: number = 0): AxibaseFormattingOptions => {
+    const TAB_SIZE: number = 2;
+    const INSERT_SPACES: boolean = true;
+
+    return Object.assign(FormattingOptions.create(TAB_SIZE, INSERT_SPACES), { blankLinesAtEnd });
 };
 
 /**
@@ -65,7 +72,7 @@ export class Formatter {
     /**
      * Contains options from user's settings which are used to format document
      */
-    private readonly options: FormattingOptions;
+    private readonly options: AxibaseFormattingOptions;
     /**
      * Indent of last keyword.
      */
@@ -75,7 +82,7 @@ export class Formatter {
     private previousSection: Section = {};
     private currentSection: Section = {};
 
-    public constructor(text: string, formattingOptions: FormattingOptions) {
+    public constructor(text: string, formattingOptions: AxibaseFormattingOptions) {
         this.options = formattingOptions;
         this.lines = text.split("\n");
     }
@@ -373,10 +380,13 @@ export class Formatter {
      */
     private configNotFinished(startLineNumber: number): boolean {
         let contentNext = false;
+        let blankLinesCount = 0;
         for (let i = this.currentLine; i < this.lines.length; i++) {
-            if (!BLANK_LINE_PATTERN.test(this.lines[i])) {
+            if (!BLANK_LINE_PATTERN.test(this.lines[i]) || blankLinesCount >= this.options.blankLinesAtEnd) {
                 contentNext = true;
                 break;
+            } else {
+                blankLinesCount++;
             }
         }
 
