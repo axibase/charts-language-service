@@ -22,6 +22,7 @@ import {
     CSV_KEYWORD_PATTERN,
     CSV_NEXT_LINE_HEADER_PATTERN
 } from "./regExpressions";
+import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { SectionStack } from "./sectionStack";
 import { Setting } from "./setting";
 import { TextRange } from "./textRange";
@@ -34,7 +35,6 @@ import {
     isInMap,
     repetitionDiagnostic
 } from "./util";
-import { ResourcesProviderBase } from "./resourcesProviderBase";
 
 const placeholderContainingSettings = [
     "url", "urlparameters"
@@ -138,6 +138,10 @@ export class Validator {
     private config: Config;
 
     private keywordHandler: KeywordHandler;
+    /**
+     * True if section contains expr block.
+     */
+    private exprBlockIsDeclared: boolean;
 
     public constructor(text: string) {
         this.configTree = new ConfigTree();
@@ -162,11 +166,12 @@ export class Validator {
 
             this.foundKeyword = TextRange.parse(line, this.config.currentLineNumber, canBeSingle);
 
-            if (this.isNotKeywordEnd("script") || this.isNotKeywordEnd("var") || this.isNotKeywordEnd("sql")) {
+            if (this.isNotKeywordEnd("script") || this.isNotKeywordEnd("var")
+                || this.isNotKeywordEnd("sql") || this.isNotKeywordEnd("expr")) {
                 /**
                  * Lines in multiline script and var sections
                  * will be checked in JavaScriptValidator.processScript() and processVar().
-                 * SQL-block must be skipped without any processing.
+                 * SQL and evaluate expression blocks must be skipped without any processing.
                  */
                 continue;
             }
@@ -859,7 +864,7 @@ export class Validator {
         const lastSection = this.sectionStack.getLastSection();
         if (lastSection) {
             this.configTree.addSection(lastSection.range,
-                lastSection.settings);
+                lastSection.settings, this.exprBlockIsDeclared);
         }
         if (section == null) {
             sectionStackError = this.sectionStack.finalize();
@@ -869,6 +874,7 @@ export class Validator {
         if (sectionStackError) {
             this.result.push(sectionStackError);
         }
+        this.exprBlockIsDeclared = false;
     }
 
     /**
@@ -1066,7 +1072,8 @@ export class Validator {
             case "endcsv":
             case "endlist":
             case "endsql":
-            case "endscript": {
+            case "endscript":
+            case "endexpr": {
                 const expectedEnd: string = this.foundKeyword.text.substring("end".length);
                 this.checkEnd(expectedEnd);
                 break;
@@ -1114,6 +1121,11 @@ export class Validator {
             }
             case "sql": {
                 this.keywordHandler.handleSql(line, this.foundKeyword);
+                break;
+            }
+            case "expr": {
+                this.keywordsStack.push(this.foundKeyword);
+                this.exprBlockIsDeclared = true;
                 break;
             }
             case "import":

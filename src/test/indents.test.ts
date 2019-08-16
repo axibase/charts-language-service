@@ -1,7 +1,7 @@
-import { FormattingOptions, Position, Range, TextEdit } from "vscode-languageserver-types";
-import { Test } from "./test";
 import { deepStrictEqual } from "assert";
+import { FormattingOptions, Position, Range, TextEdit } from "vscode-languageserver-types";
 import { Formatter } from "../formatter";
+import { Test } from "./test";
 
 suite("Formatting indents tests: sections and settings", () => {
   const tests: Test[] = [
@@ -475,7 +475,7 @@ suite("Formatting indents tests: >=, <=, >, <", () => {
     const actual = formatter.lineByLine();
     deepStrictEqual(actual, expected);
   });
-  
+
   test("Correct <", () => {
     const text = `if a < b`;
     const options: FormattingOptions = FormattingOptions.create(2, true);

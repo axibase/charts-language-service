@@ -12,7 +12,7 @@ export class TextRange {
      */
     public static readonly KEYWORD_REGEXP: RegExp =
         // tslint:disable-next-line: max-line-length
-        /^([ \t]*)(import|endvar|endcsv|endfor|elseif|endif|endscript|endlist|endsql|script|else|if|list|sql|for|csv|var)\b/i;
+        /^([ \t]*)(import|endvar|endcsv|endfor|elseif|endif|endscript|endlist|endsql|endexpr|script|else|if|list|sql|expr|for|csv|var)\b/i;
 
     /**
      * Regexps for keywords supporting both closed and unclosed syntax
@@ -29,7 +29,7 @@ export class TextRange {
      * @returns true if the keyword closeable
      */
     public static isCloseAble(line: string): boolean {
-        return /^[\s\t]*(?:for|if|list|sql|var|script[\s\t]*$|csv|else|elseif)\b/.test(line);
+        return /^[\s\t]*(?:for|if|list|sql|var|script[\s\t]*$|csv|expr|else|elseif)\b/.test(line);
     }
 
     /**
@@ -38,7 +38,7 @@ export class TextRange {
      * @returns true if the keyword closes a section
      */
     public static isClosing(line: string): boolean {
-        return /^[\s\t]*(?:end(?:for|if|list|var|script|sql|csv)|elseif|else)\b/.test(line);
+        return /^[\s\t]*(?:end(?:for|if|list|var|script|sql|csv|expr)|elseif|else)\b/.test(line);
     }
 
     /**

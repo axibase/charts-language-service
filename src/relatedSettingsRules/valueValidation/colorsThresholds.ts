@@ -3,9 +3,9 @@ import { Section } from "../../configTree/section";
 import { incorrectColors } from "../../messageUtil";
 import { createDiagnostic } from "../../util";
 import { requiredCondition } from "../utils/condition";
-import { RelatedSettingsRule } from "../utils/interfaces";
+import { Rule } from "../utils/interfaces";
 
-const rule: RelatedSettingsRule = {
+const rule: Rule = {
     name: "Checks colors is less than thresholds by 1",
     check(section: Section): Diagnostic | void {
         let colorsValues;

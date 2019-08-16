@@ -7,7 +7,7 @@ import { Condition } from "./condition";
  */
 export type Check = (section: Section) => Diagnostic | Diagnostic[] | void;
 
-export interface RelatedSettingsRule {
+export interface Rule {
     name?: string;
     check: Check;
 }

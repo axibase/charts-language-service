@@ -999,7 +999,7 @@ Define the Metric.
   
 ## metrics  
   
-Supported only with the evaluate-expression setting. List of metrics for which series collections are loaded with the same entity and tags as in the main query.  
+Supported only with the `evaluate-expression` setting. List of metrics for which series collections are loaded with the same entity and tags as in the main query.  
   
 ## metriclabel  
   

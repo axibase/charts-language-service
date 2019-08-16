@@ -17,6 +17,7 @@ export class Section {
     public parent: Section;
     public children: Section[] = [];
     public range: TextRange;
+    public hasExprBlock = false;
     /**
      * Caches frequently used settings to reduce search in tree.
      */
@@ -50,14 +51,13 @@ export class Section {
     }
 
     /**
-     * Returns setting from this section by it's displayName.
+     * Returns setting from this section by it's name.
      *
-     * @param name - Setting.displayName
-     * @returns Setting with displayname equal to `settingName`
+     * @param name - Setting.name
+     * @returns Setting with name equal to `settingName`
      */
-    public getSetting(name: string): Setting | undefined {
-        const cleared = Setting.clearSetting(name);
-        return this.settings.find(s => s.name === cleared);
+    public getSetting(settingName: string): Setting | undefined {
+        return this.settings.find(s => s.name === settingName);
     }
 
     /**
@@ -66,9 +66,10 @@ export class Section {
      * starting from the current section and ending root, returns the closest one.
      *
      * @param settingName - Setting.displayName
-     * @returns Setting with displayname equal to `settingName`
+     * @returns Setting with display name equal to `settingName`
      */
     public getSettingFromTree(settingName: string): Setting | undefined {
+        settingName = Setting.clearSetting(settingName);
         let value = this.getScopeSetting(settingName);
         if (value != null) {
             return value;

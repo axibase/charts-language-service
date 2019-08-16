@@ -1,60 +1,61 @@
-import { Position, Range, DiagnosticSeverity } from "vscode-languageserver-types";
-import { createDiagnostic } from "../util";
-import { Test } from "./test";
-import { Validator } from "../validator";
 import { deepStrictEqual } from "assert";
+import { DiagnosticSeverity, Position, Range } from "vscode-languageserver-types";
+import { createDiagnostic } from "../util";
+import { Validator } from "../validator";
+import { Test } from "./test";
 
 suite("Required settings for sections tests", () => {
-    const tests: Test[] = [
-        new Test(
-            "correct series without parent section",
-            `[series]
+  const tests: Test[] = [
+    new Test(
+      "correct series without parent section",
+      `[series]
    entity = hello
    metric = hello`,
-            [],
-        ),
-        new Test(
-            "incorrect series without parent categories",
-            `[series]
+      [],
+    ),
+    new Test(
+      "incorrect series without parent categories",
+      `[series]
    metric = hello`,
-            [createDiagnostic(
-                Range.create(Position.create(0, "[".length), Position.create(0, "[".length + "series".length)),
-                "entity is required",
-            )],
-        ),
-        new Test(
-            "correct series with parent section",
-            `[widget]
+      [
+        createDiagnostic(
+          Range.create(Position.create(0, "[".length), Position.create(0, "[".length + "series".length)),
+          "entity is required",
+        )],
+    ),
+    new Test(
+      "correct series with parent section",
+      `[widget]
    type = chart
    entity = hello
    [series]
        metric = hello`,
-            [],
-        ),
-        new Test(
-            "correct series with grandparent section",
-            `[group]
+      [],
+    ),
+    new Test(
+      "correct series with grandparent section",
+      `[group]
    entity = hello
 [widget]
    type = chart
    [series]
        metric = hello`,
-            [],
-        ),
-        new Test(
-            "correct series with greatgrandparent section",
-            `[configuration]
+      [],
+    ),
+    new Test(
+      "correct series with greatgrandparent section",
+      `[configuration]
    entity = hello
 [group]
 [widget]
    type = chart
    [series]
        metric = hello`,
-            [],
-        ),
-        new Test(
-            "correct series with greatgrandparent section and empty line",
-            `[configuration]
+      [],
+    ),
+    new Test(
+      "correct series with greatgrandparent section and empty line",
+      `[configuration]
 
    entity = hello
 [group]
@@ -62,11 +63,11 @@ suite("Required settings for sections tests", () => {
    type = chart
    [series]
        metric = hello`,
-            [],
-        ),
-        new Test(
-            "incorrect series with closed parent section",
-            `[group]
+      [],
+    ),
+    new Test(
+      "incorrect series with closed parent section",
+      `[group]
    type = chart
    [widget]
        entity = hello
@@ -76,30 +77,31 @@ suite("Required settings for sections tests", () => {
    [widget]
        [series]
            metric = hello`,
-            [createDiagnostic(
-                Range.create(Position.create(8, "       [".length), Position.create(8, "       [series".length)),
-                "entity is required",
-            )],
-        ),
-        new Test(
-            "two incorrect series without parent categories",
-            `[series]
+      [
+        createDiagnostic(
+          Range.create(Position.create(8, "       [".length), Position.create(8, "       [series".length)),
+          "entity is required",
+        )],
+    ),
+    new Test(
+      "two incorrect series without parent categories",
+      `[series]
    metric = hello
 [series]
    entity = hello`,
-            [
-                createDiagnostic(
-                    Range.create(Position.create(0, "[".length), Position.create(0, "[".length + "series".length)),
-                    "entity is required",
-                ),
-                createDiagnostic(
-                    Range.create(Position.create(2, "[".length), Position.create(2, "[".length + "series".length)),
-                    "metric is required",
-                )],
+      [
+        createDiagnostic(
+          Range.create(Position.create(0, "[".length), Position.create(0, "[".length + "series".length)),
+          "entity is required",
         ),
-        new Test(
-            "A setting is specified in if statement",
-            `list servers = vps, vds
+        createDiagnostic(
+          Range.create(Position.create(2, "[".length), Position.create(2, "[".length + "series".length)),
+          "metric is required",
+        )],
+    ),
+    new Test(
+      "A setting is specified in if statement",
+      `list servers = vps, vds
 for server in servers
    [series]
        metric = cpu_busy
@@ -109,11 +111,11 @@ for server in servers
            entity = vps
        endif
 endfor`,
-            [],
-        ),
-        new Test(
-            "A setting is specified only in if-elseif statements",
-            `list servers = vps, vds
+      [],
+    ),
+    new Test(
+      "A setting is specified only in if-elseif statements",
+      `list servers = vps, vds
 for server in servers
    [series]
        metric = cpu_busy
@@ -123,69 +125,72 @@ for server in servers
            entity = vps
        endif
 endfor`,
-            [createDiagnostic(
-                Range.create(Position.create(2, "   [".length), Position.create(2, "   [".length + "series".length)),
-                "entity is required",
-            )],
-        ),
-        new Test(
-            "Derived series",
-            `[series]
+      [
+        createDiagnostic(
+          Range.create(Position.create(2, "   [".length), Position.create(2, "   [".length + "series".length)),
+          "entity is required",
+        )],
+    ),
+    new Test(
+      "Derived series",
+      `[series]
   entity = server
   metric = cpu_busy
   alias = srv
 [series]
   value = value('srv')`,
-            [],
-        ),
-        new Test(
-            "Entities instead of entity",
-            `[series]
+      [],
+    ),
+    new Test(
+      "Entities instead of entity",
+      `[series]
   entities = server
   metric = cpu_busy`,
-            [],
-        ),
-        new Test(
-            "Do not raise error if both column-metric and column-value are null",
-            `list lpars = abc, cde, efg
+      [],
+    ),
+    new Test(
+      "Do not raise error if both column-metric and column-value are null",
+      `list lpars = abc, cde, efg
 [widget]
   type = table
   column-metric = null
   column-value = null
   [series]
     entity = @{lpar}`,
-            [],
-        ),
-        new Test(
-            "Raise error if column-metric is not null",
-            `list lpars = abc, cde, efg
+      [],
+    ),
+    new Test(
+      "Raise error if column-metric is not null",
+      `list lpars = abc, cde, efg
 [widget]
   type = table
   column-metric = undefined
   column-value = null
   [series]
     entity = @{lpar}`,
-            [createDiagnostic(
-                Range.create(5, "  [".length, 5, "  [".length + "series".length),
-                "metric is required",
-            )],
-        ),
-        new Test(
-            "Raise error if column-value is not specified",
-            `list lpars = abc, cde, efg
+      [
+        createDiagnostic(
+          Range.create(5, "  [".length, 5, "  [".length + "series".length),
+          "metric is required",
+        )],
+    ),
+    new Test(
+      "Raise error if column-value is not specified",
+      `list lpars = abc, cde, efg
 [widget]
   type = table
   column-metric = null
   [series]
     entity = @{lpar}`,
-            [createDiagnostic(
-                Range.create(4, "  [".length, 4, "  [".length + "series".length),
-                "metric is required",
-            )],
-        ),
-        new Test(
-            "Correct handling of complex configuration",
-            `[configuration]
+      [
+        createDiagnostic(
+          Range.create(4, "  [".length, 4, "  [".length + "series".length),
+          "metric is required",
+        )],
+    ),
+    new Test(
+      "Correct handling of complex configuration",
+      `[configuration]
   entity = \${entity}
   [series]
     metric = nmon.processes.asleep_diocio
@@ -193,11 +198,11 @@ endfor`,
   type = table
   metric = nmon.jfs_filespace_%used
   [series]`,
-            [],
-        ),
-        new Test(
-            "Table and attribute are declared in a grandparent section",
-            `[configuration]
+      [],
+    ),
+    new Test(
+      "Table and attribute are declared in a grandparent section",
+      `[configuration]
   table = abc
   attribute = cde
 [group]
@@ -205,11 +210,11 @@ endfor`,
     type = calendar
     [series]
       entity = ent1`,
-            [],
-        ),
-        new Test(
-            "Allow entity-expression as an alternative to entity",
-            `[configuration]
+      [],
+    ),
+    new Test(
+      "Allow entity-expression as an alternative to entity",
+      `[configuration]
       width-units = 6.2
 [group]
   [widget]
@@ -217,16 +222,18 @@ endfor`,
     [series]
       entity-expression = entity-1, e-2
       metric = metric-1`,
-            [],
-        ),
-    ];
+      [],
+    ),
+  ];
 
-    tests.forEach((test: Test) => { test.validationTest(); });
+  tests.forEach((test: Test) => {
+    test.validationTest();
+  });
 
 });
 
 suite("Required: [series] declared inside if", () => {
-    new Test("Correct: metric and entity are declared in [series], no [tags]",
+  new Test("Correct: metric and entity are declared in [series], no [tags]",
     `[configuration]
     [group]
       [widget]
@@ -237,7 +244,7 @@ suite("Required: [series] declared inside if", () => {
           metric = b
     endif`, []).validationTest();
 
-    new Test("Correct: metric and entity are declared in [series] with [tags]",
+  new Test("Correct: metric and entity are declared in [series] with [tags]",
     `[configuration]
     [group]
       [widget]
@@ -251,7 +258,7 @@ suite("Required: [series] declared inside if", () => {
     endif
     `, []).validationTest();
 
-    new Test("Incorrect: no metric, no [tags]",
+  new Test("Incorrect: no metric, no [tags]",
     `[configuration]
     [group]
       [widget]
@@ -259,12 +266,13 @@ suite("Required: [series] declared inside if", () => {
     if "a" == "a"
 [series]
           entity = a
-    endif`, [createDiagnostic(
+    endif`, [
+      createDiagnostic(
         Range.create(5, 1, 5, "series]".length),
         "metric is required",
-    )]).validationTest();
+      )]).validationTest();
 
-    new Test("Incorrect: no metric, [tags] at EOF - expected one error",
+  new Test("Incorrect: no metric, [tags] at EOF - expected one error",
     `[configuration]
     [group]
       [widget]
@@ -274,12 +282,13 @@ suite("Required: [series] declared inside if", () => {
           entity = a
         [tags]
           a = b
-    endif`, [createDiagnostic(
+    endif`, [
+      createDiagnostic(
         Range.create(5, 1, 5, "series]".length),
         "metric is required",
-    )]).validationTest();
+      )]).validationTest();
 
-    new Test("Incorrect: no metric, [tags] - expected one error",
+  new Test("Incorrect: no metric, [tags] - expected one error",
     `[configuration]
     [group]
       [widget]
@@ -290,14 +299,15 @@ suite("Required: [series] declared inside if", () => {
         [tags]
           a = b
     endif
-    `, [createDiagnostic(
+    `, [
+      createDiagnostic(
         Range.create(5, 1, 5, "series]".length),
         "metric is required",
-    )]).validationTest();
+      )]).validationTest();
 });
 
 suite("Required: No metric is required if change-field value contains \"metric\"", () => {
-    new Test("Correct, no errors shoud be raised",
+  new Test("Correct, no errors shoud be raised",
     `[configuration]
     entity = atsd
   [group]
@@ -309,22 +319,23 @@ suite("Required: No metric is required if change-field value contains \"metric\"
 });
 
 suite("Required: No duplicate errors with [tags]", () => {
-    new Test("[tags] at EOF in [widget] without type",
+  new Test("[tags] at EOF in [widget] without type",
     `[widget]
     [tags]
       host = *
-      `,  [createDiagnostic(
+      `, [
+      createDiagnostic(
         Range.create(0, 1, 0, "widget]".length),
         "type is required",
-    )]).validationTest();
+      )]).validationTest();
 
-    new Test("[tags] in [widget] without type",
+  new Test("[tags] in [widget] without type",
     `[widget]
     [tags]
       host = *`,  [createDiagnostic(
         Range.create(0, 1, 0, "widget]".length),
         "type is required",
-    )]).validationTest();
+      )]).validationTest();
 });
 
 suite("UDF settings tests", () => {
@@ -342,8 +353,8 @@ suite("UDF settings tests", () => {
     const actualDiagnostics = validator.lineByLine();
     const expectedDiagnostic = createDiagnostic(
       Range.create(Position.create(6, 19), Position.create(6, 25)),
-      "evaluate-expression is required if metrics is specified",
-      DiagnosticSeverity.Error
+      "If metrics is specified, either evaluate-expression or expr block is required",
+      DiagnosticSeverity.Error,
     );
     deepStrictEqual(actualDiagnostics, [expectedDiagnostic]);
   });
@@ -359,6 +370,24 @@ suite("UDF settings tests", () => {
                   entity = b
                   evaluate-expression = c LIKE 'cpu*'
                   metrics = c, d, e`;
+    const validator = new Validator(config);
+    const actualDiagnostics = validator.lineByLine();
+    deepStrictEqual(actualDiagnostics, []);
+  });
+
+  test("No error: expr block is present", () => {
+    const config = `[configuration]
+          [group]
+          [widget]
+              type = chart
+              metric = a
+              [column]
+                  [series]
+                  entity = b
+                  metrics = c, d, e
+                  expr
+                    c LIKE 'cpu*'
+                  endexpr`;
     const validator = new Validator(config);
     const actualDiagnostics = validator.lineByLine();
     deepStrictEqual(actualDiagnostics, []);

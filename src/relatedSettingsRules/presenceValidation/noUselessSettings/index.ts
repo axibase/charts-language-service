@@ -3,7 +3,7 @@ import { Section } from "../../../configTree/section";
 import { uselessScope } from "../../../messageUtil";
 import { createDiagnostic } from "../../../util";
 import { Condition } from "../../utils/condition";
-import { Check, RelatedSettingsRule } from "../../utils/interfaces";
+import { Check, Rule } from "../../utils/interfaces";
 import forSeries from "./forSeries";
 import forWidget from "./forWidget";
 
@@ -29,12 +29,12 @@ function getRule(checksMap: Map<string, Condition[]>): Check {
     };
 }
 
-export const noUselessSettingsForWidget: RelatedSettingsRule = {
+export const noUselessSettingsForWidget: Rule = {
     check: getRule(forWidget),
     name: "Checks absence of useless settings in [widget]"
 };
 
-export const noUselessSettingsForSeries: RelatedSettingsRule = {
+export const noUselessSettingsForSeries: Rule = {
     check: getRule(forSeries),
     name: "Checks absence of useless settings in [series]"
 };
