@@ -1,5 +1,5 @@
 export const INTERVAL_UNITS: string[] = [
-    "nanosecond", "millisecond", "second", "minute", "hour", "day", "week", "month", "quarter", "year",
+    "nanosecond", "millisecond", "second", "sec", "minute", "min", "hour", "day", "week", "month", "quarter", "year",
 ];
 
 export const CALENDAR_KEYWORDS: string[] = [

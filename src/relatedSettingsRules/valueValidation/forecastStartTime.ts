@@ -1,9 +1,9 @@
 import { Diagnostic } from "vscode-languageserver-types";
 import { Section } from "../../configTree/section";
 import { parseTimeValue } from "../../time";
-import { RelatedSettingsRule } from "../utils/interfaces";
+import { Rule } from "../utils/interfaces";
 
-const rule: RelatedSettingsRule = {
+const rule: Rule = {
     name: "Validates forecast-horizon-start-time value",
     check(section: Section): Diagnostic | void {
         let forecast = section.getSettingFromTree("forecast-horizon-start-time");

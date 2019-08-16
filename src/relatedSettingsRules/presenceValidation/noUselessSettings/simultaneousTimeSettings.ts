@@ -2,9 +2,9 @@ import { Diagnostic, DiagnosticSeverity } from "vscode-languageserver-types";
 import { Section } from "../../../configTree/section";
 import { simultaneousTimeSettingsWarning } from "../../../messageUtil";
 import { createDiagnostic } from "../../../util";
-import { RelatedSettingsRule } from "../../utils/interfaces";
+import { Rule } from "../../utils/interfaces";
 
-const rule: RelatedSettingsRule = {
+const rule: Rule = {
     name: "Start-time, end-time and timespan mustn't be declared sumultaneously",
     check(section: Section): Diagnostic | void {
         const startTime = section.getSettingFromTree("start-time");

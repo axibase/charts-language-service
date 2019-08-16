@@ -3,10 +3,10 @@ import {
 } from "vscode-languageserver-types";
 import { CALENDAR_KEYWORDS, CONTROL_KEYWORDS, INTERVAL_UNITS } from "./constants";
 import { Field } from "./field";
+import { LanguageService } from "./languageService";
+import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { Setting } from "./setting";
 import { deleteComments, deleteScripts, getSetting } from "./util";
-import { ResourcesProviderBase } from "./resourcesProviderBase";
-import { LanguageService } from "./languageService";
 
 export interface ItemFields {
     insertTextFormat?: InsertTextFormat;
@@ -271,7 +271,7 @@ endif
             }
             case "enum": {
                 return this.getItemsArray(setting.enum.map(el =>
-                    el.replace(/percentile\\.+/, "percentile(n)")));
+                    el.replace(/percentile\\.+/, "percentile(${1:n})")));
             }
             case "interval": {
                 return this.getItemsArray(INTERVAL_UNITS, ...setting.enum);

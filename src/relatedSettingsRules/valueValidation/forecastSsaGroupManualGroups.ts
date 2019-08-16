@@ -1,9 +1,9 @@
 import { Diagnostic } from "vscode-languageserver-types";
 import { Section } from "../../configTree/section";
 import { createDiagnostic } from "../../util";
-import { RelatedSettingsRule } from "../utils/interfaces";
+import { Rule } from "../utils/interfaces";
 
-const rule: RelatedSettingsRule = {
+const rule: Rule = {
     name: "Validates forecast-ssa-group-manual-groups value syntax",
     check(section: Section): Diagnostic | void {
         const setting = section.getSettingFromTree("forecast-ssa-group-manual-groups");

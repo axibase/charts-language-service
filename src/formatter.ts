@@ -1,10 +1,10 @@
-import {generate} from "escodegen";
-import {parseScript} from "esprima";
-import {FormattingOptions, Range, TextEdit} from "vscode-languageserver-types";
-import {BLOCK_SCRIPT_END, BLOCK_SCRIPT_START, RELATIONS_REGEXP} from "./regExpressions";
-import {ResourcesProviderBase} from "./resourcesProviderBase";
-import {TextRange} from "./textRange";
-import {createRange, isEmpty} from "./util";
+import { generate } from "escodegen";
+import { parseScript } from "esprima";
+import { FormattingOptions, Range, TextEdit } from "vscode-languageserver-types";
+import { BLOCK_SCRIPT_END, BLOCK_SCRIPT_START, RELATIONS_REGEXP } from "./regExpressions";
+import { ResourcesProviderBase } from "./resourcesProviderBase";
+import { TextRange } from "./textRange";
+import { createRange, isEmpty } from "./util";
 
 interface Section {
     indent?: string;
@@ -438,7 +438,7 @@ export class Formatter {
         if (TextRange.canBeUnclosed(line)) {
             return false;
         }
-        this.match = /^[ \t]*((?:var|list|sql)|script[\s\t]*$)/.exec(line);
+        this.match = /^[ \t]*((?:var|list|sql|expr)|script[\s\t]*$)/.exec(line);
         if (!this.match) {
             return true;
         }
@@ -458,7 +458,5 @@ export class Formatter {
             default:
                 return true;
         }
-
-        return false;
     }
 }

@@ -4,7 +4,7 @@ import { noRequiredSetting, noRequiredSettings } from "../../messageUtil";
 import { Setting } from "../../setting";
 import { createDiagnostic } from "../../util";
 import { requiredCondition } from "../utils/condition";
-import { RelatedSettingsRule, Requirement } from "../utils/interfaces";
+import { Requirement, Rule } from "../utils/interfaces";
 
 /**
  * If key (dependent) is declared in the section and the section matches all of conditions, then:
@@ -120,12 +120,15 @@ const checks: Map<string, Requirement> = new Map<string, Requirement>([
             requiredSetting: "caption"
         }],
     [
-        "metrics", {
-            requiredSetting: "evaluate-expression"
+        "summary-text", {
+            conditions: [
+                requiredCondition("type", ["console"])
+            ],
+            requiredSetting: "collapsible"
         }]
 ]);
 
-const rule: RelatedSettingsRule = {
+const rule: Rule = {
     name: "Checks presence of required setting if dependent is specified",
     check(section: Section): Diagnostic[] | void {
         const diagnostics: Diagnostic[] = [];

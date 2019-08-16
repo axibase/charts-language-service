@@ -2,9 +2,9 @@ import { Diagnostic, DiagnosticSeverity } from "vscode-languageserver-types";
 import { Section } from "../../configTree/section";
 import { parseTimeValue } from "../../time";
 import { createDiagnostic } from "../../util";
-import { RelatedSettingsRule } from "../utils/interfaces";
+import { Rule } from "../utils/interfaces";
 
-const rule: RelatedSettingsRule = {
+const rule: Rule = {
     name: "Validates forecast-horizon/end-time values and checks forecast-horizon-end-time is greater than end-time",
     check(section: Section): Diagnostic[] | void {
         let forecast = section.getSettingFromTree("forecast-horizon-end-time");
