@@ -1,6 +1,6 @@
 import {Position, TextDocument} from "vscode-languageserver-types";
 import {CompletionProvider} from "./completionProvider";
-import {AxibaseFormattingOptions, Formatter} from "./formatter";
+import {ExtendedFormattingOptions, Formatter} from "./formatter";
 import {HoverProvider} from "./hoverProvider";
 import {ResourcesProviderBase} from "./resourcesProviderBase";
 import {Validator} from "./validator";
@@ -31,7 +31,7 @@ export class LanguageService {
         return new HoverProvider(document);
     }
 
-    public static getFormatter(text: string, formattingOptions: AxibaseFormattingOptions) {
+    public static getFormatter(text: string, formattingOptions: ExtendedFormattingOptions) {
         return new Formatter(text, formattingOptions);
     }
 }

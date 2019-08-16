@@ -12,12 +12,12 @@ interface Section {
 }
 
 /** Extended formatting options, supporting blank lines formatting possibility */
-export interface AxibaseFormattingOptions extends FormattingOptions {
+export interface ExtendedFormattingOptions extends FormattingOptions {
     blankLinesAtEnd?: number;
 }
 
 /** Document formatting options */
-export const FORMATTING_OPTIONS = (blankLinesAtEnd: number = 0): AxibaseFormattingOptions => {
+export const FORMATTING_OPTIONS = (blankLinesAtEnd: number = 0): ExtendedFormattingOptions => {
     const TAB_SIZE: number = 2;
     const INSERT_SPACES: boolean = true;
 
@@ -72,7 +72,7 @@ export class Formatter {
     /**
      * Contains options from user's settings which are used to format document
      */
-    private readonly options: AxibaseFormattingOptions;
+    private readonly options: ExtendedFormattingOptions;
     /**
      * Indent of last keyword.
      */
@@ -82,7 +82,7 @@ export class Formatter {
     private previousSection: Section = {};
     private currentSection: Section = {};
 
-    public constructor(text: string, formattingOptions: AxibaseFormattingOptions) {
+    public constructor(text: string, formattingOptions: ExtendedFormattingOptions) {
         this.options = formattingOptions;
         this.lines = text.split("\n");
     }
