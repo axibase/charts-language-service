@@ -135,30 +135,10 @@ export class Formatter {
     }
 
     private handleEndLines(): void {
-        const blankLinesAtTheEnd = [];
-        let lastLineWithContent = this.lines.length - 1;
-
-        for (let i = lastLineWithContent; i >= 0; i--) {
-            const line = this.lines[i];
-            if (isEmpty(line)) {
-                blankLinesAtTheEnd.unshift(i);
-            } else {
-                lastLineWithContent = i;
-                break;
-            }
-        }
-        if (blankLinesAtTheEnd.length !== this.options.blankLinesAtEnd) {
+        if (this.options.blankLinesAtEnd) {
             this.edits.push(TextEdit.replace(
-                Range.create(
-                    lastLineWithContent,
-                    0,
-                    blankLinesAtTheEnd.length ? blankLinesAtTheEnd[blankLinesAtTheEnd.length - 1]
-                        : this.lines.length - 1,
-                    blankLinesAtTheEnd.length
-                        ? blankLinesAtTheEnd[blankLinesAtTheEnd.length - 1].length
-                        : this.lines[this.lines.length - 1].length
-                ),
-                "\n".repeat(this.options.blankLinesAtEnd)
+                createRange(0, this.lines[this.lines.length - 1].length, this.lines.length - 1),
+                 "\n".repeat(this.options.blankLinesAtEnd - 1)
             ));
         }
     }
@@ -392,33 +372,14 @@ export class Formatter {
             return;
         }
 
-        /** Don't delete blank lines at the end */
-        if (!this.configFinished()) {
-            this.edits.push(TextEdit.replace(
-                Range.create(
-                    this.currentLine,
-                    0,
-                    this.currentLine + 1, 0
-                ),
-                "",
-            ));
-        }
-    }
-
-    /**
-     * Checks if config has content left except for blank lines
-     */
-    private configFinished(): boolean {
-        let blankLinesCount = 0;
-        for (let i = this.currentLine; i < this.lines.length; i++) {
-            if (!isEmpty(this.lines[i])) {
-                return false;
-            } else {
-                blankLinesCount++;
-            }
-        }
-
-        return true;
+        this.edits.push(TextEdit.replace(
+            Range.create(
+                this.currentLine,
+                0,
+                this.currentLine + 1, 0
+            ),
+            "",
+        ));
     }
 
     /**

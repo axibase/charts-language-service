@@ -74,4 +74,23 @@ suite("Blank lines formatting", () => {
         const actual = formatter.lineByLine();
         deepStrictEqual(actual, expected);
     });
+
+    test("Insert one blank line at the end, one is already present", () => {
+        const text = `[configuration]
+  entity = nurswgvml007
+  metric = cpu_busy
+
+[group]\n`;
+        const options: FormattingOptions = FORMATTING_OPTIONS(2);
+        const expected: TextEdit[] = [
+            TextEdit.replace(Range.create(
+                Position.create(5, 0),
+                Position.create(5, 0)),
+                "\n"
+            )
+        ];
+        const formatter = new Formatter(text, options);
+        const actual = formatter.lineByLine();
+        deepStrictEqual(actual, expected);
+    });
 });
