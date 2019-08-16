@@ -1,7 +1,7 @@
 import { generate } from "escodegen";
 import { parseScript } from "esprima";
 import { FormattingOptions, Range, TextEdit } from "vscode-languageserver-types";
-import { BLOCK_SCRIPT_END, BLOCK_SCRIPT_START, RELATIONS_REGEXP } from "./regExpressions";
+import { BLANK_LINE_PATTERN, BLOCK_SCRIPT_END, BLOCK_SCRIPT_START, RELATIONS_REGEXP } from "./regExpressions";
 import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { TextRange } from "./textRange";
 import { createRange, isEmpty } from "./util";
@@ -236,7 +236,7 @@ export class Formatter {
                      * Change parent only if current is [series] or [dropdown],
                      * because only they could have child sections ([tag/tags] or [option]).
                      */
-                    this.lastAddedParent = { name: this.currentSection.name, indent: this.currentIndent };
+                    this.lastAddedParent = {name: this.currentSection.name, indent: this.currentIndent};
                 }
                 break;
             }
@@ -350,18 +350,37 @@ export class Formatter {
         const nextLine = this.getLine(nextLineNumber);
 
         /* If next is section declaration other than [configuration], don't delete blank line */
-        if (nextLine === void 0 || (this.isSectionDeclaration(nextLine) && !/\[configuration\]/.test(nextLine))) {
+        if (nextLine === void 0 || (this.isSectionDeclaration(nextLine) && !/\[configuration]/.test(nextLine))) {
             return;
         }
 
-        this.edits.push(TextEdit.replace(
-            Range.create(
-                this.currentLine,
-                0,
-                this.currentLine + 1, 0
-            ),
-            "",
-        ));
+        /** Don't delete blank lines at the end */
+        if (this.configNotFinished(this.currentLine)) {
+            this.edits.push(TextEdit.replace(
+                Range.create(
+                    this.currentLine,
+                    0,
+                    this.currentLine + 1, 0
+                ),
+                "",
+            ));
+        }
+    }
+
+    /**
+     * Checks if config has content left except for blank lines
+     * @param startLineNumber - line number from which begin to look through config
+     */
+    private configNotFinished(startLineNumber: number): boolean {
+        let contentNext = false;
+        for (let i = this.currentLine; i < this.lines.length; i++) {
+            if (!BLANK_LINE_PATTERN.test(this.lines[i])) {
+                contentNext = true;
+                break;
+            }
+        }
+
+        return contentNext;
     }
 
     /**
@@ -437,7 +456,8 @@ export class Formatter {
                 }
                 break;
             }
-            default: return true;
+            default:
+                return true;
         }
 
         return false;
