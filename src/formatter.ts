@@ -1,10 +1,10 @@
-import { generate } from "escodegen";
-import { parseScript } from "esprima";
-import { FormattingOptions, Range, TextEdit } from "vscode-languageserver-types";
-import { BLOCK_SCRIPT_END, BLOCK_SCRIPT_START, RELATIONS_REGEXP } from "./regExpressions";
-import { ResourcesProviderBase } from "./resourcesProviderBase";
-import { TextRange } from "./textRange";
-import { createRange, isEmpty } from "./util";
+import {generate} from "escodegen";
+import {parseScript} from "esprima";
+import {FormattingOptions, Range, TextEdit} from "vscode-languageserver-types";
+import {BLOCK_SCRIPT_END, BLOCK_SCRIPT_START, RELATIONS_REGEXP} from "./regExpressions";
+import {ResourcesProviderBase} from "./resourcesProviderBase";
+import {TextRange} from "./textRange";
+import {createRange, isEmpty} from "./util";
 
 interface Section {
     indent?: string;
@@ -21,7 +21,7 @@ export const FORMATTING_OPTIONS = (blankLinesAtEnd: number = 0): ExtendedFormatt
     const TAB_SIZE: number = 2;
     const INSERT_SPACES: boolean = true;
 
-    return Object.assign(FormattingOptions.create(TAB_SIZE, INSERT_SPACES), { blankLinesAtEnd });
+    return Object.assign(FormattingOptions.create(TAB_SIZE, INSERT_SPACES), {blankLinesAtEnd});
 };
 
 /**
@@ -129,7 +129,38 @@ export class Formatter {
             }
         }
 
+        this.handleEndLines();
+
         return this.edits;
+    }
+
+    private handleEndLines(): void {
+        const blankLinesAtTheEnd = [];
+        let lastLineWithContent = this.lines.length - 1;
+
+        for (let i = lastLineWithContent; i >= 0; i--) {
+            const line = this.lines[i];
+            if (isEmpty(line)) {
+                blankLinesAtTheEnd.unshift(i);
+            } else {
+                lastLineWithContent = i;
+                break;
+            }
+        }
+        if (blankLinesAtTheEnd.length !== this.options.blankLinesAtEnd) {
+            this.edits.push(TextEdit.replace(
+                Range.create(
+                    lastLineWithContent,
+                    0,
+                    blankLinesAtTheEnd.length ? blankLinesAtTheEnd[blankLinesAtTheEnd.length - 1]
+                        : this.lines.length - 1,
+                    blankLinesAtTheEnd.length
+                        ? blankLinesAtTheEnd[blankLinesAtTheEnd.length - 1].length
+                        : this.lines[this.lines.length - 1].length
+                ),
+                "\n".repeat(this.options.blankLinesAtEnd)
+            ));
+        }
     }
 
     /**
@@ -219,7 +250,7 @@ export class Formatter {
             case 1: // [group]
             case 2: { // [widget]
                 this.setIndent(depth - 1);
-                this.lastAddedParent = { name: this.currentSection.name, indent: this.currentIndent };
+                this.lastAddedParent = {name: this.currentSection.name, indent: this.currentIndent};
                 break;
             }
             case 3: { // [series], [dropdown], [column], ...
