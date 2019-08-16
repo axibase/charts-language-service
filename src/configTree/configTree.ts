@@ -1,7 +1,7 @@
+import { ResourcesProviderBase } from "../resourcesProviderBase";
 import { Setting } from "../setting";
 import { TextRange } from "../textRange";
 import { Section } from "./section";
-import { ResourcesProviderBase } from "../resourcesProviderBase";
 
 /**
  * Stores sections with corresponding settings in tree order.
@@ -20,9 +20,10 @@ export class ConfigTree {
      * Doesn't alert if the section is out of order, this check is performed by SectionStack.
      *
      * @param range - The text (name of section) and the position of the text
+     * @param hasExprBlock - True if section contain evaluate-expression block
      * @param settings - Section settings
      */
-    public addSection(range: TextRange, settings: Setting[]) {
+    public addSection(range: TextRange, settings: Setting[], hasExprBlock: boolean = false) {
         const section = new Section(range, settings);
         const depth: number = ResourcesProviderBase.sectionDepthMap[range.text];
         if (depth > 0 && !this.root) {
@@ -83,5 +84,6 @@ export class ConfigTree {
         }
         this.previous = section;
         section.applyScope();
+        section.hasExprBlock = hasExprBlock;
     }
 }

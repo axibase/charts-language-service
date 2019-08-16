@@ -1,9 +1,9 @@
 import { Diagnostic } from "vscode-languageserver-types";
 import { Section } from "../../configTree/section";
 import { createDiagnostic, getSetting } from "../../util";
-import { RelatedSettingsRule } from "../utils/interfaces";
+import { Rule } from "../utils/interfaces";
 
-const rule: RelatedSettingsRule = {
+const rule: Rule = {
     name: "Checks forecast-ssa-group-auto-count is greater than forecast-ssa-decompose-eigentriple-limit",
     check(section: Section): Diagnostic | void {
         const groupAutoCount = section.getSettingFromTree("forecast-ssa-group-auto-count");

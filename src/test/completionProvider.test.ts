@@ -1,7 +1,7 @@
-import { Position, TextDocument } from "vscode-languageserver-types";
-import { Test } from "./test";
-import { CompletionProvider } from "../completionProvider";
 import { strictEqual } from "assert";
+import { Position, TextDocument } from "vscode-languageserver-types";
+import { CompletionProvider } from "../completionProvider";
+import { Test } from "./test";
 
 suite("CompletionProvider tests", () => {
     [
