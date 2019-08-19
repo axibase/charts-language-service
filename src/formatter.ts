@@ -21,7 +21,7 @@ export const FORMATTING_OPTIONS = (blankLinesAtEnd: number = 0): ExtendedFormatt
     const TAB_SIZE: number = 2;
     const INSERT_SPACES: boolean = true;
 
-    return Object.assign(FormattingOptions.create(TAB_SIZE, INSERT_SPACES), {blankLinesAtEnd});
+    return Object.assign(FormattingOptions.create(TAB_SIZE, INSERT_SPACES), { blankLinesAtEnd });
 };
 
 /**
@@ -73,6 +73,8 @@ export class Formatter {
      * Contains options from user's settings which are used to format document
      */
     private readonly options: ExtendedFormattingOptions;
+
+    private formattedText: string[] = [];
     /**
      * Indent of last keyword.
      */
@@ -101,15 +103,10 @@ export class Formatter {
                 this.deleteExtraBlankLines();
                 continue;
             } else if (this.isSectionDeclaration(line)) {
-                this.calculateSectionIndent();
-                this.checkIndent();
-                this.increaseIndent();
-                this.insertLineBeforeSection();
+                this.handleSectionDeclaration();
                 continue;
             } else if (BLOCK_SCRIPT_START.test(line)) {
-                this.checkIndent();
-                this.formatScript();
-                this.checkIndent();
+                this.handleScriptBlock();
                 continue;
             } else {
                 this.checkSign();
@@ -131,15 +128,38 @@ export class Formatter {
 
         this.handleEndLines();
 
+        console.log(`Formatted text: ${this.formattedText.join("\n")}`);
+
         return this.edits;
+    }
+
+    /**
+     * Apply formatting rules for section declaration
+     */
+    private handleSectionDeclaration(): void {
+        this.calculateSectionIndent();
+        this.checkIndent();
+        this.increaseIndent();
+        this.insertLineBeforeSection();
+    }
+
+    /**
+     * Apply formatting rules for script-endscript block
+     */
+    private handleScriptBlock(): void {
+        this.checkIndent();
+        this.formatScript();
+        this.checkIndent();
     }
 
     private handleEndLines(): void {
         if (this.options.blankLinesAtEnd) {
             this.edits.push(TextEdit.replace(
                 createRange(0, this.lines[this.lines.length - 1].length, this.lines.length - 1),
-                 "\n".repeat(this.options.blankLinesAtEnd - 1)
+                "\n".repeat(this.options.blankLinesAtEnd - 1)
             ));
+
+            this.formattedText.push("\n".repeat(this.options.blankLinesAtEnd))
         }
     }
 
@@ -181,8 +201,11 @@ export class Formatter {
                 Range.create(startLine, 0, endLine, endCharacter),
                 formattedCode
             ));
+
+            this.formattedText.push(formattedCode);
         } catch (error) {
             /** If we didn't manage to format script just continue */
+            this.formattedText.push(content);
         }
     }
 
@@ -230,7 +253,7 @@ export class Formatter {
             case 1: // [group]
             case 2: { // [widget]
                 this.setIndent(depth - 1);
-                this.lastAddedParent = {name: this.currentSection.name, indent: this.currentIndent};
+                this.lastAddedParent = { name: this.currentSection.name, indent: this.currentIndent };
                 break;
             }
             case 3: { // [series], [dropdown], [column], ...
@@ -254,7 +277,7 @@ export class Formatter {
                      * Change parent only if current is [series] or [dropdown],
                      * because only they could have child sections ([tag/tags] or [option]).
                      */
-                    this.lastAddedParent = {name: this.currentSection.name, indent: this.currentIndent};
+                    this.lastAddedParent = { name: this.currentSection.name, indent: this.currentIndent };
                 }
                 break;
             }
@@ -286,6 +309,8 @@ export class Formatter {
                 this.currentIndent,
             ));
         }
+
+        this.formattedText.push(this.currentIndent + this.getCurrentLine().trim())
     }
 
     /**
@@ -358,6 +383,8 @@ export class Formatter {
             Range.create(this.currentLine, 0, this.currentLine, currentLine.length),
             "\n" + currentLine,
         ));
+
+        this.formattedText.splice(this.formattedText.length - 1, 0, "");
     }
 
     /**
@@ -369,6 +396,7 @@ export class Formatter {
 
         /* If next is section declaration other than [configuration], don't delete blank line */
         if (nextLine === void 0 || (this.isSectionDeclaration(nextLine) && !/\[configuration]/.test(nextLine))) {
+            this.formattedText.push("");
             return;
         }
 
