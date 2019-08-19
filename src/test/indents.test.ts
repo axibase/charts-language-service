@@ -1,7 +1,7 @@
-// import { deepStrictEqual } from "assert";
-// import { FormattingOptions, Position, Range, TextEdit } from "vscode-languageserver-types";
-// import { Formatter, FORMATTING_OPTIONS } from "../formatter";
-// import { Test } from "./test";
+import { deepStrictEqual } from "assert";
+import { FormattingOptions, Position, Range, TextEdit } from "vscode-languageserver-types";
+import { Formatter, FORMATTING_OPTIONS } from "../formatter";
+import { Test } from "./test";
 
 // suite("Formatting indents tests: sections and settings", () => {
 //   const tests: Test[] = [
@@ -511,31 +511,28 @@
 //   tests.forEach((test: Test) => { test.formatTest(); });
 // });
 
-// suite("Formatting indents tests: >=, <=, >, <", () => {
-//   test("Correct >", () => {
-//     const text = `if a > b`;
-//     const options: FormattingOptions = FormattingOptions.create(2, true);
-//     const expected: TextEdit[] = [];
-//     const formatter = new Formatter(text, options);
-//     const actual = formatter.lineByLine();
-//     deepStrictEqual(actual, expected);
-//   });
+suite("Formatting indents tests: >=, <=, >, <", () => {
+  test("Correct >", () => {
+    const text = `if a > b`;
+    const expected = text;
+    const formatter = new Formatter(text, FORMATTING_OPTIONS());
+    const actual = formatter.lineByLine().pop().newText;
+    deepStrictEqual(actual, expected);
+  });
 
-//   test("Correct <", () => {
-//     const text = `if a < b`;
-//     const options: FormattingOptions = FormattingOptions.create(2, true);
-//     const expected: TextEdit[] = [];
-//     const formatter = new Formatter(text, options);
-//     const actual = formatter.lineByLine();
-//     deepStrictEqual(actual, expected);
-//   });
+  test("Correct <", () => {
+    const text = `if a < b`;
+    const expected = text;
+    const formatter = new Formatter(text, FORMATTING_OPTIONS());
+    const actual = formatter.lineByLine().pop().newText;;
+    deepStrictEqual(actual, expected);
+  });
 
-//   test("Correct >=", () => {
-//     const text = `if a >= b`;
-//     const options: FormattingOptions = FormattingOptions.create(2, true);
-//     const expected: TextEdit[] = [];
-//     const formatter = new Formatter(text, options);
-//     const actual = formatter.lineByLine();
-//     deepStrictEqual(actual, expected);
-//   });
-// });
+  test("Correct >=", () => {
+    const text = `if a >= b`;
+    const expected = text;
+    const formatter = new Formatter(text, FORMATTING_OPTIONS());
+    const actual = formatter.lineByLine().pop().newText;
+    deepStrictEqual(actual, expected);
+  });
+});
