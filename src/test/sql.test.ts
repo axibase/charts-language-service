@@ -70,23 +70,23 @@ endsql
     });
 });
 
-suite("Formatter: SQL indents tests", () => {
-    const config =
-        "\n  [widget]\n" +
-        "    type = chart\n" +
-        "    sql = SELECT time, entity, value FROM cpu_busy\n" +
-        "    sql = WHERE /* time */ > now - 5 * minute\n\n" +
-        "    [series]\n\n" +
-        "" +
-        "  [widget]\n" +
-        "    type = chart\n" +
-        "    sql\n" +
-        "      SELECT time, entity, value FROM cpu_busy\n" +
-        "      WHERE /* time */ > now - 5 * minute\n" +
-        "    endsql\n\n" +
-        "    [series]";
-    const expected = config;
-    const formatter = new Formatter(config, FORMATTING_OPTIONS());
-    const actual = formatter.lineByLine().pop().newText;
-    assert.deepStrictEqual(actual, expected);
-});
+// suite("Formatter: SQL indents tests", () => {
+//     const config =
+//         "\n  [widget]\n" +
+//         "    type = chart\n" +
+//         "    sql = SELECT time, entity, value FROM cpu_busy\n" +
+//         "    sql = WHERE /* time */ > now - 5 * minute\n\n" +
+//         "    [series]\n\n" +
+//         "" +
+//         "  [widget]\n" +
+//         "    type = chart\n" +
+//         "    sql\n" +
+//         "      SELECT time, entity, value FROM cpu_busy\n" +
+//         "      WHERE /* time */ > now - 5 * minute\n" +
+//         "    endsql\n\n" +
+//         "    [series]";
+//     const expected = config;
+//     const formatter = new Formatter(config, FORMATTING_OPTIONS());
+//     const actual = formatter.lineByLine().pop().newText;
+//     assert.deepStrictEqual(actual, expected);
+// });

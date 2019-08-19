@@ -100,7 +100,6 @@ export class Formatter {
                     Object.assign(this.currentSection, this.previousSection);
                     this.decreaseIndent();
                 }
-                this.deleteExtraBlankLines();
                 continue;
             } else if (this.isSectionDeclaration(line)) {
                 this.handleSectionDeclaration();
@@ -117,7 +116,7 @@ export class Formatter {
                 this.insideKeyword = false;
                 this.lastKeywordIndent = "";
             }
-            this.checkIndent();
+            this.indentLine();
             if (TextRange.isCloseAble(line) && this.shouldBeClosed()) {
                 this.keywordsLevels.push(this.currentIndent.length / Formatter.BASE_INDENT_SIZE);
                 this.lastKeywordIndent = this.currentIndent;
@@ -149,7 +148,7 @@ export class Formatter {
      */
     private handleSectionDeclaration(): void {
         this.calculateSectionIndent();
-        this.checkIndent();
+        this.indentLine();
         this.increaseIndent();
         this.insertLineBeforeSection();
     }
@@ -158,18 +157,13 @@ export class Formatter {
      * Apply formatting rules for script-endscript block
      */
     private handleScriptBlock(): void {
-        this.checkIndent();
+        this.indentLine();
         this.formatScript();
-        this.checkIndent();
+        this.indentLine();
     }
 
     private handleEndLines(): void {
         if (this.options.blankLinesAtEnd) {
-            this.edits.push(TextEdit.replace(
-                createRange(0, this.lines[this.lines.length - 1].length, this.lines.length - 1),
-                "\n".repeat(this.options.blankLinesAtEnd - 1)
-            ));
-
             this.formattedText.push("\n".repeat(this.options.blankLinesAtEnd))
         }
     }
@@ -309,18 +303,9 @@ export class Formatter {
     }
 
     /**
-     * Creates a text edit if the current indent is incorrect
+     * Sets line current indent
      */
-    private checkIndent(): void {
-        this.match = /(^\s*)\S/.exec(this.getCurrentLine());
-        if (this.match && this.match[1] !== this.currentIndent) {
-            const indent: string = this.match[1];
-            this.edits.push(TextEdit.replace(
-                Range.create(this.currentLine, 0, this.currentLine, indent.length),
-                this.currentIndent,
-            ));
-        }
-
+    private indentLine(): void {
         this.formattedText.push(this.currentIndent + this.getCurrentLine().trim())
     }
 
@@ -383,42 +368,11 @@ export class Formatter {
      * Inserts blank line before section except for configuration
      */
     private insertLineBeforeSection(): void {
-        const currentLine = this.getCurrentLine();
-        const previousLineNumber = this.currentLine - 1;
-        const previousLine = this.getLine(previousLineNumber);
-
-        if (this.currentSection.name === "configuration" || isEmpty(previousLine)) {
+        if (this.currentSection.name === "configuration") {
             return;
         }
-        this.edits.push(TextEdit.replace(
-            Range.create(this.currentLine, 0, this.currentLine, currentLine.length),
-            "\n" + currentLine,
-        ));
 
         this.formattedText.splice(this.formattedText.length - 1, 0, "");
-    }
-
-    /**
-     * Deletes extra blank lines in the document
-     */
-    private deleteExtraBlankLines(): void {
-        const nextLineNumber = this.currentLine + 1;
-        const nextLine = this.getLine(nextLineNumber);
-
-        /* If next is section declaration other than [configuration], don't delete blank line */
-        if (nextLine === void 0 || (this.isSectionDeclaration(nextLine) && !/\[configuration]/.test(nextLine))) {
-            this.formattedText.push("");
-            return;
-        }
-
-        this.edits.push(TextEdit.replace(
-            Range.create(
-                this.currentLine,
-                0,
-                this.currentLine + 1, 0
-            ),
-            "",
-        ));
     }
 
     /**
