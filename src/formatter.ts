@@ -4,7 +4,7 @@ import { FormattingOptions, Range, TextEdit, Position } from "vscode-languageser
 import { BLOCK_SCRIPT_END, BLOCK_SCRIPT_START, RELATIONS_REGEXP } from "./regExpressions";
 import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { TextRange } from "./textRange";
-import { createRange, isEmpty } from "./util";
+import { isEmpty } from "./util";
 
 interface Section {
     indent?: string;
