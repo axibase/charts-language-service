@@ -176,11 +176,11 @@ export class Formatter {
         if (!buffer.length) {
             return;
         }
-        const content = buffer.join("\n");
+        const unformattedCode = buffer.join("\n");
 
         try {
             /** Parse and format JavaScript */
-            const parsedCode = parseScript(content);
+            const parsedCode = parseScript(unformattedCode);
             const formattedCode = generate(parsedCode, {
                 format: {
                     indent: {
@@ -193,7 +193,7 @@ export class Formatter {
             this.formattedText.push(formattedCode);
         } catch (error) {
             /** If we didn't manage to format script just continue */
-            this.formattedText.push(content);
+            this.formattedText.push(unformattedCode);
         }
     }
 
