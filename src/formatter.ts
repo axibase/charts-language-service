@@ -126,8 +126,7 @@ export class Formatter {
         }
 
         this.handleEndLines();
-
-        this.edits.length = 0;
+        
         this.edits.push(
             TextEdit.replace(
                 Range.create(
@@ -137,8 +136,6 @@ export class Formatter {
                 this.formattedText.join("\n")
             )
         );
-
-        console.log(this.edits)
 
         return this.edits;
     }
@@ -210,28 +207,18 @@ export class Formatter {
      * Checks how many spaces are between the sign and setting name
      */
     private checkSign(): void {
-        const line: string = this.getCurrentLine();
-        const match: RegExpExecArray | null = RELATIONS_REGEXP.exec(line);
+        const match: RegExpExecArray | null = RELATIONS_REGEXP.exec(this.lastLine);
         if (match === null) {
             return;
         }
+
         const [, declaration, spacesBefore, sign, spacesAfter] = match;
         if (spacesBefore !== " ") {
-            this.edits.push(
-                TextEdit.replace(
-                    createRange(declaration.length, spacesBefore.length, this.currentLine),
-                    " ",
-                ),
-            );
+            this.lastLine = this.lastLine.replace(this.lastLine.substr(declaration.length, spacesBefore.length), " ")
         }
         if (spacesAfter !== " ") {
-            const start = line.indexOf(sign) + sign.length;
-            this.edits.push(
-                TextEdit.replace(
-                    createRange(start, spacesAfter.length, this.currentLine),
-                    " ",
-                ),
-            );
+            const start = this.lastLine.indexOf(sign) + sign.length;
+            this.lastLine = this.lastLine.replace(this.lastLine.substr(start, spacesAfter.length), " ")
         }
     }
 
