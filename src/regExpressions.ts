@@ -30,7 +30,7 @@ export const ONE_LINE_SQL = /^\s*sql\s*=.*$/m;
 export const BLOCK_SQL_START_WITHOUT_LF = /(^\s*)sql\s*\S/;
 
 // sql
-export const BLOCK_SQL_START = /sql(?!([\s\S]*=))/;
+export const BLOCK_SQL_START = /^\s*sql(?!([\s\S]*=))/;
 
 // endsql
 export const BLOCK_SQL_END = /^\s*endsql\s*$/;
@@ -48,6 +48,17 @@ export const BLOCK_SCRIPT_START = /(?:^\s*)script(?!([\s\S]*=))/;
 
 // endscript
 export const BLOCK_SCRIPT_END = /^\s*endscript\s*$/;
+
+/** Regular expressions to match expr */
+
+// expr expr_1;
+export const EXPR_START_WITHOUT_LF = /(^\s*)expr\s*\S/;
+
+// expr
+export const EXPR_START = /^\s*expr\s*$/;
+
+// endexpr
+export const EXPR_END = /^\s*endexpr\s*$/;
 
 /** Various regular expressions */
 
@@ -69,4 +80,4 @@ export const NUMBER_REGEXP: RegExp = /^(?:\-|\+)?(?:\.\d+|\d+(?:\.\d+)?)$/;
 export const CALCULATED_REGEXP: RegExp = /[@$]\{.+\}/;
 
 // =, ==, !=, >=, <=, >, <
-export const RELATIONS_REGEXP: RegExp =  new RegExp(`(^\\s*.+?)(\\s*?)(${RELATIONS.join("|")})(\\s*)`);
+export const RELATIONS_REGEXP: RegExp = new RegExp(`(^\\s*.+?)(\\s*?)(${RELATIONS.join("|")})(\\s*)`);

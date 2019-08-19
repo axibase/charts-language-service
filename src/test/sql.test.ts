@@ -33,9 +33,9 @@ endsq
         let validator = new Validator(conf);
         let diags = validator.lineByLine();
         assert.deepStrictEqual(diags, [
-            createDiagnostic(createRange(0, "sql".length, 6), noMatching("sql", "endsql")),
             createDiagnostic(createRange(1, "widget".length, 4),
                 "Required section [series] is not declared."),
+                createDiagnostic(createRange(0, "sql".length, 6), `sql has no matching endsql`),
         ], `Config: \n${conf}`);
     });
 
@@ -48,7 +48,7 @@ endsql
         let validator = new Validator(conf);
         let diags = validator.lineByLine();
         assert.deepStrictEqual(diags, [
-            createDiagnostic(createRange(0, "endsql".length, 8), noMatching("endsql", "sql"))
+            createDiagnostic(createRange(0, "endsql".length, 8), `endsql has no matching sql`)
         ], `Config: \n${conf}`);
     });
 
@@ -60,7 +60,8 @@ endsql
         let validator = new Validator(conf);
         let diags = validator.lineByLine();
         assert.deepStrictEqual(diags, [
-            createDiagnostic(createRange(0, "sql".length, 6), lineFeedRequired("sql"))
+            createDiagnostic(createRange(0, "endsql".length, 7), `endsql has no matching sql`),
+            createDiagnostic(createRange(0, "sql".length, 6), `A linefeed character after 'sql' keyword is required`)
         ], `Config: \n${conf}`);
     });
 });
@@ -82,5 +83,5 @@ suite("Formatter: SQL indents tests", () => {
         "    [series]\n"
         ;
     const formatter = new Formatter(config, FormattingOptions.create(2, true));
-    assert.deepStrictEqual(formatter.lineByLine(), []);
+    assert.deepStrictEqual(formatter.lineByLine(), [], `Config: \n${config}`);
 });
