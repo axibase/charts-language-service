@@ -7204,7 +7204,7 @@
                     ],
                     "defaultValue": "alert"
                 },
-                "[widget != 'console' && widget != 'property']": {
+                "[widget != 'console' && widget != 'property' && widget != '']": {
                     "enum": [
                         "message-stat"
                     ]
