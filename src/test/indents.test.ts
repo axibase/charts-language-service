@@ -481,35 +481,60 @@ import { Test } from "./test";
 //   );
 // });
 
-// suite("Formatting indents tests: !=, ==, = ", () => {
-//   const tests: Test[] = [
-//     new Test(
-//       "Correct !=",
-//       `if id != 'a'`, [], FormattingOptions.create(2, true),
-//     ),
-//     new Test(
-//       "Correct ==",
-//       `if id == 'a'`, [], FormattingOptions.create(2, true),
-//     ),
-//     new Test(
-//       "Correct =",
-//       `type = bar`, [], FormattingOptions.create(2, true),
-//     ), new Test(
-//       "Incorrect ==",
-//       `if id =='a'`, [TextEdit.replace(Range.create(
-//         Position.create(0, "if id ==".length), Position.create(0, "if id ==".length)), " ")],
-//       FormattingOptions.create(2, true),
-//     ), new Test(
-//       "Incorrect =",
-//       `type=bar`, [TextEdit.replace(Range.create(
-//         Position.create(0, "type".length), Position.create(0, "type".length)), " "),
-//       TextEdit.replace(Range.create(
-//         Position.create(0, "type=".length), Position.create(0, "type=".length)), " ")
-//       ],
-//       FormattingOptions.create(2, true),
-//     )];
-//   tests.forEach((test: Test) => { test.formatTest(); });
-// });
+suite("Formatting indents tests: !=, ==, = ", () => {
+  const tests: Test[] = [
+    new Test(
+      "Correct !=",
+      `if id != 'a'`,
+      [
+        TextEdit.replace(
+          Range.create(
+            Position.create(0, 0), Position.create(0, "if id != 'a'".length)),
+          "if id != 'a'")
+      ], FORMATTING_OPTIONS()
+    ),
+    new Test(
+      "Correct ==",
+      `if id == 'a'`,
+      [
+        TextEdit.replace(
+          Range.create(
+            Position.create(0, 0), Position.create(0, "if id == 'a'".length)),
+          "if id == 'a'")
+      ], FORMATTING_OPTIONS()
+    ),
+    new Test(
+      "Correct =",
+      `type = bar`,
+      [
+        TextEdit.replace(
+          Range.create(
+            Position.create(0, 0), Position.create(0, "type = bar".length)),
+          "type = bar")
+      ], FORMATTING_OPTIONS()
+    ), new Test(
+      "Incorrect ==",
+      `if id =='a'`,
+      [
+        TextEdit.replace(
+          Range.create(
+            Position.create(0, 0), Position.create(0, "if id =='a'".length)),
+          "if id == 'a'")
+      ],
+      FORMATTING_OPTIONS()
+    ), new Test(
+      "Incorrect =",
+      `type=bar`,
+      [
+        TextEdit.replace(
+          Range.create(
+            Position.create(0, 0), Position.create(0, "type=bar".length)
+          ), "type = bar")
+      ],
+      FORMATTING_OPTIONS()
+    )];
+  tests.forEach((test: Test) => { test.formatTest(); });
+});
 
 suite("Formatting indents tests: >=, <=, >, <", () => {
   test("Correct >", () => {

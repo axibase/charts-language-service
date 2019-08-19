@@ -40,10 +40,7 @@ export class Formatter {
      * Current line number
      */
     private currentLine: number = 0;
-    /**
-     * Created TextEdits
-     */
-    private readonly edits: TextEdit[] = [];
+
     /**
      * A flag used to determine are we inside of a keyword or not
      */
@@ -107,9 +104,8 @@ export class Formatter {
             } else if (BLOCK_SCRIPT_START.test(line)) {
                 this.handleScriptBlock();
                 continue;
-            } else {
-                this.checkSign();
-            }
+            } 
+
             if (TextRange.isClosing(line)) {
                 const stackHead: number | undefined = this.keywordsLevels.pop();
                 this.setIndent(stackHead);
@@ -126,8 +122,8 @@ export class Formatter {
         }
 
         this.handleEndLines();
-        
-        this.edits.push(
+
+        return [
             TextEdit.replace(
                 Range.create(
                     Position.create(0, 0),
@@ -135,9 +131,7 @@ export class Formatter {
                 ),
                 this.formattedText.join("\n")
             )
-        );
-
-        return this.edits;
+        ];
     }
 
     /**
@@ -206,20 +200,22 @@ export class Formatter {
     /**
      * Checks how many spaces are between the sign and setting name
      */
-    private checkSign(): void {
-        const match: RegExpExecArray | null = RELATIONS_REGEXP.exec(this.lastLine);
+    private checkSign(line: string = this.getCurrentLine()): string {
+        const match: RegExpExecArray | null = RELATIONS_REGEXP.exec(line);
         if (match === null) {
-            return;
+            return line;
         }
 
         const [, declaration, spacesBefore, sign, spacesAfter] = match;
         if (spacesBefore !== " ") {
-            this.lastLine = this.lastLine.replace(this.lastLine.substr(declaration.length, spacesBefore.length), " ")
+            line = line.substr(0, declaration.length) + " " + line.substr(line.indexOf(sign));
         }
         if (spacesAfter !== " ") {
-            const start = this.lastLine.indexOf(sign) + sign.length;
-            this.lastLine = this.lastLine.replace(this.lastLine.substr(start, spacesAfter.length), " ")
+            const start = line.indexOf(sign) + sign.length;
+            line = line.substring(0, start) + " " + line.substring(start);
         }
+
+        return line;
     }
 
     /**
@@ -285,7 +281,7 @@ export class Formatter {
      * Sets line current indent
      */
     private indentLine(): void {
-        this.formattedText.push(this.currentIndent + this.getCurrentLine().trim())
+        this.formattedText.push(this.currentIndent + this.checkSign().trim())
     }
 
     /**
