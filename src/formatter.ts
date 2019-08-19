@@ -1,6 +1,6 @@
 import { generate } from "escodegen";
 import { parseScript } from "esprima";
-import { FormattingOptions, Range, TextEdit } from "vscode-languageserver-types";
+import { FormattingOptions, Range, TextEdit, Position } from "vscode-languageserver-types";
 import { BLOCK_SCRIPT_END, BLOCK_SCRIPT_START, RELATIONS_REGEXP } from "./regExpressions";
 import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { TextRange } from "./textRange";
@@ -128,7 +128,18 @@ export class Formatter {
 
         this.handleEndLines();
 
-        console.log(`Formatted text: ${this.formattedText.join("\n")}`);
+        this.edits.length = 0;
+        this.edits.push(
+            TextEdit.replace(
+                Range.create(
+                    Position.create(0, 0),
+                    Position.create(this.lines.length - 1, this.lines[this.lines.length - 1].length)
+                ),
+                this.formattedText.join("\n")
+            )
+        );
+
+        console.log(this.edits)
 
         return this.edits;
     }

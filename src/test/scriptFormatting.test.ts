@@ -2,23 +2,21 @@ import { deepStrictEqual } from "assert";
 import { FormattingOptions, Position, Range, TextEdit } from "vscode-languageserver-types";
 import { Formatter, FORMATTING_OPTIONS } from "../formatter";
 
-suite("JavasScript code formatting", () => {
+suite("JavaScript code formatting", () => {
     test("Unformatted code inside script tag alone", () => {
         const text = `script
         window.userFunction = function () {
         return Math.round(value / 10) * 10;
         };
 endscript`;
+        const expected = `script
+  window.userFunction = function () {
+    return Math.round(value / 10) * 10;
+  };
+endscript`
         const options: FormattingOptions = FORMATTING_OPTIONS();
-        const expected: TextEdit[] = [
-            TextEdit.replace(Range.create(
-                Position.create(1, 0),
-                Position.create(3, 10)),
-                "  window.userFunction = function () {\n    return Math.round(value / 10) * 10;\n  };"
-            )
-        ];
         const formatter = new Formatter(text, options);
-        const actual = formatter.lineByLine();
+        const actual = formatter.lineByLine().pop().newText;
         deepStrictEqual(actual, expected);
     });
 
@@ -27,15 +25,13 @@ endscript`;
         window.userFunction = function () {return Math.round(value / 10) * 10;};
 endscript`;
         const options: FormattingOptions = FORMATTING_OPTIONS();
-        const expected: TextEdit[] = [
-            TextEdit.replace(Range.create(
-                Position.create(1, 0),
-                Position.create(1, 80)),
-                "  window.userFunction = function () {\n    return Math.round(value / 10) * 10;\n  };"
-            )
-        ];
+        const expected = `script
+  window.userFunction = function () {
+    return Math.round(value / 10) * 10;
+  };
+endscript`;
         const formatter = new Formatter(text, options);
-        const actual = formatter.lineByLine();
+        const actual = formatter.lineByLine().pop().newText;
         deepStrictEqual(actual, expected);
     });
 
@@ -47,15 +43,14 @@ endscript`;
     };
   endscript`;
         const options: FormattingOptions = FORMATTING_OPTIONS();
-        const expected: TextEdit[] = [
-            TextEdit.replace(Range.create(
-                Position.create(2, 0),
-                Position.create(4, 6)),
-                "    window.userFunction = function () {\n      return Math.round(value / 10) * 10;\n    };"
-            )
-        ];
+        const expected = `[configuration]
+  script
+    window.userFunction = function () {
+      return Math.round(value / 10) * 10;
+    };
+  endscript`;
         const formatter = new Formatter(text, options);
-        const actual = formatter.lineByLine();
+        const actual = formatter.lineByLine().pop().newText;
         deepStrictEqual(actual, expected);
     });
 
@@ -68,15 +63,15 @@ endscript`;
     };
   endscript`;
         const options: FormattingOptions = FORMATTING_OPTIONS();
-        const expected: TextEdit[] = [
-            TextEdit.replace(Range.create(
-                Position.create(3, 0),
-                Position.create(5, 6)),
-                "    window.userFunction = function () {\n      return Math.round(value / 10) * 10;\n    };"
-            )
-        ];
+        const expected = `
+[group]
+  script
+    window.userFunction = function () {
+      return Math.round(value / 10) * 10;
+    };
+  endscript`;
         const formatter = new Formatter(text, options);
-        const actual = formatter.lineByLine();
+        const actual = formatter.lineByLine().pop().newText;
         deepStrictEqual(actual, expected);
     });
 
@@ -90,9 +85,9 @@ endscript`;
             `};`
             + `endscript`;
         const options: FormattingOptions = FORMATTING_OPTIONS();
-        const expected: TextEdit[] = [];
+        const expected = text;
         const formatter = new Formatter(text, options);
-        const actual = formatter.lineByLine();
+        const actual = formatter.lineByLine().pop().newText;
         deepStrictEqual(actual, expected);
     });
 });

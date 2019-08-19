@@ -10,15 +10,12 @@ suite("Blank lines formatting", () => {
 
 [group]`;
         const options: FormattingOptions = FORMATTING_OPTIONS();
-        const expected: TextEdit[] = [
-            TextEdit.replace(Range.create(
-                Position.create(2, 0),
-                Position.create(3, 0)),
-                ""
-            )
-        ];
+        const expected = `[configuration]
+  offset-right = 50
+
+[group]`;
         const formatter = new Formatter(text, options);
-        const actual = formatter.lineByLine();
+        const actual = formatter.lineByLine().pop().newText;
         deepStrictEqual(actual, expected);
     });
 
@@ -27,15 +24,12 @@ suite("Blank lines formatting", () => {
   offset-right = 50
 [group]`;
         const options: FormattingOptions = FORMATTING_OPTIONS();
-        const expected: TextEdit[] = [
-            TextEdit.replace(Range.create(
-                Position.create(2, 0),
-                Position.create(2, "[group]".length)),
-                "\n[group]"
-            )
-        ];
+        const expected = `[configuration]
+  offset-right = 50
+
+[group]`;
         const formatter = new Formatter(text, options);
-        const actual = formatter.lineByLine();
+        const actual = formatter.lineByLine().pop().newText;
         deepStrictEqual(actual, expected);
     });
 
@@ -45,9 +39,9 @@ suite("Blank lines formatting", () => {
 
 [group]`;
         const options: FormattingOptions = FORMATTING_OPTIONS();
-        const expected: TextEdit[] = [];
+        const expected = text;
         const formatter = new Formatter(text, options);
-        const actual = formatter.lineByLine();
+        const actual = formatter.lineByLine().pop().newText;
         deepStrictEqual(actual, expected);
     });
 
@@ -58,39 +52,13 @@ suite("Blank lines formatting", () => {
   metric = cpu_busy
 [group]`;
         const options: FormattingOptions = FORMATTING_OPTIONS();
-        const expected: TextEdit[] = [
-            TextEdit.replace(Range.create(
-                Position.create(2, 0),
-                Position.create(3, 0)),
-                ""
-            ),
-            TextEdit.replace(Range.create(
-                Position.create(4, 0),
-                Position.create(4, "[group]".length)),
-                "\n[group]"
-            )
-        ];
-        const formatter = new Formatter(text, options);
-        const actual = formatter.lineByLine();
-        deepStrictEqual(actual, expected);
-    });
-
-    test("Insert one blank line at the end, one is already present", () => {
-        const text = `[configuration]
+        const expected = `[configuration]
   entity = nurswgvml007
   metric = cpu_busy
 
-[group]\n`;
-        const options: FormattingOptions = FORMATTING_OPTIONS(2);
-        const expected: TextEdit[] = [
-            TextEdit.replace(Range.create(
-                Position.create(5, 0),
-                Position.create(5, 0)),
-                "\n"
-            )
-        ];
+[group]`;
         const formatter = new Formatter(text, options);
-        const actual = formatter.lineByLine();
+        const actual = formatter.lineByLine().pop().newText;
         deepStrictEqual(actual, expected);
     });
 });
