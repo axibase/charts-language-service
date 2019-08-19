@@ -28,11 +28,17 @@ export class Config {
         return (line < this.lines.length && line >= 0) ? this.lines[line] : null;
     }
 
-    public *[Symbol.iterator]() {
-        for (let line of this.lines) {
-            this.currentLine = line;
-            this.currentLineNumber++;
-            yield line;
-        }
+    public iterator() {
+        return this[Symbol.iterator]();
+    }
+
+    public [Symbol.iterator]() {
+        const that = this;
+        return {
+            next() {
+                that.currentLine = that.lines[++that.currentLineNumber];
+                return { value: that.currentLine, done: !(that.currentLineNumber in that.lines) };
+            }
+        };
     }
 }

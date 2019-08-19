@@ -1,6 +1,5 @@
 import { DiagnosticSeverity, Position, Range } from "vscode-languageserver-types";
-import { lineFeedRequired } from "../messageUtil";
-import { createDiagnostic } from "../util";
+import { createDiagnostic, createRange } from "../util";
 import { Test } from "./test";
 
 const unknownToken: string = "script has no matching endscript";
@@ -45,10 +44,10 @@ endscript`,
 endscrpt
 script
 endscrpt`,
-            [createDiagnostic(
-                Range.create(Position.create(0, 0), Position.create(0, "script".length)),
-                unknownToken,
-            )],
+            [
+                createDiagnostic(createRange(0, "script".length, 2), unknownToken),
+                createDiagnostic(createRange(0, "script".length, 0), unknownToken)
+            ],
         ),
         new Test(
             "Correct one-line script = ",
@@ -99,9 +98,12 @@ endscript`,
             "Incorrect script/endscript declaration",
             `script alert("Hello, world!")
 endscript`,
-            [createDiagnostic(
-                Range.create(0, 0, 0, "script".length), lineFeedRequired("script")
-            )],
+            [
+                createDiagnostic(
+                    createRange(0, "endscript".length, 1), "endscript has no matching script"),
+                createDiagnostic(
+                    createRange(0, "script".length, 0), "A linefeed character after 'script' keyword is required")
+            ],
         ),
         new Test(
             "Handle '\\r' character properly",
