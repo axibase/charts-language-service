@@ -199,14 +199,6 @@ export class Formatter {
                 }
             });
 
-            const endLine = this.currentLine - 1;
-            const endCharacter = this.getLine(endLine).length;
-
-            this.edits.push(TextEdit.replace(
-                Range.create(startLine, 0, endLine, endCharacter),
-                formattedCode
-            ));
-
             this.formattedText.push(formattedCode);
         } catch (error) {
             /** If we didn't manage to format script just continue */
@@ -349,7 +341,6 @@ export class Formatter {
             if (line === undefined) {
                 return undefined;
             }
-            this.removeExtraSpaces(line);
             this.lastLine = line;
             this.lastLineNumber = i;
         }
@@ -395,19 +386,6 @@ export class Formatter {
         this.match = /(^\s*)\[([a-z]+)\]/.exec(line);
 
         return this.match !== null;
-    }
-
-    /**
-     * Removes trailing spaces (at the end and at the beginning)
-     * @param line the target line
-     */
-    private removeExtraSpaces(line: string): void {
-        const match: RegExpExecArray | null = / (\s +) $ /.exec(line);
-        if (match) {
-            this.edits.push(TextEdit.replace(
-                Range.create(this.currentLine, line.length - match[1].length, this.currentLine, line.length), "",
-            ));
-        }
     }
 
     /**
