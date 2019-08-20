@@ -674,6 +674,7 @@ export class Validator {
         const line: string = this.config.getCurrentLine();
         let header: string | null = null;
 
+        // csv <name> = <header1>, <header2>
         if (CSV_INLINE_HEADER_PATTERN.test(line)) {
             let j: number = this.config.currentLineNumber + 1;
             header = this.config.getLine(j);
@@ -694,19 +695,17 @@ export class Validator {
 
             let columns: string[] | null = null;
 
+            //  csv <name> =
+            //  <header1>, <header2>
             if (CSV_NEXT_LINE_HEADER_PATTERN.test(line)) {
                 this.match = CSV_NEXT_LINE_HEADER_PATTERN.exec(line);
                 header = line.substring(this.match.index + 1);
-                columns = this.match[this.match.length - 1].split(",").map(item => item.trim());
             } else if (CSV_FROM_URL_PATTERN.test(line)) {
+                // csv <name> from <url>
                 this.match = CSV_FROM_URL_PATTERN.exec(line);
                 header = line.substring(this.match.index + 1);
             } else {
                 this.result.push(createDiagnostic(this.foundKeyword.range, getCsvErrorMessage(line)));
-            }
-
-            if (columns) {
-                this.variables.set("csvColumnNames", columns);
             }
         }
         this.addToStringMap(this.variables, "csvNames");
