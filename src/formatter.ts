@@ -160,7 +160,7 @@ export class Formatter {
      */
     private handleEndLines(): void {
         if (this.options.blankLinesAtEnd) {
-            this.formattedText.push("".repeat(this.options.blankLinesAtEnd))
+            this.formattedText.push(...new Array(this.options.blankLinesAtEnd).fill(""));
         }
     }
 

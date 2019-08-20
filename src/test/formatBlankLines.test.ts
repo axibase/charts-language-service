@@ -3,62 +3,118 @@ import { FormattingOptions, Position, Range, TextEdit } from "vscode-languageser
 import { Formatter, FORMATTING_OPTIONS } from "../formatter";
 
 suite("Blank lines formatting", () => {
-    test("Delete extra blank lines between sections", () => {
-        const text = `[configuration]
+  test("Delete extra blank lines between sections", () => {
+    const text = `[configuration]
   offset-right = 50
 
 
 [group]`;
-        const options: FormattingOptions = FORMATTING_OPTIONS();
-        const expected = `[configuration]
+    const options: FormattingOptions = FORMATTING_OPTIONS();
+    const expected = `[configuration]
   offset-right = 50
 
 [group]`;
-        const formatter = new Formatter(text, options);
-        const actual = formatter.lineByLine().pop().newText;
-        deepStrictEqual(actual, expected);
-    });
+    const formatter = new Formatter(text, options);
+    const actual = formatter.lineByLine().pop().newText;
+    deepStrictEqual(actual, expected);
+  });
 
-    test("Insert blank line between sections", () => {
-        const text = `[configuration]
+  test("Insert blank line between sections", () => {
+    const text = `[configuration]
   offset-right = 50
 [group]`;
-        const options: FormattingOptions = FORMATTING_OPTIONS();
-        const expected = `[configuration]
-  offset-right = 50
-
-[group]`;
-        const formatter = new Formatter(text, options);
-        const actual = formatter.lineByLine().pop().newText;
-        deepStrictEqual(actual, expected);
-    });
-
-    test("Correct config that doesn't need formatting", () => {
-        const text = `[configuration]
+    const options: FormattingOptions = FORMATTING_OPTIONS();
+    const expected = `[configuration]
   offset-right = 50
 
 [group]`;
-        const options: FormattingOptions = FORMATTING_OPTIONS();
-        const expected = text;
-        const formatter = new Formatter(text, options);
-        const actual = formatter.lineByLine().pop().newText;
-        deepStrictEqual(actual, expected);
-    });
+    const formatter = new Formatter(text, options);
+    const actual = formatter.lineByLine().pop().newText;
+    deepStrictEqual(actual, expected);
+  });
 
-    test("Delete blank line between settings", () => {
-        const text = `[configuration]
+  test("Correct config that doesn't need formatting", () => {
+    const text = `[configuration]
+  offset-right = 50
+
+[group]`;
+    const options: FormattingOptions = FORMATTING_OPTIONS();
+    const expected = text;
+    const formatter = new Formatter(text, options);
+    const actual = formatter.lineByLine().pop().newText;
+    deepStrictEqual(actual, expected);
+  });
+
+  test("Delete blank line between settings", () => {
+    const text = `[configuration]
   entity = nurswgvml007
 
   metric = cpu_busy
 [group]`;
-        const options: FormattingOptions = FORMATTING_OPTIONS();
-        const expected = `[configuration]
+    const options: FormattingOptions = FORMATTING_OPTIONS();
+    const expected = `[configuration]
   entity = nurswgvml007
   metric = cpu_busy
 
 [group]`;
-        const formatter = new Formatter(text, options);
-        const actual = formatter.lineByLine().pop().newText;
-        deepStrictEqual(actual, expected);
-    });
+    const formatter = new Formatter(text, options);
+    const actual = formatter.lineByLine().pop().newText;
+    deepStrictEqual(actual, expected);
+  });
+
+  test("Insert two blank lines at the end of the document", () => {
+    const text = `[configuration]
+  entity = nurswgvml007
+  metric = cpu_busy
+
+[group]`;
+    const options: FormattingOptions = FORMATTING_OPTIONS(2);
+    const expected = `[configuration]
+  entity = nurswgvml007
+  metric = cpu_busy
+
+[group]
+
+`;
+    const formatter = new Formatter(text, options);
+    const actual = formatter.lineByLine().pop().newText;
+    deepStrictEqual(actual, expected);
+  });
+
+  test("Insert one blank line at the end of the document", () => {
+    const text = `[configuration]
+  entity = nurswgvml007
+  metric = cpu_busy
+
+[group]`;
+    const options: FormattingOptions = FORMATTING_OPTIONS(1);
+    const expected = `[configuration]
+  entity = nurswgvml007
+  metric = cpu_busy
+
+[group]
+`;
+    const formatter = new Formatter(text, options);
+    const actual = formatter.lineByLine().pop().newText;
+    deepStrictEqual(actual, expected);
+  });
+
+  test("Delete two blank lines at the end of the document", () => {
+    const text = `[configuration]
+  entity = nurswgvml007
+  metric = cpu_busy
+
+[group]
+
+`;
+    const options: FormattingOptions = FORMATTING_OPTIONS();
+    const expected = `[configuration]
+  entity = nurswgvml007
+  metric = cpu_busy
+
+[group]`;
+    const formatter = new Formatter(text, options);
+    const actual = formatter.lineByLine().pop().newText;
+    deepStrictEqual(actual, expected);
+  });
 });
