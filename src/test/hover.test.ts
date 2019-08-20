@@ -13,7 +13,6 @@ suite("Hover tests", () => {
                 contents: message,
                 range: Range.create(1, "  ".length, 1, "  ".length + "entity-expression".length),
             },
-            undefined,
             Position.create(1, "  ent".length),
         ),
         new Test(
@@ -21,7 +20,6 @@ suite("Hover tests", () => {
             `[configuration]
   entity-expression = cpu_busy`,
             null,
-            undefined,
             Position.create(1, "  entity-expression = c".length),
         ),
         new Test(
@@ -29,7 +27,6 @@ suite("Hover tests", () => {
             `[configuration]
   entity-expression = cpu_busy`,
             null,
-            undefined,
             Position.create(0, "[conf".length),
         ),
         new Test(
@@ -40,7 +37,6 @@ suite("Hover tests", () => {
                 contents: message,
                 range: Range.create(1, "  ".length, 1, "  ".length + "entity expression".length),
             },
-            undefined,
             Position.create(1, "  entity expr".length),
         ),
         new Test(
@@ -51,7 +47,6 @@ suite("Hover tests", () => {
                 contents: message,
                 range: Range.create(1, "  ".length, 1, "  ".length + "entity expression".length),
             },
-            undefined,
             Position.create(1, "  entity expr".length),
         ),
     ].forEach((test: Test): void => test.hoverTest());
