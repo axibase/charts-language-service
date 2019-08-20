@@ -233,6 +233,52 @@ for server in servers
 endfor`,
             [],
         ),
+        new Test(
+            "Correct CSV variable in for loop",
+            `[configuration] 
+csv metrics = 
+    name,tag,format,sort,statistic,change
+endcsv
+
+[group]
+for mtr in metrics
+    [widget]
+        type = table
+        [series]
+            entity = a
+            metric = b
+endfor`,
+            []
+        ),
+        new Test(
+            "Undefined CSV variable in for loop",
+            `[configuration] 
+csv metrics_ = 
+    name,tag,format,sort,statistic,change
+endcsv
+
+[group]
+for mtr in metrics
+    [widget]
+        type = table
+        [series]
+            entity = a
+            metric = b
+endfor`,
+            [createDiagnostic(
+                {
+                    end: {
+                        character: 18,
+                        line: 6,
+                    },
+                    start: { 
+                        character: 11,
+                        line: 6
+                    },
+                },
+                unknownToken('metrics'),
+            )],
+        )
     ];
 
     tests.forEach((test: Test) => { test.validationTest(); });

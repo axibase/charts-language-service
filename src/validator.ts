@@ -674,20 +674,39 @@ export class Validator {
         const line: string = this.config.getCurrentLine();
         let header: string | null = null;
 
-        if (CSV_INLINE_HEADER_PATTERN.exec(line)) {
+        if (CSV_INLINE_HEADER_PATTERN.test(line)) {
             let j: number = this.config.currentLineNumber + 1;
             header = this.config.getLine(j);
             while (header !== null && BLANK_LINE_PATTERN.test(header)) {
                 header = this.config.getLine(++j);
             }
-        } else {
-            let match = CSV_NEXT_LINE_HEADER_PATTERN.exec(line) || CSV_FROM_URL_PATTERN.exec(line);
 
-            if (match !== null) {
-                this.match = match;
+            this.match = CSV_INLINE_HEADER_PATTERN.exec(line);
+            let columnNames = this.config.getLine(j);
+
+            while (header !== null && BLANK_LINE_PATTERN.test(header)) {
+                columnNames = this.config.getLine(++j);
+            }
+
+            const names = columnNames.split(",").map(name => name.trim());
+            this.variables.set("csvColumnNames", names);
+        } else {
+
+            let columns: string[] | null = null;
+
+            if (CSV_NEXT_LINE_HEADER_PATTERN.test(line)) {
+                this.match = CSV_NEXT_LINE_HEADER_PATTERN.exec(line);
+                header = line.substring(this.match.index + 1);
+                columns = this.match[this.match.length - 1].split(",").map(item => item.trim());
+            } else if (CSV_FROM_URL_PATTERN.test(line)) {
+                this.match = CSV_FROM_URL_PATTERN.exec(line);
                 header = line.substring(this.match.index + 1);
             } else {
                 this.result.push(createDiagnostic(this.foundKeyword.range, getCsvErrorMessage(line)));
+            }
+
+            if (columns) {
+                this.variables.set("csvColumnNames", columns);
             }
         }
         this.addToStringMap(this.variables, "csvNames");
