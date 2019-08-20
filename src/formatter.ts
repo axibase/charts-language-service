@@ -25,7 +25,7 @@ export const FORMATTING_OPTIONS = (blankLinesAtEnd: number = 0): ExtendedFormatt
 };
 
 /**
- * Formats the document
+ * Returns formatted document according to specified rules
  */
 export class Formatter {
     /**
@@ -88,7 +88,7 @@ export class Formatter {
 
     /**
      * Reads the document line by line and calls corresponding formatting functions
-     * @returns array of text edits to properly format document
+     * @returns array containing single text edit with fully formatted document
      */
     public lineByLine(): TextEdit[] {
         for (let line = this.getLine(this.currentLine); line !== void 0; line = this.nextLine()) {
@@ -153,9 +153,12 @@ export class Formatter {
         this.indentLine();
     }
 
+    /**
+     * Append specified number of blank lines to the end of the document
+     */
     private handleEndLines(): void {
         if (this.options.blankLinesAtEnd) {
-            this.formattedText.push("\n".repeat(this.options.blankLinesAtEnd))
+            this.formattedText.push("".repeat(this.options.blankLinesAtEnd))
         }
     }
 
@@ -164,7 +167,6 @@ export class Formatter {
      */
     private formatScript(): void {
         let line = this.nextLine();
-        const startLine = this.currentLine;
 
         // Get content between script tags
         const buffer = [];
