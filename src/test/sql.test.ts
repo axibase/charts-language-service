@@ -1,6 +1,5 @@
 import assert = require("assert");
 import { Formatter, FORMATTING_OPTIONS } from "../formatter";
-import { lineFeedRequired, noMatching } from "../messageUtil";
 import { createDiagnostic, createRange } from "../util";
 import { Validator } from "../validator";
 
@@ -36,9 +35,9 @@ endsq
         let validator = new Validator(conf);
         let diags = validator.lineByLine();
         assert.deepStrictEqual(diags, [
-            createDiagnostic(createRange(0, "sql".length, 8), noMatching("sql", "endsql")),
             createDiagnostic(createRange(1, "widget".length, 6),
                 "Required section [series] is not declared."),
+                createDiagnostic(createRange(0, "sql".length, 8), `sql has no matching endsql`),
         ], `Config: \n${conf}`);
     });
 
@@ -52,7 +51,7 @@ endsql
         let validator = new Validator(conf);
         let diags = validator.lineByLine();
         assert.deepStrictEqual(diags, [
-            createDiagnostic(createRange(0, "endsql".length, 10), noMatching("endsql", "sql"))
+            createDiagnostic(createRange(0, "endsql".length, 10), `endsql has no matching sql`)
         ], `Config: \n${conf}`);
     });
 
@@ -65,7 +64,8 @@ endsql
         let validator = new Validator(conf);
         let diags = validator.lineByLine();
         assert.deepStrictEqual(diags, [
-            createDiagnostic(createRange(0, "sql".length, 8), lineFeedRequired("sql"))
+            createDiagnostic(createRange(0, "endsql".length, 9), `endsql has no matching sql`),
+            createDiagnostic(createRange(0, "sql".length, 8), `A linefeed character after 'sql' keyword is required`)
         ], `Config: \n${conf}`);
     });
 });
@@ -88,5 +88,5 @@ suite("Formatter: SQL indents tests", () => {
     const expected = config;
     const formatter = new Formatter(config, FORMATTING_OPTIONS());
     const actual = formatter.lineByLine().pop().newText;
-    assert.deepStrictEqual(actual, expected);
+    assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
 });

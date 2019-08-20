@@ -433,7 +433,7 @@ suite("Type check tests", () => {
         ),
         createDiagnostic(
           Range.create(5, "  ".length, 5, "  source".length),
-          "source must be one of:\n * alert\n * message",
+          "source must be one of:\n * alert\n * message\n * message-stat",
         ),
       ],
     ),
@@ -464,7 +464,7 @@ suite("Type check tests", () => {
         ),
         createDiagnostic(
           Range.create(5, "  ".length, 5, "  source".length),
-          "source must be one of:\n * alert\n * message",
+          "source must be one of:\n * alert\n * message\n * message-stat",
         ),
       ],
     ),
@@ -495,7 +495,7 @@ suite("Type check tests", () => {
         ),
         createDiagnostic(
           Range.create(5, "  ".length, 5, "  source".length),
-          "source must be one of:\n * alert\n * message",
+          "source must be one of:\n * alert\n * message\n * message-stat",
         ),
       ],
     ),
@@ -526,7 +526,7 @@ suite("Type check tests", () => {
         ),
         createDiagnostic(
           Range.create(5, "  ".length, 5, "  source".length),
-          "source must be one of:\n * alert\n * message",
+          "source must be one of:\n * alert\n * message\n * message-stat",
         ),
       ],
     ),

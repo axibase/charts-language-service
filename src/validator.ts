@@ -82,11 +82,6 @@ export class Validator {
      * Stack of nested keywords. For example, if can be included to a for.
      */
     private readonly keywordsStack: TextRange[] = [];
-
-    /**
-     * Last if statement. Used to get/set settings in ifSettigns
-     */
-    private lastCondition?: string;
     /**
      * Result of last regexp execution
      */
@@ -138,15 +133,11 @@ export class Validator {
     private config: Config;
 
     private keywordHandler: KeywordHandler;
-    /**
-     * True if section contains expr block.
-     */
-    private exprBlockIsDeclared: boolean;
 
     public constructor(text: string) {
         this.configTree = new ConfigTree();
         this.config = new Config(text);
-        this.keywordHandler = new KeywordHandler(this.keywordsStack);
+        this.keywordHandler = new KeywordHandler(this.config, this.keywordsStack);
     }
 
     /**
@@ -166,12 +157,10 @@ export class Validator {
 
             this.foundKeyword = TextRange.parse(line, this.config.currentLineNumber, canBeSingle);
 
-            if (this.isNotKeywordEnd("script") || this.isNotKeywordEnd("var")
-                || this.isNotKeywordEnd("sql") || this.isNotKeywordEnd("expr")) {
+            if (this.isNotKeywordEnd("var")) {
                 /**
                  * Lines in multiline script and var sections
                  * will be checked in JavaScriptValidator.processScript() and processVar().
-                 * SQL and evaluate expression blocks must be skipped without any processing.
                  */
                 continue;
             }
@@ -486,7 +475,7 @@ export class Validator {
                     }
                 }
                 const curSectLine = this.currentSection.range.end.line;
-                const lastCondLine = parseInt(this.lastCondition.match(/^\d+/)[0], 10);
+                const lastCondLine = parseInt(this.keywordHandler.lastCondition.match(/^\d+/)[0], 10);
                 if (// if-elseif-else statement inside the section
                     this.areWeIn("if") ||
                     // section inside the if-elseif-else statement
@@ -525,13 +514,14 @@ export class Validator {
         const [, indent, name] = this.match;
         const range: Range = this.createRange(indent.length, name.length);
 
+        const lastCondition = this.keywordHandler.lastCondition;
         if (this.areWeIn("if")) {
-            if (this.lastCondition === undefined) {
+            if (lastCondition == null) {
                 throw new Error("We are in if, but last condition is undefined");
             }
-            let array: Setting[] | undefined = this.ifSettings.get(this.lastCondition);
+            let array: Setting[] | undefined = this.ifSettings.get(lastCondition);
             array = this.addToSettingArray(setting, array);
-            this.ifSettings.set(this.lastCondition, array);
+            this.ifSettings.set(lastCondition, array);
             const declaredAbove = this.currentSettings.find(v => v.name === setting.name);
             if (declaredAbove !== undefined) {
                 // The setting was defined before if
@@ -712,7 +702,7 @@ export class Validator {
         if (this.foundKeyword === undefined) {
             throw new Error(`We're trying to handle 'else ', but foundKeyword is ${this.foundKeyword}`);
         }
-        this.setLastCondition();
+        this.keywordHandler.setLastCondition();
         let message: string | undefined;
         if (!this.areWeIn("if")) {
             message = noMatching(this.foundKeyword.text, "if");
@@ -864,7 +854,7 @@ export class Validator {
         const lastSection = this.sectionStack.getLastSection();
         if (lastSection) {
             this.configTree.addSection(lastSection.range,
-                lastSection.settings, this.exprBlockIsDeclared);
+                lastSection.settings, this.keywordHandler.exprBlockIsDeclared);
         }
         if (section == null) {
             sectionStackError = this.sectionStack.finalize();
@@ -874,7 +864,7 @@ export class Validator {
         if (sectionStackError) {
             this.result.push(sectionStackError);
         }
-        this.exprBlockIsDeclared = false;
+        this.keywordHandler.exprBlockIsDeclared = false;
     }
 
     /**
@@ -1033,13 +1023,6 @@ export class Validator {
     }
 
     /**
-     * Updates the lastCondition field
-     */
-    private setLastCondition(): void {
-        this.lastCondition = `${this.config.currentLineNumber}${this.config.getCurrentLine()}`;
-    }
-
-    /**
      * Checks spelling mistakes in a section name
      */
     private spellingCheck(): void {
@@ -1110,28 +1093,10 @@ export class Validator {
                 this.handleFor();
                 break;
             }
-            case "if": {
-                this.keywordHandler.handleIf(line, this.foundKeyword);
-                this.setLastCondition();
-                break;
-            }
-            case "script": {
-                this.keywordHandler.handleScript(line, this.foundKeyword);
-                break;
-            }
-            case "sql": {
-                this.keywordHandler.handleSql(line, this.foundKeyword);
-                break;
-            }
-            case "expr": {
-                this.keywordsStack.push(this.foundKeyword);
-                this.exprBlockIsDeclared = true;
-                break;
-            }
             case "import":
                 break;
             default:
-                throw new Error(`${this.foundKeyword.text} is not handled`);
+                this.keywordHandler.handle(this.foundKeyword);
         }
     }
 
