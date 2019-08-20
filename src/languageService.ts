@@ -1,6 +1,6 @@
-import { Position, TextDocument } from "vscode-languageserver-types";
+import { Position, TextDocument, FormattingOptions } from "vscode-languageserver-types";
 import { CompletionProvider } from "./completionProvider";
-import { ExtendedFormattingOptions, Formatter } from "./formatter";
+import { Formatter } from "./formatter";
 import { HoverProvider } from "./hoverProvider";
 import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { Validator } from "./validator";
@@ -31,7 +31,7 @@ export class LanguageService {
         return new HoverProvider(document);
     }
 
-    public static getFormatter(formattingOptions: ExtendedFormattingOptions) {
+    public static getFormatter(formattingOptions: FormattingOptions) {
         return new Formatter(formattingOptions);
     }
 }

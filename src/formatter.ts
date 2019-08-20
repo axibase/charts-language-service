@@ -11,17 +11,10 @@ interface Section {
     name?: string;
 }
 
-/** Extended formatting options, supporting blank lines formatting possibility */
-export interface ExtendedFormattingOptions extends FormattingOptions {
-    blankLinesAtEnd?: number;
-}
-
 /** Document formatting options */
-export const FORMATTING_OPTIONS = (blankLinesAtEnd: number = 0): ExtendedFormattingOptions => {
-    const TAB_SIZE: number = 2;
-    const INSERT_SPACES: boolean = true;
-
-    return Object.assign(FormattingOptions.create(TAB_SIZE, INSERT_SPACES), { blankLinesAtEnd });
+export const FORMATTING_OPTIONS: FormattingOptions = {
+    insertSpaces: true,
+    tabSize: 2
 };
 
 /**
@@ -36,6 +29,10 @@ export class Formatter {
      * Currently used indent
      */
     private currentIndent: string = "";
+    /**
+     * Number of blank lines at the end of config
+     */
+    private readonly blankLinesAtEnd: number = 2;
     /**
      * Current line number
      */
@@ -69,7 +66,8 @@ export class Formatter {
     /**
      * Contains options from user's settings which are used to format document
      */
-    private readonly options: ExtendedFormattingOptions;
+    private readonly options: FormattingOptions;
+
     /**
      * Recreated config text formatted according to rules
      */
@@ -83,7 +81,7 @@ export class Formatter {
     private previousSection: Section = {};
     private currentSection: Section = {};
 
-    public constructor(formattingOptions: ExtendedFormattingOptions) {
+    public constructor(formattingOptions: FormattingOptions) {
         this.options = formattingOptions;
     }
 
@@ -92,7 +90,7 @@ export class Formatter {
      * @returns array containing single text edit with fully formatted document
      */
     public lineByLine(text: string): TextEdit[] {
-        this.setText(text);
+        this.lines = text.split("\n");
         for (let line = this.getLine(this.currentLine); line !== void 0; line = this.nextLine()) {
             if (isEmpty(line)) {
                 if (this.currentSection.name === "tags" && this.previousSection.name !== "widget") {
@@ -106,7 +104,7 @@ export class Formatter {
             } else if (BLOCK_SCRIPT_START.test(line)) {
                 this.handleScriptBlock();
                 continue;
-            } 
+            }
 
             if (TextRange.isClosing(line)) {
                 const stackHead: number | undefined = this.keywordsLevels.pop();
@@ -137,13 +135,6 @@ export class Formatter {
     }
 
     /**
-     * Config text setter
-     */
-    private setText(text: string) {
-        this.lines = text.split("\n");
-    }
-
-    /**
      * Apply formatting rules for section declaration
      */
     private handleSectionDeclaration(): void {
@@ -166,9 +157,7 @@ export class Formatter {
      * Append specified number of blank lines to the end of the document
      */
     private handleEndLines(): void {
-        if (this.options.blankLinesAtEnd) {
-            this.formattedText.push(...new Array(this.options.blankLinesAtEnd).fill(""));
-        }
+        this.formattedText.push(...new Array(this.blankLinesAtEnd).fill(""));
     }
 
     /**

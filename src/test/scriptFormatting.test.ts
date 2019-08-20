@@ -7,13 +7,17 @@ suite("JavaScript code formatting", () => {
         window.userFunction = function () {
         return Math.round(value / 10) * 10;
         };
-endscript`;
+endscript
+
+`;
         const expected = `script
   window.userFunction = function () {
     return Math.round(value / 10) * 10;
   };
-endscript`
-        const formatter = new Formatter(FORMATTING_OPTIONS());
+endscript
+
+`
+        const formatter = new Formatter(FORMATTING_OPTIONS);
         const actual = formatter.lineByLine(text).pop().newText;
         deepStrictEqual(actual, expected);
     });
@@ -21,13 +25,17 @@ endscript`
     test("Code written in one line", () => {
         const text = `script
         window.userFunction = function () {return Math.round(value / 10) * 10;};
-endscript`;
+endscript
+
+`;
         const expected = `script
   window.userFunction = function () {
     return Math.round(value / 10) * 10;
   };
-endscript`;
-        const formatter = new Formatter(FORMATTING_OPTIONS());
+endscript
+
+`;
+        const formatter = new Formatter(FORMATTING_OPTIONS);
         const actual = formatter.lineByLine(text).pop().newText;
         deepStrictEqual(actual, expected);
     });
@@ -38,14 +46,18 @@ endscript`;
     window.userFunction = function () {
     return Math.round(value / 10) * 10;
     };
-  endscript`;
+  endscript
+
+`;
         const expected = `[configuration]
   script
     window.userFunction = function () {
       return Math.round(value / 10) * 10;
     };
-  endscript`;
-        const formatter = new Formatter(FORMATTING_OPTIONS());
+  endscript
+
+`;
+        const formatter = new Formatter(FORMATTING_OPTIONS);
         const actual = formatter.lineByLine(text).pop().newText;
         deepStrictEqual(actual, expected);
     });
@@ -57,15 +69,19 @@ endscript`;
     window.userFunction = function () {
     return Math.round(value / 10) * 10;
     };
-  endscript`;
+  endscript
+  
+  `;
         const expected = `
 [group]
   script
     window.userFunction = function () {
       return Math.round(value / 10) * 10;
     };
-  endscript`;
-        const formatter = new Formatter(FORMATTING_OPTIONS());
+  endscript
+
+`;
+        const formatter = new Formatter(FORMATTING_OPTIONS);
         const actual = formatter.lineByLine(text).pop().newText;
         deepStrictEqual(actual, expected);
     });
@@ -74,13 +90,15 @@ endscript`;
         const text = `[configuration]
 
   [widget]
-    script` +
-            `        window.userFunction = function () {` +
-            + `  return Math.round(value / 10) * 10;` +
-            `};`
-            + `endscript`;
+    script
+      window.userFunction = function () {
+        return Math.round(value / 10) * 10;
+      };
+    endscript
+
+`;
         const expected = text;
-        const formatter = new Formatter(FORMATTING_OPTIONS());
+        const formatter = new Formatter(FORMATTING_OPTIONS);
         const actual = formatter.lineByLine(text).pop().newText;
         deepStrictEqual(actual, expected);
     });

@@ -7,12 +7,16 @@ suite("Blank lines formatting", () => {
   offset-right = 50
 
 
-[group]`;
+[group]
+
+`;
     const expected = `[configuration]
   offset-right = 50
 
-[group]`;
-    const formatter = new Formatter(FORMATTING_OPTIONS());
+[group]
+
+`;
+    const formatter = new Formatter(FORMATTING_OPTIONS);
     const actual = formatter.lineByLine(text).pop().newText;
     deepStrictEqual(actual, expected);
   });
@@ -24,8 +28,10 @@ suite("Blank lines formatting", () => {
     const expected = `[configuration]
   offset-right = 50
 
-[group]`;
-    const formatter = new Formatter(FORMATTING_OPTIONS());
+[group]
+
+`;
+    const formatter = new Formatter(FORMATTING_OPTIONS);
     const actual = formatter.lineByLine(text).pop().newText;
     deepStrictEqual(actual, expected);
   });
@@ -34,9 +40,11 @@ suite("Blank lines formatting", () => {
     const text = `[configuration]
   offset-right = 50
 
-[group]`;
+[group]
+
+`;
     const expected = text;
-    const formatter = new Formatter(FORMATTING_OPTIONS());
+    const formatter = new Formatter(FORMATTING_OPTIONS);
     const actual = formatter.lineByLine(text).pop().newText;
     deepStrictEqual(actual, expected);
   });
@@ -46,13 +54,17 @@ suite("Blank lines formatting", () => {
   entity = nurswgvml007
 
   metric = cpu_busy
-[group]`;
+[group]
+
+`;
     const expected = `[configuration]
   entity = nurswgvml007
   metric = cpu_busy
 
-[group]`;
-    const formatter = new Formatter(FORMATTING_OPTIONS());
+[group]
+
+`;
+    const formatter = new Formatter(FORMATTING_OPTIONS);
     const actual = formatter.lineByLine(text).pop().newText;
     deepStrictEqual(actual, expected);
   });
@@ -70,42 +82,7 @@ suite("Blank lines formatting", () => {
 [group]
 
 `;
-    const formatter = new Formatter(FORMATTING_OPTIONS(2));
-    const actual = formatter.lineByLine(text).pop().newText;
-    deepStrictEqual(actual, expected);
-  });
-
-  test("Insert one blank line at the end of the document", () => {
-    const text = `[configuration]
-  entity = nurswgvml007
-  metric = cpu_busy
-
-[group]`;
-    const expected = `[configuration]
-  entity = nurswgvml007
-  metric = cpu_busy
-
-[group]
-`;
-    const formatter = new Formatter(FORMATTING_OPTIONS(1));
-    const actual = formatter.lineByLine(text).pop().newText;
-    deepStrictEqual(actual, expected);
-  });
-
-  test("Delete two blank lines at the end of the document", () => {
-    const text = `[configuration]
-  entity = nurswgvml007
-  metric = cpu_busy
-
-[group]
-
-`;
-    const expected = `[configuration]
-  entity = nurswgvml007
-  metric = cpu_busy
-
-[group]`;
-    const formatter = new Formatter(FORMATTING_OPTIONS());
+    const formatter = new Formatter(FORMATTING_OPTIONS);
     const actual = formatter.lineByLine(text).pop().newText;
     deepStrictEqual(actual, expected);
   });

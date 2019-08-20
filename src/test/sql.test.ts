@@ -84,9 +84,9 @@ suite("Formatter: SQL indents tests", () => {
         "      SELECT time, entity, value FROM cpu_busy\n" +
         "      WHERE /* time */ > now - 5 * minute\n" +
         "    endsql\n\n" +
-        "    [series]";
+        "    [series]\n\n";
     const expected = config;
-    const formatter = new Formatter(FORMATTING_OPTIONS());
+    const formatter = new Formatter(FORMATTING_OPTIONS);
     const actual = formatter.lineByLine(config).pop().newText;
     assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
 });
