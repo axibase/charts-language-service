@@ -61,7 +61,7 @@ export class Formatter {
     /**
      * Contains all lines of the current text document
      */
-    private readonly lines: string[];
+    private lines: string[];
     /**
      * Contains the result of the last executed regular expression
      */
@@ -83,16 +83,16 @@ export class Formatter {
     private previousSection: Section = {};
     private currentSection: Section = {};
 
-    public constructor(text: string, formattingOptions: ExtendedFormattingOptions) {
+    public constructor(formattingOptions: ExtendedFormattingOptions) {
         this.options = formattingOptions;
-        this.lines = text.split("\n");
     }
 
     /**
      * Reads the document line by line and calls corresponding formatting functions
      * @returns array containing single text edit with fully formatted document
      */
-    public lineByLine(): TextEdit[] {
+    public lineByLine(text: string): TextEdit[] {
+        this.setText(text);
         for (let line = this.getLine(this.currentLine); line !== void 0; line = this.nextLine()) {
             if (isEmpty(line)) {
                 if (this.currentSection.name === "tags" && this.previousSection.name !== "widget") {
@@ -134,6 +134,13 @@ export class Formatter {
                 this.formattedText.join("\n")
             )
         ];
+    }
+
+    /**
+     * Config text setter
+     */
+    private setText(text: string) {
+        this.lines = text.split("\n");
     }
 
     /**

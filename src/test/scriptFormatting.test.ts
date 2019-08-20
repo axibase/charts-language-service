@@ -1,5 +1,4 @@
 import { deepStrictEqual } from "assert";
-import { FormattingOptions, Position, Range, TextEdit } from "vscode-languageserver-types";
 import { Formatter, FORMATTING_OPTIONS } from "../formatter";
 
 suite("JavaScript code formatting", () => {
@@ -14,9 +13,8 @@ endscript`;
     return Math.round(value / 10) * 10;
   };
 endscript`
-        const options: FormattingOptions = FORMATTING_OPTIONS();
-        const formatter = new Formatter(text, options);
-        const actual = formatter.lineByLine().pop().newText;
+        const formatter = new Formatter(FORMATTING_OPTIONS());
+        const actual = formatter.lineByLine(text).pop().newText;
         deepStrictEqual(actual, expected);
     });
 
@@ -24,14 +22,13 @@ endscript`
         const text = `script
         window.userFunction = function () {return Math.round(value / 10) * 10;};
 endscript`;
-        const options: FormattingOptions = FORMATTING_OPTIONS();
         const expected = `script
   window.userFunction = function () {
     return Math.round(value / 10) * 10;
   };
 endscript`;
-        const formatter = new Formatter(text, options);
-        const actual = formatter.lineByLine().pop().newText;
+        const formatter = new Formatter(FORMATTING_OPTIONS());
+        const actual = formatter.lineByLine(text).pop().newText;
         deepStrictEqual(actual, expected);
     });
 
@@ -42,15 +39,14 @@ endscript`;
     return Math.round(value / 10) * 10;
     };
   endscript`;
-        const options: FormattingOptions = FORMATTING_OPTIONS();
         const expected = `[configuration]
   script
     window.userFunction = function () {
       return Math.round(value / 10) * 10;
     };
   endscript`;
-        const formatter = new Formatter(text, options);
-        const actual = formatter.lineByLine().pop().newText;
+        const formatter = new Formatter(FORMATTING_OPTIONS());
+        const actual = formatter.lineByLine(text).pop().newText;
         deepStrictEqual(actual, expected);
     });
 
@@ -62,7 +58,6 @@ endscript`;
     return Math.round(value / 10) * 10;
     };
   endscript`;
-        const options: FormattingOptions = FORMATTING_OPTIONS();
         const expected = `
 [group]
   script
@@ -70,8 +65,8 @@ endscript`;
       return Math.round(value / 10) * 10;
     };
   endscript`;
-        const formatter = new Formatter(text, options);
-        const actual = formatter.lineByLine().pop().newText;
+        const formatter = new Formatter(FORMATTING_OPTIONS());
+        const actual = formatter.lineByLine(text).pop().newText;
         deepStrictEqual(actual, expected);
     });
 
@@ -84,10 +79,9 @@ endscript`;
             + `  return Math.round(value / 10) * 10;` +
             `};`
             + `endscript`;
-        const options: FormattingOptions = FORMATTING_OPTIONS();
         const expected = text;
-        const formatter = new Formatter(text, options);
-        const actual = formatter.lineByLine().pop().newText;
+        const formatter = new Formatter(FORMATTING_OPTIONS());
+        const actual = formatter.lineByLine(text).pop().newText;
         deepStrictEqual(actual, expected);
     });
 });

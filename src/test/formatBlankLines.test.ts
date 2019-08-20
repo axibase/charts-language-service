@@ -1,5 +1,4 @@
 import { deepStrictEqual } from "assert";
-import { FormattingOptions, Position, Range, TextEdit } from "vscode-languageserver-types";
 import { Formatter, FORMATTING_OPTIONS } from "../formatter";
 
 suite("Blank lines formatting", () => {
@@ -9,13 +8,12 @@ suite("Blank lines formatting", () => {
 
 
 [group]`;
-    const options: FormattingOptions = FORMATTING_OPTIONS();
     const expected = `[configuration]
   offset-right = 50
 
 [group]`;
-    const formatter = new Formatter(text, options);
-    const actual = formatter.lineByLine().pop().newText;
+    const formatter = new Formatter(FORMATTING_OPTIONS());
+    const actual = formatter.lineByLine(text).pop().newText;
     deepStrictEqual(actual, expected);
   });
 
@@ -23,13 +21,12 @@ suite("Blank lines formatting", () => {
     const text = `[configuration]
   offset-right = 50
 [group]`;
-    const options: FormattingOptions = FORMATTING_OPTIONS();
     const expected = `[configuration]
   offset-right = 50
 
 [group]`;
-    const formatter = new Formatter(text, options);
-    const actual = formatter.lineByLine().pop().newText;
+    const formatter = new Formatter(FORMATTING_OPTIONS());
+    const actual = formatter.lineByLine(text).pop().newText;
     deepStrictEqual(actual, expected);
   });
 
@@ -38,10 +35,9 @@ suite("Blank lines formatting", () => {
   offset-right = 50
 
 [group]`;
-    const options: FormattingOptions = FORMATTING_OPTIONS();
     const expected = text;
-    const formatter = new Formatter(text, options);
-    const actual = formatter.lineByLine().pop().newText;
+    const formatter = new Formatter(FORMATTING_OPTIONS());
+    const actual = formatter.lineByLine(text).pop().newText;
     deepStrictEqual(actual, expected);
   });
 
@@ -51,14 +47,13 @@ suite("Blank lines formatting", () => {
 
   metric = cpu_busy
 [group]`;
-    const options: FormattingOptions = FORMATTING_OPTIONS();
     const expected = `[configuration]
   entity = nurswgvml007
   metric = cpu_busy
 
 [group]`;
-    const formatter = new Formatter(text, options);
-    const actual = formatter.lineByLine().pop().newText;
+    const formatter = new Formatter(FORMATTING_OPTIONS());
+    const actual = formatter.lineByLine(text).pop().newText;
     deepStrictEqual(actual, expected);
   });
 
@@ -68,7 +63,6 @@ suite("Blank lines formatting", () => {
   metric = cpu_busy
 
 [group]`;
-    const options: FormattingOptions = FORMATTING_OPTIONS(2);
     const expected = `[configuration]
   entity = nurswgvml007
   metric = cpu_busy
@@ -76,8 +70,8 @@ suite("Blank lines formatting", () => {
 [group]
 
 `;
-    const formatter = new Formatter(text, options);
-    const actual = formatter.lineByLine().pop().newText;
+    const formatter = new Formatter(FORMATTING_OPTIONS(2));
+    const actual = formatter.lineByLine(text).pop().newText;
     deepStrictEqual(actual, expected);
   });
 
@@ -87,15 +81,14 @@ suite("Blank lines formatting", () => {
   metric = cpu_busy
 
 [group]`;
-    const options: FormattingOptions = FORMATTING_OPTIONS(1);
     const expected = `[configuration]
   entity = nurswgvml007
   metric = cpu_busy
 
 [group]
 `;
-    const formatter = new Formatter(text, options);
-    const actual = formatter.lineByLine().pop().newText;
+    const formatter = new Formatter(FORMATTING_OPTIONS(1));
+    const actual = formatter.lineByLine(text).pop().newText;
     deepStrictEqual(actual, expected);
   });
 
@@ -107,14 +100,13 @@ suite("Blank lines formatting", () => {
 [group]
 
 `;
-    const options: FormattingOptions = FORMATTING_OPTIONS();
     const expected = `[configuration]
   entity = nurswgvml007
   metric = cpu_busy
 
 [group]`;
-    const formatter = new Formatter(text, options);
-    const actual = formatter.lineByLine().pop().newText;
+    const formatter = new Formatter(FORMATTING_OPTIONS());
+    const actual = formatter.lineByLine(text).pop().newText;
     deepStrictEqual(actual, expected);
   });
 });

@@ -31,7 +31,7 @@ export class LanguageService {
         return new HoverProvider(document);
     }
 
-    public static getFormatter(text: string, formattingOptions: ExtendedFormattingOptions) {
-        return new Formatter(text, formattingOptions);
+    public static getFormatter(formattingOptions: ExtendedFormattingOptions) {
+        return new Formatter(formattingOptions);
     }
 }
