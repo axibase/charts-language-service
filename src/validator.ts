@@ -674,29 +674,27 @@ export class Validator {
         const line: string = this.config.getCurrentLine();
         let header: string | null = null;
 
-        // csv <name> = <header1>, <header2>
-        if (CSV_INLINE_HEADER_PATTERN.test(line)) {
+        const inlineHeaderMatch = CSV_INLINE_HEADER_PATTERN.exec(line);
+
+        if (inlineHeaderMatch) {
             let j: number = this.config.currentLineNumber + 1;
             header = this.config.getLine(j);
             while (header !== null && BLANK_LINE_PATTERN.test(header)) {
                 header = this.config.getLine(++j);
             }
-
-            this.match = CSV_INLINE_HEADER_PATTERN.exec(line);
+            this.match = inlineHeaderMatch;
         } else {
-            //  csv <name> =
-            //  <header1>, <header2>
-            if (CSV_NEXT_LINE_HEADER_PATTERN.test(line)) {
-                this.match = CSV_NEXT_LINE_HEADER_PATTERN.exec(line);
-                header = line.substring(this.match.index + 1);
-            } else if (CSV_FROM_URL_PATTERN.test(line)) {
-                // csv <name> from <url>
-                this.match = CSV_FROM_URL_PATTERN.exec(line);
-                header = line.substring(this.match.index + 1);
-            } else {
+            const nextLineMatch = CSV_NEXT_LINE_HEADER_PATTERN.exec(line);
+            const fromUrlMatch = CSV_FROM_URL_PATTERN.exec(line);
+
+            if (!fromUrlMatch && !nextLineMatch) {
                 this.result.push(createDiagnostic(this.foundKeyword.range, getCsvErrorMessage(line)));
+            } else {
+                this.match = nextLineMatch ? nextLineMatch : fromUrlMatch;
+                header = line.substring(this.match.index + 1);
             }
         }
+
         this.addToStringMap(this.variables, "csvNames");
         this.csvColumns = (header === null) ? 0 : countCsvColumns(header);
     }
