@@ -70,7 +70,9 @@ export class Formatter {
      * Contains options from user's settings which are used to format document
      */
     private readonly options: ExtendedFormattingOptions;
-
+    /**
+     * Recreated config text formatted according to rules
+     */
     private formattedText: string[] = [];
     /**
      * Indent of last keyword.
@@ -112,7 +114,7 @@ export class Formatter {
                 this.insideKeyword = false;
                 this.lastKeywordIndent = "";
             }
-            this.indentLine();
+            this.indentLine(this.checkSign(line));
             if (TextRange.isCloseAble(line) && this.shouldBeClosed()) {
                 this.keywordsLevels.push(this.currentIndent.length / Formatter.BASE_INDENT_SIZE);
                 this.lastKeywordIndent = this.currentIndent;
@@ -202,7 +204,7 @@ export class Formatter {
     /**
      * Checks how many spaces are between the sign and setting name
      */
-    private checkSign(line: string = this.getCurrentLine()): string {
+    private checkSign(line: string): string {
         const match: RegExpExecArray | null = RELATIONS_REGEXP.exec(line);
         if (match === null) {
             return line;
@@ -280,10 +282,11 @@ export class Formatter {
     }
 
     /**
-     * Sets line current indent
+     * Sets correct indent to line
+     * @param line to indent
      */
-    private indentLine(): void {
-        this.formattedText.push(this.currentIndent + this.checkSign().trim())
+    private indentLine(line: string = this.getCurrentLine()): void {
+        this.formattedText.push(this.currentIndent + line.trim())
     }
 
     /**
