@@ -683,18 +683,7 @@ export class Validator {
             }
 
             this.match = CSV_INLINE_HEADER_PATTERN.exec(line);
-            let columnNames = this.config.getLine(j);
-
-            while (header !== null && BLANK_LINE_PATTERN.test(header)) {
-                columnNames = this.config.getLine(++j);
-            }
-
-            const names = columnNames.split(",").map(name => name.trim());
-            this.variables.set("csvColumnNames", names);
         } else {
-
-            let columns: string[] | null = null;
-
             //  csv <name> =
             //  <header1>, <header2>
             if (CSV_NEXT_LINE_HEADER_PATTERN.test(line)) {
