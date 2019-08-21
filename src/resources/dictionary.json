@@ -822,7 +822,7 @@
             "displayName": "columns",
             "type": "string",
             "example": "pid, command",
-            "section": "column"
+            "section": "widget"
         },
         {
             "displayName": "column-time",
