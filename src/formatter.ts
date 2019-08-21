@@ -1,4 +1,4 @@
-import { generate } from "escodegen";
+import { generate, attachComments } from "escodegen";
 import { parseScript } from "esprima";
 import { FormattingOptions, Range, TextEdit } from "vscode-languageserver-types";
 import { BLOCK_SCRIPT_END, BLOCK_SCRIPT_START, RELATIONS_REGEXP } from "./regExpressions";
@@ -137,14 +137,17 @@ export class Formatter {
 
         try {
             /** Parse and format JavaScript */
-            const parsedCode = parseScript(content);
+            let parsedCode = parseScript(content, { range: true, tokens: true, comment: true });
+            parsedCode = attachComments(parsedCode, parsedCode.comments, parsedCode.tokens);
             const formattedCode = generate(parsedCode, {
                 format: {
                     indent: {
                         base: (this.currentIndent.length / this.options.tabSize) + 1,
-                        style: " ".repeat(this.options.tabSize)
+                        style: " ".repeat(this.options.tabSize),
+                        adjustMultilineComment: true
                     }
-                }
+                },
+                comment: true
             });
 
             const endLine = this.currentLine - 1;
