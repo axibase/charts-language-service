@@ -674,22 +674,29 @@ export class Validator {
         const line: string = this.config.getCurrentLine();
         let header: string | null = null;
 
-        if (CSV_INLINE_HEADER_PATTERN.exec(line)) {
+        const inlineHeaderMatch = CSV_INLINE_HEADER_PATTERN.exec(line);
+
+        if (inlineHeaderMatch) {
             let j: number = this.config.currentLineNumber + 1;
             header = this.config.getLine(j);
             while (header !== null && BLANK_LINE_PATTERN.test(header)) {
                 header = this.config.getLine(++j);
             }
+            this.match = inlineHeaderMatch;
         } else {
-            let match = CSV_NEXT_LINE_HEADER_PATTERN.exec(line) || CSV_FROM_URL_PATTERN.exec(line);
+            let match = CSV_NEXT_LINE_HEADER_PATTERN.exec(line);
+            if (!match) {
+                match = CSV_FROM_URL_PATTERN.exec(line);
+            }
 
-            if (match !== null) {
+            if (!match) {
+                this.result.push(createDiagnostic(this.foundKeyword.range, getCsvErrorMessage(line)));
+            } else {
                 this.match = match;
                 header = line.substring(this.match.index + 1);
-            } else {
-                this.result.push(createDiagnostic(this.foundKeyword.range, getCsvErrorMessage(line)));
             }
         }
+
         this.addToStringMap(this.variables, "csvNames");
         this.csvColumns = (header === null) ? 0 : countCsvColumns(header);
     }
