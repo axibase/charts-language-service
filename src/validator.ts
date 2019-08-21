@@ -684,13 +684,15 @@ export class Validator {
             }
             this.match = inlineHeaderMatch;
         } else {
-            const nextLineMatch = CSV_NEXT_LINE_HEADER_PATTERN.exec(line);
-            const fromUrlMatch = CSV_FROM_URL_PATTERN.exec(line);
+            let match = CSV_NEXT_LINE_HEADER_PATTERN.exec(line);
+            if (!match) {
+                match = CSV_FROM_URL_PATTERN.exec(line);
+            }
 
-            if (!fromUrlMatch && !nextLineMatch) {
+            if (!match) {
                 this.result.push(createDiagnostic(this.foundKeyword.range, getCsvErrorMessage(line)));
             } else {
-                this.match = nextLineMatch ? nextLineMatch : fromUrlMatch;
+                this.match = match;
                 header = line.substring(this.match.index + 1);
             }
         }
