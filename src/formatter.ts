@@ -1,17 +1,51 @@
-import { generate, attachComments } from "escodegen";
-import { parseScript } from "esprima";
-import { FormattingOptions, Range, TextEdit } from "vscode-languageserver-types";
+import { FormattingOptions } from "vscode-languageserver-types";
 import { BLOCK_SCRIPT_END, BLOCK_SCRIPT_START, RELATIONS_REGEXP } from "./regExpressions";
 import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { TextRange } from "./textRange";
-import { createRange, isEmpty } from "./util";
+import { isEmpty } from "./util";
+import { LanguageFormattingOptions, NestedCodeFormatter } from "./nestedCodeFormatter";
 
 interface Section {
     indent?: string;
     name?: string;
 }
+
+/** Document formatting options */
+export const FORMATTING_OPTIONS: FormattingOptions = {
+    insertSpaces: true,
+    tabSize: 2
+};
+
 /**
- * Formats the document
+ * Language formatting configuration
+ * languageId - language id
+ * endRegex - regex specifying that language code block finished
+ * getOptions - function computing language formatting options based on current indent
+ */
+interface LanguageConfiguration {
+    languageId: string,
+    endRegex: RegExp,
+    getOptions(indent: string, tabSize: number): LanguageFormattingOptions
+}
+
+/**
+ * Dictionary used in languages syntax formatting
+ */
+const NestedLanguages = new Map<RegExp, LanguageConfiguration>([
+    [BLOCK_SCRIPT_START, {
+        languageId: "js",
+        endRegex: BLOCK_SCRIPT_END,
+        getOptions: (indent: string, tabSize: number) => {
+            return {
+                base: (indent.length / tabSize) + 1,
+                style: " ".repeat(tabSize)
+            }
+        }
+    }]
+]);
+
+/**
+ * Returns document formatted according to specified rules
  */
 export class Formatter {
     /**
@@ -23,13 +57,14 @@ export class Formatter {
      */
     private currentIndent: string = "";
     /**
+     * Number of blank lines at the end of config
+     */
+    private readonly blankLinesAtEnd: number = 2;
+    /**
      * Current line number
      */
     private currentLine: number = 0;
-    /**
-     * Created TextEdits
-     */
-    private readonly edits: TextEdit[] = [];
+
     /**
      * A flag used to determine are we inside of a keyword or not
      */
@@ -50,7 +85,7 @@ export class Formatter {
     /**
      * Contains all lines of the current text document
      */
-    private readonly lines: string[];
+    private lines: string[];
     /**
      * Contains the result of the last executed regular expression
      */
@@ -59,6 +94,15 @@ export class Formatter {
      * Contains options from user's settings which are used to format document
      */
     private readonly options: FormattingOptions;
+
+    /**
+     * Recreated config text formatted according to rules
+     */
+    private formattedText: string[] = [];
+    /**
+     * Language of current code block
+     */
+    private currentLanguageConfiguration: LanguageConfiguration = null;
     /**
      * Indent of last keyword.
      */
@@ -68,16 +112,16 @@ export class Formatter {
     private previousSection: Section = {};
     private currentSection: Section = {};
 
-    public constructor(text: string, formattingOptions: FormattingOptions) {
+    public constructor(formattingOptions: FormattingOptions) {
         this.options = formattingOptions;
-        this.lines = text.split("\n");
     }
 
     /**
      * Reads the document line by line and calls corresponding formatting functions
-     * @returns array of text edits to properly format document
+     * @returns whole formatted document
      */
-    public lineByLine(): TextEdit[] {
+    public format(text: string): string {
+        this.lines = text.split("\n");
         for (let line = this.getLine(this.currentLine); line !== void 0; line = this.nextLine()) {
             if (isEmpty(line)) {
                 if (this.currentSection.name === "tags" && this.previousSection.name !== "widget") {
@@ -85,26 +129,21 @@ export class Formatter {
                     this.decreaseIndent();
                 }
                 continue;
-            } else if (this.isSectionDeclaration()) {
-                this.calculateSectionIndent();
-                this.checkIndent();
-                this.increaseIndent();
+            } else if (this.isSectionDeclaration(line)) {
+                this.handleSectionDeclaration();
                 continue;
-            } else if (BLOCK_SCRIPT_START.test(line)) {
-                this.checkIndent();
-                this.formatScript();
-                this.checkIndent();
+            } else if (this.isCodeBlock(line)) {
+                this.handleCodeBlock();
                 continue;
-            } else {
-                this.checkSign();
             }
+
             if (TextRange.isClosing(line)) {
                 const stackHead: number | undefined = this.keywordsLevels.pop();
                 this.setIndent(stackHead);
                 this.insideKeyword = false;
                 this.lastKeywordIndent = "";
             }
-            this.checkIndent();
+            this.indentLine(this.checkSign(line));
             if (TextRange.isCloseAble(line) && this.shouldBeClosed()) {
                 this.keywordsLevels.push(this.currentIndent.length / Formatter.BASE_INDENT_SIZE);
                 this.lastKeywordIndent = this.currentIndent;
@@ -113,19 +152,55 @@ export class Formatter {
             }
         }
 
-        return this.edits;
+        this.handleEndLines();
+
+        return this.formattedText.join("\n");
     }
 
     /**
-     * Formats JavaScript content inside script tags
+     * Apply formatting rules for section declaration
      */
-    private formatScript(): void {
+    private handleSectionDeclaration(): void {
+        this.calculateSectionIndent();
+        this.indentLine();
+        this.increaseIndent();
+        this.insertLineBeforeSection();
+    }
+
+    /**
+     * Apply formatting rules for code block
+     */
+    private handleCodeBlock(): void {
+        this.indentLine();
+        this.formatCode();
+        this.indentLine();
+    }
+
+    /**
+     * Determines by regex is line a start of code block
+     * @param line 
+     */
+    private isCodeBlock(line: string): boolean {
+        for (let [regex, configuration] of NestedLanguages.entries()) {
+            if (regex.test(line)) {
+                this.currentLanguageConfiguration = configuration;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Format code of currently recognized language
+     */
+    private formatCode(): void {
         let line = this.nextLine();
-        const startLine = this.currentLine;
+        const { endRegex, languageId, getOptions } = this.currentLanguageConfiguration;
 
         // Get content between script tags
         const buffer = [];
-        while (line !== undefined && !BLOCK_SCRIPT_END.test(line)) {
+        while (line !== undefined && !endRegex.test(line)) {
             buffer.push(line);
             line = this.nextLine();
         }
@@ -133,62 +208,43 @@ export class Formatter {
         if (!buffer.length) {
             return;
         }
-        const content = buffer.join("\n");
+        const unformattedCode = buffer.join("\n");
 
-        try {
-            /** Parse and format JavaScript */
-            let parsedCode = parseScript(content, { range: true, tokens: true, comment: true });
-            parsedCode = attachComments(parsedCode, parsedCode.comments, parsedCode.tokens);
-            const formattedCode = generate(parsedCode, {
-                format: {
-                    indent: {
-                        base: (this.currentIndent.length / this.options.tabSize) + 1,
-                        style: " ".repeat(this.options.tabSize),
-                        adjustMultilineComment: true
-                    }
-                },
-                comment: true
-            });
+        this.formattedText.push(
+            NestedCodeFormatter.forLanguage(languageId).format(
+                unformattedCode, getOptions(this.currentIndent, this.options.tabSize)
+            )
+        );
 
-            const endLine = this.currentLine - 1;
-            const endCharacter = this.getLine(endLine).length;
+        this.currentLanguageConfiguration = null;
+    }
 
-            this.edits.push(TextEdit.replace(
-                Range.create(startLine, 0, endLine, endCharacter),
-                formattedCode
-            ));
-        } catch (error) {
-            /** If we didn't manage to format script just continue */
-        }
+    /**
+     * Append specified number of blank lines to the end of the document
+     */
+    private handleEndLines(): void {
+        this.formattedText.push(...new Array(this.blankLinesAtEnd).fill(""));
     }
 
     /**
      * Checks how many spaces are between the sign and setting name
      */
-    private checkSign(): void {
-        const line: string = this.getCurrentLine();
+    private checkSign(line: string): string {
         const match: RegExpExecArray | null = RELATIONS_REGEXP.exec(line);
         if (match === null) {
-            return;
+            return line;
         }
+
         const [, declaration, spacesBefore, sign, spacesAfter] = match;
         if (spacesBefore !== " ") {
-            this.edits.push(
-                TextEdit.replace(
-                    createRange(declaration.length, spacesBefore.length, this.currentLine),
-                    " ",
-                ),
-            );
+            line = line.substr(0, declaration.length) + " " + line.substr(line.indexOf(sign));
         }
         if (spacesAfter !== " ") {
             const start = line.indexOf(sign) + sign.length;
-            this.edits.push(
-                TextEdit.replace(
-                    createRange(start, spacesAfter.length, this.currentLine),
-                    " ",
-                ),
-            );
+            line = line.substring(0, start) + " " + line.substring(start);
         }
+
+        return line;
     }
 
     /**
@@ -251,17 +307,11 @@ export class Formatter {
     }
 
     /**
-     * Creates a text edit if the current indent is incorrect
+     * Sets correct indent to line
+     * @param line to indent
      */
-    private checkIndent(): void {
-        this.match = /(^\s*)\S/.exec(this.getCurrentLine());
-        if (this.match && this.match[1] !== this.currentIndent) {
-            const indent: string = this.match[1];
-            this.edits.push(TextEdit.replace(
-                Range.create(this.currentLine, 0, this.currentLine, indent.length),
-                this.currentIndent,
-            ));
-        }
+    private indentLine(line: string = this.getCurrentLine()): void {
+        this.formattedText.push(this.currentIndent + line.trim())
     }
 
     /**
@@ -304,7 +354,6 @@ export class Formatter {
             if (line === undefined) {
                 return undefined;
             }
-            this.removeExtraSpaces(line);
             this.lastLine = line;
             this.lastLineNumber = i;
         }
@@ -317,6 +366,17 @@ export class Formatter {
      */
     private nextLine(): string | undefined {
         return this.getLine(++this.currentLine);
+    }
+
+    /**
+     * Inserts blank line before section except for configuration
+     */
+    private insertLineBeforeSection(): void {
+        if (this.currentSection.name === "configuration") {
+            return;
+        }
+
+        this.formattedText.splice(this.formattedText.length - 1, 0, "");
     }
 
     /**
@@ -333,25 +393,12 @@ export class Formatter {
     }
 
     /**
-     * @returns true, if current line is section declaration
+     * @returns true, if line is section declaration
      */
-    private isSectionDeclaration(): boolean {
-        this.match = /(^\s*)\[([a-z]+)\]/.exec(this.getCurrentLine());
+    private isSectionDeclaration(line: string): boolean {
+        this.match = /(^\s*)\[([a-z]+)\]/.exec(line);
 
         return this.match !== null;
-    }
-
-    /**
-     * Removes trailing spaces (at the end and at the beginning)
-     * @param line the target line
-     */
-    private removeExtraSpaces(line: string): void {
-        const match: RegExpExecArray | null = / (\s +) $ /.exec(line);
-        if (match) {
-            this.edits.push(TextEdit.replace(
-                Range.create(this.currentLine, line.length - match[1].length, this.currentLine, line.length), "",
-            ));
-        }
     }
 
     /**
@@ -392,7 +439,8 @@ export class Formatter {
                 }
                 break;
             }
-            default: return true;
+            default:
+                return true;
         }
     }
 }

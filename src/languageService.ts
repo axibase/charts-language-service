@@ -1,9 +1,9 @@
+import { Position, TextDocument, FormattingOptions } from "vscode-languageserver-types";
 import { CompletionProvider } from "./completionProvider";
 import { Formatter } from "./formatter";
 import { HoverProvider } from "./hoverProvider";
 import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { Validator } from "./validator";
-import { TextDocument, FormattingOptions, Position } from "vscode-languageserver-types";
 
 export class LanguageService {
     private static resourcesProvider: ResourcesProviderBase;
@@ -31,7 +31,7 @@ export class LanguageService {
         return new HoverProvider(document);
     }
 
-    public static getFormatter(text: string, formattingOptions: FormattingOptions) {
-        return new Formatter(text, formattingOptions);
+    public static getFormatter(formattingOptions: FormattingOptions) {
+        return new Formatter(formattingOptions);
     }
 }

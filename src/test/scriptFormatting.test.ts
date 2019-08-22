@@ -1,62 +1,64 @@
 import { deepStrictEqual } from "assert";
-import { FormattingOptions, Position, Range, TextEdit } from "vscode-languageserver-types";
-import { Formatter } from "../formatter";
+import { Formatter, FORMATTING_OPTIONS } from "../formatter";
 
-suite("JavasScript code formatting", () => {
+suite("JavaScript code formatting", () => {
     test("Unformatted code inside script tag alone", () => {
         const text = `script
         window.userFunction = function () {
         return Math.round(value / 10) * 10;
         };
-endscript`;
-        const options: FormattingOptions = FormattingOptions.create(2, true);
-        const expected: TextEdit[] = [
-            TextEdit.replace(Range.create(
-                Position.create(1, 0),
-                Position.create(3, 10)),
-                "  window.userFunction = function () {\n    return Math.round(value / 10) * 10;\n  };"
-            )
-        ];
-        const formatter = new Formatter(text, options);
-        const actual = formatter.lineByLine();
+endscript
+
+`;
+        const expected = `script
+  window.userFunction = function () {
+    return Math.round(value / 10) * 10;
+  };
+endscript
+
+`
+        const formatter = new Formatter(FORMATTING_OPTIONS);
+        const actual = formatter.format(text);
         deepStrictEqual(actual, expected);
     });
 
     test("Code written in one line", () => {
         const text = `script
         window.userFunction = function () {return Math.round(value / 10) * 10;};
-endscript`;
-        const options: FormattingOptions = FormattingOptions.create(2, true);
-        const expected: TextEdit[] = [
-            TextEdit.replace(Range.create(
-                Position.create(1, 0),
-                Position.create(1, 80)),
-                "  window.userFunction = function () {\n    return Math.round(value / 10) * 10;\n  };"
-            )
-        ];
-        const formatter = new Formatter(text, options);
-        const actual = formatter.lineByLine();
+endscript
+
+`;
+        const expected = `script
+  window.userFunction = function () {
+    return Math.round(value / 10) * 10;
+  };
+endscript
+
+`;
+        const formatter = new Formatter(FORMATTING_OPTIONS);
+        const actual = formatter.format(text);
         deepStrictEqual(actual, expected);
     });
 
     test("Unformatted code inside script tag in [configuration]", () => {
-        const text = `
-[configuration]
+        const text = `[configuration]
   script
     window.userFunction = function () {
     return Math.round(value / 10) * 10;
     };
-  endscript`;
-        const options: FormattingOptions = FormattingOptions.create(2, true);
-        const expected: TextEdit[] = [
-            TextEdit.replace(Range.create(
-                Position.create(3, 0),
-                Position.create(5, 6)),
-                "    window.userFunction = function () {\n      return Math.round(value / 10) * 10;\n    };"
-            )
-        ];
-        const formatter = new Formatter(text, options);
-        const actual = formatter.lineByLine();
+  endscript
+
+`;
+        const expected = `[configuration]
+  script
+    window.userFunction = function () {
+      return Math.round(value / 10) * 10;
+    };
+  endscript
+
+`;
+        const formatter = new Formatter(FORMATTING_OPTIONS);
+        const actual = formatter.format(text);
         deepStrictEqual(actual, expected);
     });
 
@@ -67,32 +69,37 @@ endscript`;
     window.userFunction = function () {
     return Math.round(value / 10) * 10;
     };
-  endscript`;
-        const options: FormattingOptions = FormattingOptions.create(2, true);
-        const expected: TextEdit[] = [
-            TextEdit.replace(Range.create(
-                Position.create(3, 0),
-                Position.create(5, 6)),
-                "    window.userFunction = function () {\n      return Math.round(value / 10) * 10;\n    };"
-            )
-        ];
-        const formatter = new Formatter(text, options);
-        const actual = formatter.lineByLine();
+  endscript
+  
+  `;
+        const expected = `
+[group]
+  script
+    window.userFunction = function () {
+      return Math.round(value / 10) * 10;
+    };
+  endscript
+
+`;
+        const formatter = new Formatter(FORMATTING_OPTIONS);
+        const actual = formatter.format(text);
         deepStrictEqual(actual, expected);
     });
 
     test("Correct code that doesn't need formatting", () => {
         const text = `[configuration]
+
   [widget]
-    script` +
-    `        window.userFunction = function () {` +
-  + `  return Math.round(value / 10) * 10;` +
-    `};`
-  + `endscript`;
-        const options: FormattingOptions = FormattingOptions.create(2, true);
-        const expected: TextEdit[] = [];
-        const formatter = new Formatter(text, options);
-        const actual = formatter.lineByLine();
+    script
+      window.userFunction = function () {
+        return Math.round(value / 10) * 10;
+      };
+    endscript
+
+`;
+        const expected = text;
+        const formatter = new Formatter(FORMATTING_OPTIONS);
+        const actual = formatter.format(text);
         deepStrictEqual(actual, expected);
     });
 });
