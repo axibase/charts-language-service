@@ -38,7 +38,8 @@ const NestedLanguages = new Map<RegExp, LanguageConfiguration>([
         getOptions: (indent: string, tabSize: number) => {
             return {
                 base: (indent.length / tabSize) + 1,
-                style: " ".repeat(tabSize)
+                style: " ".repeat(tabSize),
+                adjustMultilineComment: true
             }
         }
     }]
