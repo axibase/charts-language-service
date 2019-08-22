@@ -87,6 +87,6 @@ suite("Formatter: SQL indents tests", () => {
         "    [series]\n\n";
     const expected = config;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.lineByLine(config).pop().newText;
+    const actual = formatter.format(config).pop().newText;
     assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
 });

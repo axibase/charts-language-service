@@ -89,7 +89,7 @@ export class Formatter {
      * Reads the document line by line and calls corresponding formatting functions
      * @returns array containing single text edit with fully formatted document
      */
-    public lineByLine(text: string): TextEdit[] {
+    public format(text: string): TextEdit[] {
         this.lines = text.split("\n");
         for (let line = this.getLine(this.currentLine); line !== void 0; line = this.nextLine()) {
             if (isEmpty(line)) {

@@ -77,7 +77,7 @@ suite("Formatter: expr indents tests", () => {
       "    endexpr\n\n" +
       "    [series]\n\n";
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.lineByLine(config).pop().newText;
+    const actual = formatter.format(config).pop().newText;
     const expected = config;
     assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
   })

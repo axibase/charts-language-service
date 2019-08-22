@@ -17,7 +17,7 @@ suite("Blank lines formatting", () => {
 
 `;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.lineByLine(text).pop().newText;
+    const actual = formatter.format(text).pop().newText;
     deepStrictEqual(actual, expected);
   });
 
@@ -32,7 +32,7 @@ suite("Blank lines formatting", () => {
 
 `;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.lineByLine(text).pop().newText;
+    const actual = formatter.format(text).pop().newText;
     deepStrictEqual(actual, expected);
   });
 
@@ -45,7 +45,7 @@ suite("Blank lines formatting", () => {
 `;
     const expected = text;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.lineByLine(text).pop().newText;
+    const actual = formatter.format(text).pop().newText;
     deepStrictEqual(actual, expected);
   });
 
@@ -65,7 +65,7 @@ suite("Blank lines formatting", () => {
 
 `;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.lineByLine(text).pop().newText;
+    const actual = formatter.format(text).pop().newText;
     deepStrictEqual(actual, expected);
   });
 
@@ -83,7 +83,7 @@ suite("Blank lines formatting", () => {
 
 `;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.lineByLine(text).pop().newText;
+    const actual = formatter.format(text).pop().newText;
     deepStrictEqual(actual, expected);
   });
 });
