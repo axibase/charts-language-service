@@ -1,10 +1,9 @@
-import { generate } from "escodegen";
-import { parseScript } from "esprima";
 import { FormattingOptions } from "vscode-languageserver-types";
 import { BLOCK_SCRIPT_END, BLOCK_SCRIPT_START, RELATIONS_REGEXP } from "./regExpressions";
 import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { TextRange } from "./textRange";
 import { isEmpty } from "./util";
+import { LanguageFormattingOptions, NestedCodeFormatter } from "./nestedCodeFormatter";
 
 interface Section {
     indent?: string;
@@ -16,6 +15,34 @@ export const FORMATTING_OPTIONS: FormattingOptions = {
     insertSpaces: true,
     tabSize: 2
 };
+
+/**
+ * Language formatting configuration
+ * languageId - language id
+ * endRegex - regex specifying that language code block finished
+ * getOptions - function computing language formatting options based on current indent
+ */
+interface languageConfiguration {
+    languageId: string,
+    endRegex: RegExp,
+    getOptions(indent?: string, tabSize?: number): LanguageFormattingOptions
+}
+
+/**
+ * Dictionary used in languages syntax formatting
+ */
+const NestedLanguages = new Map<RegExp, languageConfiguration>([
+    [BLOCK_SCRIPT_START, {
+        languageId: "js",
+        endRegex: BLOCK_SCRIPT_END,
+        getOptions: (indent: string, tabSize: number) => {
+            return {
+                base: (indent.length / tabSize) + 1,
+                style: " ".repeat(tabSize)
+            }
+        }
+    }]
+]);
 
 /**
  * Returns document formatted according to specified rules
@@ -73,6 +100,10 @@ export class Formatter {
      */
     private formattedText: string[] = [];
     /**
+     * Language of current code block
+     */
+    private currentLanguageConfiguration: languageConfiguration = null;
+    /**
      * Indent of last keyword.
      */
     private lastKeywordIndent: string = "";
@@ -101,8 +132,8 @@ export class Formatter {
             } else if (this.isSectionDeclaration(line)) {
                 this.handleSectionDeclaration();
                 continue;
-            } else if (BLOCK_SCRIPT_START.test(line)) {
-                this.handleScriptBlock();
+            } else if (this.isCodeBlock(line)) {
+                this.handleCodeBlock();
                 continue;
             }
 
@@ -137,30 +168,39 @@ export class Formatter {
     }
 
     /**
-     * Apply formatting rules for script-endscript block
+     * Apply formatting rules for code block
      */
-    private handleScriptBlock(): void {
+    private handleCodeBlock(): void {
         this.indentLine();
-        this.formatScript();
+        this.formatCode();
         this.indentLine();
     }
 
     /**
-     * Append specified number of blank lines to the end of the document
+     * Determines by regex is line a start of code block
+     * @param line 
      */
-    private handleEndLines(): void {
-        this.formattedText.push(...new Array(this.blankLinesAtEnd).fill(""));
+    private isCodeBlock(line: string): boolean {
+        for (let [regex, configuration] of NestedLanguages.entries()) {
+            if (regex.test(line)) {
+                this.currentLanguageConfiguration = configuration;
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
-     * Formats JavaScript content inside script tags
+     * Format code of currently recognized language
      */
-    private formatScript(): void {
+    private formatCode(): void {
         let line = this.nextLine();
+        const { endRegex, languageId, getOptions } = this.currentLanguageConfiguration;
 
         // Get content between script tags
         const buffer = [];
-        while (line !== undefined && !BLOCK_SCRIPT_END.test(line)) {
+        while (line !== undefined && !endRegex.test(line)) {
             buffer.push(line);
             line = this.nextLine();
         }
@@ -170,23 +210,20 @@ export class Formatter {
         }
         const unformattedCode = buffer.join("\n");
 
-        try {
-            /** Parse and format JavaScript */
-            const parsedCode = parseScript(unformattedCode);
-            const formattedCode = generate(parsedCode, {
-                format: {
-                    indent: {
-                        base: (this.currentIndent.length / this.options.tabSize) + 1,
-                        style: " ".repeat(this.options.tabSize)
-                    }
-                }
-            });
+        this.formattedText.push(
+            NestedCodeFormatter.forLanguage(languageId).format(
+                unformattedCode, getOptions(this.currentIndent, this.options.tabSize)
+            )
+        );
 
-            this.formattedText.push(formattedCode);
-        } catch (error) {
-            /** If we didn't manage to format script just continue */
-            this.formattedText.push(unformattedCode);
-        }
+        this.currentLanguageConfiguration = null;
+    }
+
+    /**
+     * Append specified number of blank lines to the end of the document
+     */
+    private handleEndLines(): void {
+        this.formattedText.push(...new Array(this.blankLinesAtEnd).fill(""));
     }
 
     /**
