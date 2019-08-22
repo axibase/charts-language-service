@@ -103,10 +103,28 @@ endscript
     deepStrictEqual(actual, expected);
   });
 
-  test("Comments are not deleted in formatted code", () => {
+  test("Comments are not deleted from formatted code", () => {
     const text = `script
   function () {
     /* some comment */
+    return Math.round(value / 10) * 10;
+  };
+endscript
+
+`;
+    const expected = text;
+    const formatter = new Formatter(FORMATTING_OPTIONS);
+    const actual = formatter.format(text);
+    deepStrictEqual(actual, expected);
+  });
+
+  test("Multiline comments are not deleted from formatted code", () => {
+    const text = `script
+  function () {
+    /*
+     * some multiline 
+     * comment
+     */
     return Math.round(value / 10) * 10;
   };
 endscript
