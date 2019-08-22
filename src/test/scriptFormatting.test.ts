@@ -104,56 +104,15 @@ endscript
   });
 
   test("Comments are not deleted in formatted code", () => {
-    const text = `[configuration]
-  script
-    widget.loader.on('reqload', function (resp, props) {
-      props.forEach(function (prop) {
-        /**
-         * Hack: override entity to allow to join by f1.
-         */
-        prop.entity = prop.key.sec_code || prop.tags.код_бумаги;
-      });
-      widget.tbodyData(props);
-      widget.redraw(true);
-    });
-  endscript
+    const text = `script
+  function () {
+    /* some comment */
+    return Math.round(value / 10) * 10;
+  };
+endscript
 
 `;
     const expected = text;
-    const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.format(text);
-    deepStrictEqual(actual, expected);
-  });
-
-  test("Comments are not deleted in unformatted code", () => {
-    const text = `[configuration]
-  script
-    widget.loader.on('reqload', function (resp, props) {
-    props.forEach(function (prop) {
-        /**
-         * Hack: override entity to allow to join by f1.
-         */
-        prop.entity = prop.key.sec_code || prop.tags.код_бумаги;
-      });
-      widget.tbodyData(props);
-      widget.redraw(true);
-    });
-  endscript`;
-  const expected = `[configuration]
-  script
-    widget.loader.on('reqload', function (resp, props) {
-      props.forEach(function (prop) {
-        /**
-         * Hack: override entity to allow to join by f1.
-         */
-        prop.entity = prop.key.sec_code || prop.tags.код_бумаги;
-      });
-      widget.tbodyData(props);
-      widget.redraw(true);
-    });
-  endscript
-
-`;
     const formatter = new Formatter(FORMATTING_OPTIONS);
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
