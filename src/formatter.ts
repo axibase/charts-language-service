@@ -22,16 +22,16 @@ export const FORMATTING_OPTIONS: FormattingOptions = {
  * endRegex - regex specifying that language code block finished
  * getOptions - function computing language formatting options based on current indent
  */
-interface languageConfiguration {
+interface LanguageConfiguration {
     languageId: string,
     endRegex: RegExp,
-    getOptions(indent?: string, tabSize?: number): LanguageFormattingOptions
+    getOptions(indent: string, tabSize: number): LanguageFormattingOptions
 }
 
 /**
  * Dictionary used in languages syntax formatting
  */
-const NestedLanguages = new Map<RegExp, languageConfiguration>([
+const NestedLanguages = new Map<RegExp, LanguageConfiguration>([
     [BLOCK_SCRIPT_START, {
         languageId: "js",
         endRegex: BLOCK_SCRIPT_END,
@@ -102,7 +102,7 @@ export class Formatter {
     /**
      * Language of current code block
      */
-    private currentLanguageConfiguration: languageConfiguration = null;
+    private currentLanguageConfiguration: LanguageConfiguration = null;
     /**
      * Indent of last keyword.
      */
