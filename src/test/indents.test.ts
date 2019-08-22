@@ -10,7 +10,7 @@ suite("Formatting indents tests: sections and settings", () => {
 `;
     const expected = text;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.format(text).pop().newText;
+    const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
 
@@ -26,7 +26,7 @@ suite("Formatting indents tests: sections and settings", () => {
 
 `;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.format(text).pop().newText;
+    const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
 
@@ -41,7 +41,7 @@ suite("Formatting indents tests: sections and settings", () => {
 `;
     const expected = text;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.format(text).pop().newText;
+    const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
 
@@ -63,7 +63,7 @@ suite("Formatting indents tests: sections and settings", () => {
 
 `;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.format(text).pop().newText;
+    const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
 
@@ -81,7 +81,7 @@ suite("Formatting indents tests: sections and settings", () => {
 `;
     const expected = text;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.format(text).pop().newText;
+    const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
 
@@ -109,7 +109,7 @@ suite("Formatting indents tests: sections and settings", () => {
 
 `;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.format(text).pop().newText;
+    const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
 
@@ -129,7 +129,7 @@ suite("Formatting indents tests: sections and settings", () => {
 `;
     const expected = text;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.format(text).pop().newText;
+    const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
 
@@ -161,7 +161,7 @@ suite("Formatting indents tests: sections and settings", () => {
 
 `;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.format(text).pop().newText;
+    const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
 
@@ -207,7 +207,7 @@ suite("Formatting indents tests: sections and settings", () => {
 
 `;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.format(text).pop().newText;
+    const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
 
@@ -267,7 +267,7 @@ suite("Formatting indents tests: sections and settings", () => {
 
 `;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.format(text).pop().newText;
+    const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
 
@@ -308,7 +308,7 @@ suite("Formatting indents tests: sections and settings", () => {
 `;
     const expected = text;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.format(text).pop().newText;
+    const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
 
@@ -327,7 +327,7 @@ suite("Formatting indents tests: sections and settings", () => {
 `;
     const expected = text;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.format(text).pop().newText;
+    const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
 
@@ -341,7 +341,7 @@ suite("Formatting indents tests: sections and settings", () => {
 
 `;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.format(text).pop().newText;
+    const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
 
@@ -367,7 +367,7 @@ starttime = 2018
 
 `;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.format(text).pop().newText;
+    const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
 
@@ -381,7 +381,7 @@ starttime = 2018
 
 `;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.format(text).pop().newText;
+    const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
 
@@ -395,7 +395,7 @@ starttime = 2018
 
 `;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.format(text).pop().newText;
+    const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
 
@@ -409,7 +409,7 @@ starttime = 2018
 
 `;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.format(text).pop().newText;
+    const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
 
@@ -421,7 +421,7 @@ starttime = 2018
 `;
     const expected = text;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.format(text).pop().newText;
+    const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
 
@@ -473,7 +473,7 @@ starttime = 2018
 
 `;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.format(text).pop().newText;
+    const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
 
@@ -484,7 +484,7 @@ column-time = null
 `;
     const expected = text;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.format(text).pop().newText;
+    const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
 
@@ -510,7 +510,7 @@ column-time = null
 
 `;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.format(text).pop().newText;
+    const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
 
@@ -544,7 +544,7 @@ column-time = null
 
 `;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.format(text).pop().newText;
+    const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
 
@@ -566,7 +566,7 @@ column-time = null
 `;
     const expected = text;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.format(text).pop().newText;
+    const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
 
@@ -592,7 +592,7 @@ column-time = null
 `;
     const expected = text;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.format(text).pop().newText;
+    const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
 
@@ -618,7 +618,7 @@ column-time = null
 `;
     const expected = text;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.format(text).pop().newText;
+    const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
 
@@ -644,7 +644,7 @@ column-time = null
 `;
     const expected = text;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.format(text).pop().newText;
+    const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
 
@@ -680,7 +680,7 @@ column-time = null
 `;
     const expected = text;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.format(text).pop().newText;
+    const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
 
@@ -700,7 +700,7 @@ column-time = null
 `;
     const expected = text;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.format(text).pop().newText;
+    const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
 
@@ -725,7 +725,7 @@ column-time = null
 `;
     const expected = text;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.format(text).pop().newText;
+    const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
 });
@@ -737,7 +737,7 @@ suite("Formatting indents tests: !=, ==, =", () => {
 `;
     const expected = text;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.format(text).pop().newText;
+    const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
 
@@ -747,7 +747,7 @@ suite("Formatting indents tests: !=, ==, =", () => {
 `;
     const expected = text;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.format(text).pop().newText;
+    const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
 
@@ -757,7 +757,7 @@ suite("Formatting indents tests: !=, ==, =", () => {
 `;
     const expected = text;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.format(text).pop().newText;
+    const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
 
@@ -767,7 +767,7 @@ suite("Formatting indents tests: !=, ==, =", () => {
 
 `;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.format(text).pop().newText;
+    const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
 
@@ -777,7 +777,7 @@ suite("Formatting indents tests: !=, ==, =", () => {
 
 `;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.format(text).pop().newText;
+    const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
 });
@@ -789,7 +789,7 @@ suite("Formatting indents tests: >=, <=, >, <", () => {
 `;
     const expected = text;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.format(text).pop().newText;
+    const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
 
@@ -799,7 +799,7 @@ suite("Formatting indents tests: >=, <=, >, <", () => {
 `;
     const expected = text;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.format(text).pop().newText;;
+    const actual = formatter.format(text);;
     deepStrictEqual(actual, expected);
   });
 
@@ -809,7 +809,7 @@ suite("Formatting indents tests: >=, <=, >, <", () => {
 `;
     const expected = text;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.format(text).pop().newText;
+    const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
 });

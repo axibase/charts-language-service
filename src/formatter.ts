@@ -1,6 +1,6 @@
 import { generate } from "escodegen";
 import { parseScript } from "esprima";
-import { FormattingOptions, Range, TextEdit, Position } from "vscode-languageserver-types";
+import { FormattingOptions } from "vscode-languageserver-types";
 import { BLOCK_SCRIPT_END, BLOCK_SCRIPT_START, RELATIONS_REGEXP } from "./regExpressions";
 import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { TextRange } from "./textRange";
@@ -18,7 +18,7 @@ export const FORMATTING_OPTIONS: FormattingOptions = {
 };
 
 /**
- * Returns formatted document according to specified rules
+ * Returns document formatted according to specified rules
  */
 export class Formatter {
     /**
@@ -87,9 +87,9 @@ export class Formatter {
 
     /**
      * Reads the document line by line and calls corresponding formatting functions
-     * @returns array containing single text edit with fully formatted document
+     * @returns whole formatted document
      */
-    public format(text: string): TextEdit[] {
+    public format(text: string): string {
         this.lines = text.split("\n");
         for (let line = this.getLine(this.currentLine); line !== void 0; line = this.nextLine()) {
             if (isEmpty(line)) {
@@ -123,15 +123,7 @@ export class Formatter {
 
         this.handleEndLines();
 
-        return [
-            TextEdit.replace(
-                Range.create(
-                    Position.create(0, 0),
-                    Position.create(this.lines.length - 1, this.lines[this.lines.length - 1].length)
-                ),
-                this.formattedText.join("\n")
-            )
-        ];
+        return this.formattedText.join("\n");
     }
 
     /**

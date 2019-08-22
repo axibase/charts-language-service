@@ -18,7 +18,7 @@ endscript
 
 `
         const formatter = new Formatter(FORMATTING_OPTIONS);
-        const actual = formatter.format(text).pop().newText;
+        const actual = formatter.format(text);
         deepStrictEqual(actual, expected);
     });
 
@@ -36,7 +36,7 @@ endscript
 
 `;
         const formatter = new Formatter(FORMATTING_OPTIONS);
-        const actual = formatter.format(text).pop().newText;
+        const actual = formatter.format(text);
         deepStrictEqual(actual, expected);
     });
 
@@ -58,7 +58,7 @@ endscript
 
 `;
         const formatter = new Formatter(FORMATTING_OPTIONS);
-        const actual = formatter.format(text).pop().newText;
+        const actual = formatter.format(text);
         deepStrictEqual(actual, expected);
     });
 
@@ -82,7 +82,7 @@ endscript
 
 `;
         const formatter = new Formatter(FORMATTING_OPTIONS);
-        const actual = formatter.format(text).pop().newText;
+        const actual = formatter.format(text);
         deepStrictEqual(actual, expected);
     });
 
@@ -99,7 +99,7 @@ endscript
 `;
         const expected = text;
         const formatter = new Formatter(FORMATTING_OPTIONS);
-        const actual = formatter.format(text).pop().newText;
+        const actual = formatter.format(text);
         deepStrictEqual(actual, expected);
     });
 });
