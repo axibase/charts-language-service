@@ -1,7 +1,6 @@
 import * as assert from "assert";
-import { Diagnostic, FormattingOptions, Hover, Position, TextDocument, TextEdit } from "vscode-languageserver-types";
+import { Diagnostic, Hover, Position, TextDocument, TextEdit } from "vscode-languageserver-types";
 import { CompletionProvider } from "../completionProvider";
-import { Formatter } from "../formatter";
 import { HoverProvider } from "../hoverProvider";
 import { SectionStack } from "../sectionStack";
 import { Validator } from "../validator";
@@ -36,10 +35,6 @@ export class Test {
      */
     private readonly name: string;
     /**
-     * Formatting options used in Formatter tests
-     */
-    private readonly options?: FormattingOptions;
-    /**
      * Position of Hover used in hover tests
      */
     private readonly position?: Position;
@@ -53,27 +48,13 @@ export class Test {
         name: string,
         text: string,
         expected: Diagnostic[] | TextEdit[] | Hover | string[],
-        options?: FormattingOptions,
         position?: Position,
     ) {
         this.name = name;
         this.text = text;
         this.expected = expected;
-        this.options = options;
         this.position = position;
         this.document = TextDocument.create("test", "axibasecharts", 1, text);
-    }
-
-    /**
-     * Tests Formatter
-     */
-    public formatTest(): void {
-        test((this.name), () => {
-            if (this.options === undefined) {
-                throw new Error("We're trying to test formatter without formatting options");
-            }
-            assert.deepStrictEqual(new Formatter(this.text, this.options).lineByLine(), this.expected);
-        });
     }
 
     /**
