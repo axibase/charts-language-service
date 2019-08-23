@@ -353,6 +353,7 @@ suite("Formatting indents tests: sections and settings", () => {
 
       [tags]
         startime = 2018
+
 starttime = 2018
 
 `;
@@ -363,7 +364,8 @@ starttime = 2018
 
       [tags]
         startime = 2018
-        starttime = 2018
+
+      starttime = 2018
 
 `;
     const formatter = new Formatter(FORMATTING_OPTIONS);

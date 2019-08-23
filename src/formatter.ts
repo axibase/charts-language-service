@@ -127,6 +127,9 @@ export class Formatter {
             if (isEmpty(line)) {
                 if (this.currentSection.name === "tags" && this.previousSection.name !== "widget") {
                     Object.assign(this.currentSection, this.previousSection);
+                    if (this.shouldInsertBlankLineAfterTags()) {
+                        this.insertBlankLineAfter()
+                    }
                     this.decreaseIndent();
                 }
                 continue;
@@ -156,6 +159,15 @@ export class Formatter {
         this.handleEndLines();
 
         return this.formattedText.join("\n");
+    }
+
+    /**
+     * Determines if blank line after tags should be inserted
+     */
+    private shouldInsertBlankLineAfterTags(): boolean {
+        const nextLine = this.lines[this.currentLine + 1];
+        /** Next line is not empty OR undefined */
+        return nextLine && !this.isSectionDeclaration(nextLine)
     }
 
     /**
@@ -225,6 +237,20 @@ export class Formatter {
      */
     private handleEndLines(): void {
         this.formattedText.push(...new Array(this.blankLinesAtEnd).fill(""));
+    }
+
+    /**
+     * Inserts blank line after current line
+     */
+    private insertBlankLineAfter(): void {
+        this.formattedText.push("");
+    }
+
+    /**
+     * Inserts blank line before current line
+     */
+    private insertBlankLineBefore(): void {
+        this.formattedText.splice(this.formattedText.length - 1, 0, "");
     }
 
     /**
@@ -377,7 +403,7 @@ export class Formatter {
             return;
         }
 
-        this.formattedText.splice(this.formattedText.length - 1, 0, "");
+        this.insertBlankLineBefore();
     }
 
     /**
