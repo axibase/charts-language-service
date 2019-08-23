@@ -425,9 +425,9 @@ export class Validator {
         if (this.currentSection === undefined) {
             return;
         }
-        if (this.previousSection && /tag/i.test(this.currentSection.text)) {
+        if (this.previousSection && /tag|column/i.test(this.currentSection.text)) {
             /**
-             * [tags] has finished, perform checks for parent section.
+             * [tags] or [column] has finished, perform checks for parent section.
              */
             this.currentSettings = this.previousSettings;
             this.currentSection = this.previousSection;
@@ -562,7 +562,7 @@ export class Validator {
             /**
              * We are in [tags] section and current line is empty - [tags] section has finished
              */
-            (isEmpty(line) && this.currentSection  && this.currentSection.text === "tags")) {
+            (isEmpty(line) && this.currentSection && /tags|column/.test(this.currentSection.text))) {
             // We met start of the next section, that means that current section has finished
             if (this.match !== null) {
                 this.spellingCheck();
@@ -826,8 +826,8 @@ export class Validator {
             return;
         }
         const [, indent, name] = this.match;
-        const nextIsTags = this.currentSection && /tag/i.test(name);
-        if (!nextIsTags) {
+        const nextIsTagsOrColumn = this.currentSection && /tag|column/i.test(name);
+        if (!nextIsTagsOrColumn) {
             /**
              * If the next is [tags], no need to perform checks for current section now,
              * they will be done after [tags] section finished.
@@ -883,10 +883,10 @@ export class Validator {
             return;
         }
         const line: string = this.config.getCurrentLine();
-        if (this.currentSection === undefined || !/(?:tag|key)s?/.test(this.currentSection.text)) {
+        if (this.currentSection === undefined || !/(?:tag|key)s?|column/.test(this.currentSection.text)) {
             this.handleRegularSetting();
-        } else if (/(?:tag|key)s?/.test(this.currentSection.text) &&
-            // We are in tags/keys section
+        } else if (/(?:tag|key)s?|column/.test(this.currentSection.text) &&
+            // We are in tags/keys/column section
             /(^[ \t]*)([a-z].*?[a-z])[ \t]*=/.test(line)) {
             this.match = /(^[ \t]*)([a-z].*?[a-z])[ \t]*=/.exec(line);
             if (this.match === null) {
@@ -945,7 +945,7 @@ export class Validator {
     }
 
     /**
-     * Processes a regular setting which is defined not in tags/keys section
+     * Processes a regular setting which is defined not in tags/keys/column section
      */
     private handleRegularSetting(): void {
         const line: string = this.config.getCurrentLine();
