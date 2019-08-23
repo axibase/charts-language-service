@@ -103,12 +103,12 @@ endscript
     deepStrictEqual(actual, expected);
   });
 
-  test("Comments are not deleted from formatted code", () => {
+  test("Doesn't delete block comment from formatted code", () => {
     const text = `script
-  function () {
+  function round() {
     /* some comment */
     return Math.round(value / 10) * 10;
-  };
+  }
 endscript
 
 `;
@@ -118,15 +118,95 @@ endscript
     deepStrictEqual(actual, expected);
   });
 
-  test("Multiline comments are not deleted from formatted code", () => {
+  test("Doesn't delete block comment from unformatted code", () => {
     const text = `script
-  function () {
+  function round() {
+    /* some comment */
+      return Math.round(value / 10) * 10;
+  }
+endscript
+
+`;
+    const expected = `script
+  function round() {
+    /* some comment */
+    return Math.round(value / 10) * 10;
+  }
+endscript
+
+`;
+    const formatter = new Formatter(FORMATTING_OPTIONS);
+    const actual = formatter.format(text);
+    deepStrictEqual(actual, expected);
+  });
+
+  test("Doesn't delete multiline block comment from formatted code", () => {
+    const text = `script
+  function round() {
     /*
      * some multiline 
      * comment
      */
     return Math.round(value / 10) * 10;
-  };
+  }
+endscript
+
+`;
+    const expected = text;
+    const formatter = new Formatter(FORMATTING_OPTIONS);
+    const actual = formatter.format(text);
+    deepStrictEqual(actual, expected);
+  });
+
+  test("Doesn't delete multiline block comment from unformatted code", () => {
+    const text = `script
+  function round() {
+    /*
+     * some multiline 
+     * comment
+     */
+      return Math.round(value / 10) * 10;
+  }
+endscript
+
+`;
+    const expected = `script
+  function round() {
+    /*
+     * some multiline 
+     * comment
+     */
+    return Math.round(value / 10) * 10;
+  }
+endscript
+
+`;
+    const formatter = new Formatter(FORMATTING_OPTIONS);
+    const actual = formatter.format(text);
+    deepStrictEqual(actual, expected);
+  });
+
+  test("Doesn't delete block comment from formatted syntactically incorrect code", () => {
+    const text = `script
+  function round() {
+    /* some comment */
+    return return Math.round(value / 10) * 10;
+  }
+endscript
+
+`;
+    const expected = text;
+    const formatter = new Formatter(FORMATTING_OPTIONS);
+    const actual = formatter.format(text);
+    deepStrictEqual(actual, expected);
+  });
+
+  test("Doesn't delete block comment from unformatted syntactically incorrect code", () => {
+    const text = `script
+  function round() {
+    /* some comment */
+      return return Math.round(value / 10) * 10;
+  }
 endscript
 
 `;
