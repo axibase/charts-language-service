@@ -33,7 +33,8 @@ import {
     getSetting,
     isAnyInArray,
     isInMap,
-    repetitionDiagnostic
+    repetitionDiagnostic,
+    isEmpty
 } from "./util";
 
 const placeholderContainingSettings = [
@@ -561,7 +562,7 @@ export class Validator {
             /**
              * We are in [tags] section and current line is empty - [tags] section has finished
              */
-            (line.trim().length === 0 && this.currentSection !== undefined && this.currentSection.text === "tags")) {
+            (isEmpty(line) && this.currentSection  && this.currentSection.text === "tags")) {
             // We met start of the next section, that means that current section has finished
             if (this.match !== null) {
                 this.spellingCheck();
