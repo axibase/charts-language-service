@@ -19,8 +19,11 @@ export class JSFormatter implements LanguageFormatter {
 
             return formattedCode;
         } catch (error) {
-            /** If we didn't manage to format script just return unformatted code and continue */
-            return unformattedCode;
+            /** If we didn't manage to format script add base indent to it */
+            const codeIndent = " ".repeat(formattingOptions.base) + formattingOptions.style;
+            return unformattedCode.split("\n").map(
+                line => line.replace(/^\s*/, codeIndent)
+            ).join("\n");
         }
     }
 }

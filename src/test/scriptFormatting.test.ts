@@ -195,7 +195,14 @@ endscript
 endscript
 
 `;
-    const expected = text;
+    const expected = `script
+   function round() {
+   /* some comment */
+   return return Math.round(value / 10) * 10;
+   }
+endscript
+
+`;
     const formatter = new Formatter(FORMATTING_OPTIONS);
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
@@ -203,14 +210,59 @@ endscript
 
   test("Doesn't delete block comment from unformatted syntactically incorrect code", () => {
     const text = `script
-  function round() {
-    /* some comment */
-      return return Math.round(value / 10) * 10;
-  }
+   function round() {
+   /* some comment */
+   return return Math.round(value / 10) * 10;
+   }
 endscript
 
 `;
     const expected = text;
+    const formatter = new Formatter(FORMATTING_OPTIONS);
+    const actual = formatter.format(text);
+    deepStrictEqual(actual, expected);
+  });
+
+
+  test("Formatting syntactically incorrect code with initial zero indent", () => {
+    const text = `script
+function round() {
+/* some comment */
+return return Math.round(value / 10) * 10;
+}
+endscript
+
+`;
+    const expected = `script
+   function round() {
+   /* some comment */
+   return return Math.round(value / 10) * 10;
+   }
+endscript
+
+`;
+    const formatter = new Formatter(FORMATTING_OPTIONS);
+    const actual = formatter.format(text);
+    deepStrictEqual(actual, expected);
+  });
+
+  test("Formatting syntactically incorrect code with initial non-zero indent", () => {
+    const text = `script
+      function round() {
+    /* some comment */
+          return return Math.round(value / 10) * 10;
+    }
+endscript
+
+`;
+    const expected = `script
+   function round() {
+   /* some comment */
+   return return Math.round(value / 10) * 10;
+   }
+endscript
+
+`;
     const formatter = new Formatter(FORMATTING_OPTIONS);
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
