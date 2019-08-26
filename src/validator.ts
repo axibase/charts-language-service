@@ -20,7 +20,9 @@ import {
     CSV_FROM_URL_PATTERN,
     CSV_INLINE_HEADER_PATTERN,
     CSV_KEYWORD_PATTERN,
-    CSV_NEXT_LINE_HEADER_PATTERN
+    CSV_NEXT_LINE_HEADER_PATTERN,
+    TAG_OR_COLUMN_REGEXP,
+    SECTIONS_EXCEPTIONS_REGEXP
 } from "./regExpressions";
 import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { SectionStack } from "./sectionStack";
@@ -425,7 +427,7 @@ export class Validator {
         if (this.currentSection === undefined) {
             return;
         }
-        if (this.previousSection && /tag|column/i.test(this.currentSection.text)) {
+        if (this.previousSection && TAG_OR_COLUMN_REGEXP.test(this.currentSection.text)) {
             /**
              * [tags] or [column] has finished, perform checks for parent section.
              */
@@ -562,7 +564,7 @@ export class Validator {
             /**
              * We are in [tags] section and current line is empty - [tags] section has finished
              */
-            (isEmpty(line) && this.currentSection && /tags|column/.test(this.currentSection.text))) {
+            (isEmpty(line) && this.currentSection && TAG_OR_COLUMN_REGEXP.test(this.currentSection.text))) {
             // We met start of the next section, that means that current section has finished
             if (this.match !== null) {
                 this.spellingCheck();
@@ -826,7 +828,7 @@ export class Validator {
             return;
         }
         const [, indent, name] = this.match;
-        const nextIsTagsOrColumn = this.currentSection && /tag|column/i.test(name);
+        const nextIsTagsOrColumn = this.currentSection && TAG_OR_COLUMN_REGEXP.test(name);
         if (!nextIsTagsOrColumn) {
             /**
              * If the next is [tags], no need to perform checks for current section now,
@@ -883,9 +885,10 @@ export class Validator {
             return;
         }
         const line: string = this.config.getCurrentLine();
-        if (this.currentSection === undefined || !/(?:tag|key)s?|column/.test(this.currentSection.text)) {
+        // tag(s)|key(s)|column — sections, whose settings are handled in different way
+        if (this.currentSection === undefined || !SECTIONS_EXCEPTIONS_REGEXP.test(this.currentSection.text)) {
             this.handleRegularSetting();
-        } else if (/(?:tag|key)s?|column/.test(this.currentSection.text) &&
+        } else if (SECTIONS_EXCEPTIONS_REGEXP.test(this.currentSection.text) &&
             // We are in tags/keys/column section
             /(^[ \t]*)([a-z].*?[a-z])[ \t]*=/.test(line)) {
             this.match = /(^[ \t]*)([a-z].*?[a-z])[ \t]*=/.exec(line);
