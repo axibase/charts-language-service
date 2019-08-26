@@ -125,9 +125,9 @@ export class Formatter {
         this.lines = text.split("\n");
         for (let line = this.getLine(this.currentLine); line !== void 0; line = this.nextLine()) {
             if (isEmpty(line)) {
-                if (this.currentSection.name === "tags" && this.previousSection.name !== "widget") {
+                if (this.insideSectionException()) {
                     Object.assign(this.currentSection, this.previousSection);
-                    if (this.shouldInsertBlankLineAfterTags()) {
+                    if (this.shouldInsertBlankLineInsideSection()) {
                         this.insertBlankLineAfter()
                     }
                     this.decreaseIndent();
@@ -162,9 +162,18 @@ export class Formatter {
     }
 
     /**
-     * Determines if blank line after tags should be inserted
+     * We are inside tags/column section
+     * They may contain empty line between their own and parent-level settings
      */
-    private shouldInsertBlankLineAfterTags(): boolean {
+    private insideSectionException(): boolean {
+        return (this.currentSection.name === "tags" && this.previousSection.name !== "widget")
+        || this.currentSection.name === "column";
+    }
+
+    /**
+     * Determines if blank line after tags/column should be inserted
+     */
+    private shouldInsertBlankLineInsideSection(): boolean {
         const nextLine = this.lines[this.currentLine + 1];
         /** Next line is not empty OR undefined */
         return nextLine && !this.isSectionDeclaration(nextLine)
