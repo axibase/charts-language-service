@@ -348,7 +348,6 @@ export class Formatter {
      */
     private indentLine(line: string = this.getCurrentLine()): void {
         if (MULTILINE_COMMENT_START_REGEX.test(line)) {
-            this.decreaseIndent();
             const match = MULTILINE_COMMENT_START_REGEX.exec(line);
             const comment = match[0];
             const setting = match[1];
