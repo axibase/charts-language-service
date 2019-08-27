@@ -89,7 +89,7 @@ export const SECTIONS_EXCEPTIONS_REGEXP: RegExp = /(?:tag|key)s?|column/;
 export const TAG_OR_COLUMN_REGEXP: RegExp = /tag|column/;
 
 // start of block comment - /*
-export const MULTILINE_COMMENT_START_REGEX: RegExp = /\/\*(\w[-\w\s\d_]+?(?=\s*=)|column-.*)/;
+export const MULTILINE_COMMENT_START_REGEX: RegExp = /\/\*(\w[-\w\s\d_]+?(?=\s*=)|column-.*)?/;
 
 // end of block comment - */
-export const MULTILINE_COMMENT_END_REGEX: RegExp = /(\w[-\w\s\d_]+?(?=\s*=)|column-.*)\*\//;
+export const MULTILINE_COMMENT_END_REGEX: RegExp = /(\w[-\w\s\d_]+?(?=\s*=)|column-.*)?\*\//;
