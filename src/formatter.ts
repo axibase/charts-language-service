@@ -1,5 +1,5 @@
 import { FormattingOptions } from "vscode-languageserver-types";
-import { BLOCK_SCRIPT_END, BLOCK_SCRIPT_START, RELATIONS_REGEXP, MULTILINE_COMMENT_START_REGEX, MULTILINE_COMMENT_END_REGEX } from "./regExpressions";
+import { BLOCK_SCRIPT_END, BLOCK_SCRIPT_START, RELATIONS_REGEXP, MULTILINE_COMMENT_START_REGEX, MULTILINE_COMMENT_END_REGEX, MULTILINE_COMMENT_REGEX } from "./regExpressions";
 import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { TextRange } from "./textRange";
 import { isEmpty } from "./util";
@@ -132,6 +132,9 @@ export class Formatter {
                     }
                     this.decreaseIndent();
                 }
+                continue;
+            } else if (this.isCommentBlock(line)) {
+                this.handleComment(line);
                 continue;
             } else if (this.isSectionDeclaration(line)) {
                 this.handleSectionDeclaration();
@@ -347,6 +350,14 @@ export class Formatter {
      * @param line to indent
      */
     private indentLine(line: string = this.getCurrentLine()): void {
+        this.formattedText.push(this.currentIndent + line.trim())
+    }
+
+    private isCommentBlock(line): boolean {
+        return MULTILINE_COMMENT_REGEX.test(line) || MULTILINE_COMMENT_END_REGEX.test(line) || MULTILINE_COMMENT_START_REGEX.test(line);
+    }
+
+    private handleComment(line: string):void {
         if (MULTILINE_COMMENT_START_REGEX.test(line)) {
             const match = line.match(MULTILINE_COMMENT_START_REGEX);
             const comment = match[1];
@@ -365,8 +376,6 @@ export class Formatter {
             }
             this.decreaseIndent();
             this.formattedText.push(this.currentIndent + comment.trim());
-        } else {
-            this.formattedText.push(this.currentIndent + line.trim())
         }
     }
 
