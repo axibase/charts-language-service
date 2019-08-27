@@ -365,13 +365,13 @@ export class Formatter {
             const setting = match[1];
 
             console.log('end match:', match);
-            
+            this.decreaseIndent();
+
             this.formattedText.push(this.currentIndent + comment.trim());
 
             if (setting) {
                 this.formattedText.push(this.currentIndent + setting.trim());
             }
-            this.decreaseIndent();
         } else {
             this.formattedText.push(this.currentIndent + line.trim())
         }
