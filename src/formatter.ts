@@ -366,7 +366,9 @@ export class Formatter {
 
             console.log('end match:', match);
 
-            this.formattedText.push(this.currentIndent + setting.trim());
+            if (setting) {
+                this.formattedText.push(this.currentIndent + setting.trim());
+            }
             this.formattedText.push(this.currentIndent + comment.trim());
             this.decreaseIndent();
         } else {
