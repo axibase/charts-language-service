@@ -348,30 +348,11 @@ export class Formatter {
      */
     private indentLine(line: string = this.getCurrentLine()): void {
         if (MULTILINE_COMMENT_START_REGEX.test(line)) {
-            const match = MULTILINE_COMMENT_START_REGEX.exec(line);
-            const comment = match[0];
-            const setting = match[1];
-
-            console.log('start match:', match);
-
-            this.formattedText.push(this.currentIndent + comment.trim());
-            if (setting) {
-                this.formattedText.push(this.currentIndent + setting.trim());
-            }
+            this.formattedText.push(this.currentIndent + line.trim());
             this.increaseIndent();
         } else if (MULTILINE_COMMENT_END_REGEX.test(line)) {
-            const match = MULTILINE_COMMENT_END_REGEX.exec(line);
-            const comment = match[0];
-            const setting = match[1];
-
-            console.log('end match:', match);
             this.decreaseIndent();
-
-            this.formattedText.push(this.currentIndent + comment.trim());
-
-            if (setting) {
-                this.formattedText.push(this.currentIndent + setting.trim());
-            }
+            this.formattedText.push(this.currentIndent + line.trim());
         } else {
             this.formattedText.push(this.currentIndent + line.trim())
         }
