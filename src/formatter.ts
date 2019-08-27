@@ -360,7 +360,9 @@ export class Formatter {
     }
 
     private handleCommentBlock(line: string):void {
-        if (MULTILINE_COMMENT_START_REGEX.test(line)) {
+        if (MULTILINE_COMMENT_REGEX.test(line)) {
+            this.indentLine(line);
+        } else if (MULTILINE_COMMENT_START_REGEX.test(line)) {
             const match = line.match(MULTILINE_COMMENT_START_REGEX);
             const comment = match[1];
             const setting = match[2];
