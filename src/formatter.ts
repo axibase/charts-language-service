@@ -349,14 +349,22 @@ export class Formatter {
     private indentLine(line: string = this.getCurrentLine()): void {
         if (MULTILINE_COMMENT_START_REGEX.test(line)) {
             const match = line.match(MULTILINE_COMMENT_START_REGEX);
-            console.log('start match:', match);
-            this.formattedText.push(this.currentIndent + line.trim());
+            const comment = match[1];
+            const setting = match[2];
+            this.formattedText.push(this.currentIndent + comment.trim());
+            if (setting) {
+                this.formattedText.push(this.currentIndent + setting.trim());
+            }
             this.increaseIndent();
         } else if (MULTILINE_COMMENT_END_REGEX.test(line)) {
             const match = line.match(MULTILINE_COMMENT_END_REGEX);
-            console.log('end match:', match);
+            const comment = match[2];
+            const setting = match[1];
+            if (setting) {
+                this.formattedText.push(this.currentIndent + setting.trim());
+            }
             this.decreaseIndent();
-            this.formattedText.push(this.currentIndent + line.trim());
+            this.formattedText.push(this.currentIndent + comment.trim());
         } else {
             this.formattedText.push(this.currentIndent + line.trim())
         }
