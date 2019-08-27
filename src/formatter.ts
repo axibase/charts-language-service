@@ -1,5 +1,5 @@
 import { FormattingOptions } from "vscode-languageserver-types";
-import { BLOCK_SCRIPT_END, BLOCK_SCRIPT_START, RELATIONS_REGEXP } from "./regExpressions";
+import { BLOCK_SCRIPT_END, BLOCK_SCRIPT_START, RELATIONS_REGEXP, MULTILINE_COMMENT_START_REGEX, MULTILINE_COMMENT_END_REGEX } from "./regExpressions";
 import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { TextRange } from "./textRange";
 import { isEmpty } from "./util";
@@ -26,6 +26,11 @@ interface LanguageConfiguration {
     languageId: string,
     endRegex: RegExp,
     getOptions(indent: string, tabSize: number): LanguageFormattingOptions
+}
+
+interface CommentBlock {
+    type: string;
+    range: Range;
 }
 
 /**
@@ -113,6 +118,8 @@ export class Formatter {
     private previousSection: Section = {};
     private currentSection: Section = {};
 
+    private currentCommentBlock: CommentBlock;
+
     public constructor(formattingOptions: FormattingOptions) {
         this.options = formattingOptions;
     }
@@ -124,6 +131,7 @@ export class Formatter {
     public format(text: string): string {
         this.lines = text.split("\n");
         for (let line = this.getLine(this.currentLine); line !== void 0; line = this.nextLine()) {
+            this.handleBlockComment(line);
             if (isEmpty(line)) {
                 if (this.insideSectionException()) {
                     Object.assign(this.currentSection, this.previousSection);
@@ -159,6 +167,19 @@ export class Formatter {
         this.handleEndLines();
 
         return this.formattedText.join("\n");
+    }
+
+    /**
+     * 
+     */
+    private handleBlockComment(line: string): void {
+        if (MULTILINE_COMMENT_START_REGEX.test(line)) {
+            this.increaseIndent();
+        }
+
+        if (MULTILINE_COMMENT_END_REGEX.test(line)) {
+            this.decreaseIndent();
+        }
     }
 
     /**
