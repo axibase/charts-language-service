@@ -135,7 +135,7 @@ export class Formatter {
                     this.decreaseIndent();
                 }
                 continue;
-            } else if (this.isCommentBlock(line)) {
+            } else if (this.isCommentBlock(line) || this.insideCommentBlock) {
                 this.handleCommentBlock(line);
                 continue;
             } else if (this.isSectionDeclaration(line)) {
@@ -380,6 +380,8 @@ export class Formatter {
             this.decreaseIndent();
             this.formattedText.push(this.currentIndent + comment.trim());
             this.insideCommentBlock = false;
+        } else {
+            this.indentLine(line);
         }
     }
 
