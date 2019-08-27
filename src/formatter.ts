@@ -126,11 +126,6 @@ export class Formatter {
     public format(text: string): string {
         this.lines = text.split("\n");
         for (let line = this.getLine(this.currentLine); line !== void 0; line = this.nextLine()) {
-            if (this.insideCommentBlock) {
-                this.handleCommentBlock(line);
-                this.indentLine(line);
-                continue;
-            }
             if (isEmpty(line)) {
                 if (this.insideSectionException()) {
                     Object.assign(this.currentSection, this.previousSection);
@@ -383,7 +378,7 @@ export class Formatter {
                 this.formattedText.push(this.currentIndent + setting.trim());
             }
             this.decreaseIndent();
-            // this.formattedText.push(this.currentIndent + comment.trim());
+            this.formattedText.push(this.currentIndent + comment.trim());
             this.insideCommentBlock = false;
         }
     }
