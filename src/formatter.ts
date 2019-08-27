@@ -127,6 +127,7 @@ export class Formatter {
         this.lines = text.split("\n");
         for (let line = this.getLine(this.currentLine); line !== void 0; line = this.nextLine()) {
             if (this.insideCommentBlock) {
+                this.handleCommentBlock(line);
                 this.indentLine(line);
                 continue;
             }
