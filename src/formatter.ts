@@ -113,6 +113,8 @@ export class Formatter {
     private previousSection: Section = {};
     private currentSection: Section = {};
 
+    private insideCommentBlock: boolean = false;
+
     public constructor(formattingOptions: FormattingOptions) {
         this.options = formattingOptions;
     }
@@ -124,6 +126,9 @@ export class Formatter {
     public format(text: string): string {
         this.lines = text.split("\n");
         for (let line = this.getLine(this.currentLine); line !== void 0; line = this.nextLine()) {
+            if (this.insideCommentBlock) {
+                continue;
+            }
             if (isEmpty(line)) {
                 if (this.insideSectionException()) {
                     Object.assign(this.currentSection, this.previousSection);
@@ -134,7 +139,7 @@ export class Formatter {
                 }
                 continue;
             } else if (this.isCommentBlock(line)) {
-                this.handleComment(line);
+                this.handleCommentBlock(line);
                 continue;
             } else if (this.isSectionDeclaration(line)) {
                 this.handleSectionDeclaration();
@@ -357,7 +362,7 @@ export class Formatter {
         return MULTILINE_COMMENT_REGEX.test(line) || MULTILINE_COMMENT_END_REGEX.test(line) || MULTILINE_COMMENT_START_REGEX.test(line);
     }
 
-    private handleComment(line: string):void {
+    private handleCommentBlock(line: string):void {
         if (MULTILINE_COMMENT_START_REGEX.test(line)) {
             const match = line.match(MULTILINE_COMMENT_START_REGEX);
             const comment = match[1];
@@ -367,6 +372,7 @@ export class Formatter {
             if (setting) {
                 this.formattedText.push(this.currentIndent + setting.trim());
             }
+            this.insideCommentBlock = true;
         } else if (MULTILINE_COMMENT_END_REGEX.test(line)) {
             const match = line.match(MULTILINE_COMMENT_END_REGEX);
             const comment = match[2];
@@ -376,6 +382,7 @@ export class Formatter {
             }
             this.decreaseIndent();
             this.formattedText.push(this.currentIndent + comment.trim());
+            this.insideCommentBlock = false;
         }
     }
 
