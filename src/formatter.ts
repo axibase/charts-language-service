@@ -352,10 +352,10 @@ export class Formatter {
             const comment = match[1];
             const setting = match[2];
             this.formattedText.push(this.currentIndent + comment.trim());
+            this.increaseIndent();
             if (setting) {
                 this.formattedText.push(this.currentIndent + setting.trim());
             }
-            this.increaseIndent();
         } else if (MULTILINE_COMMENT_END_REGEX.test(line)) {
             const match = line.match(MULTILINE_COMMENT_END_REGEX);
             const comment = match[2];
