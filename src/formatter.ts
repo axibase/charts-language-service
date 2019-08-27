@@ -361,6 +361,7 @@ export class Formatter {
 
     private handleCommentBlock(line: string):void {
         if (MULTILINE_COMMENT_REGEX.test(line)) {
+            console.log('inside one-line block comment')
             this.indentLine(line);
         } else if (MULTILINE_COMMENT_START_REGEX.test(line)) {
             const match = line.match(MULTILINE_COMMENT_START_REGEX);
