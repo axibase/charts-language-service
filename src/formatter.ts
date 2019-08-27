@@ -383,7 +383,7 @@ export class Formatter {
                 this.formattedText.push(this.currentIndent + setting.trim());
             }
             this.decreaseIndent();
-            this.formattedText.push(this.currentIndent + comment.trim());
+            // this.formattedText.push(this.currentIndent + comment.trim());
             this.insideCommentBlock = false;
         }
     }
