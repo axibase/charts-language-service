@@ -348,9 +348,13 @@ export class Formatter {
      */
     private indentLine(line: string = this.getCurrentLine()): void {
         if (MULTILINE_COMMENT_START_REGEX.test(line)) {
+            const match = MULTILINE_COMMENT_START_REGEX.exec(line);
+            console.log('start match:', match);
             this.formattedText.push(this.currentIndent + line.trim());
             this.increaseIndent();
         } else if (MULTILINE_COMMENT_END_REGEX.test(line)) {
+            const match = MULTILINE_COMMENT_END_REGEX.exec(line);
+            console.log('end match:', match);
             this.decreaseIndent();
             this.formattedText.push(this.currentIndent + line.trim());
         } else {
