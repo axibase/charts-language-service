@@ -359,7 +359,7 @@ export class Formatter {
     }
 
     /**
-     * Verify whether line is comment block or start/end of it
+     * Check whether line is comment block or start/end of it
      * @param line 
      */
     private isCommentBlock(line): boolean {
@@ -410,7 +410,7 @@ export class Formatter {
             const comment = match[2];
             const setting = match[1];
             /**
-             * Setting text after comment closing symbol is placed separately 
+             * Setting text before comment closing symbol is placed separately 
              */
             if (setting && !isEmpty(setting)) {
                 this.formattedText.push(this.currentIndent + setting.trim());
