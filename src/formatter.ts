@@ -129,8 +129,8 @@ export class Formatter {
     public format(text: string): string {
         this.lines = text.split("\n");
         for (let line = this.getLine(this.currentLine); line !== void 0; line = this.nextLine()) {
-            if (this.insideCommentBlock) {
-                this.handleCommentBlock(line);
+            if (this.insideCommentBlock && !isEmpty(line)) {
+                this.formattedText.push(line.trimRight())
                 continue;
             } else if (isEmpty(line)) {
                 if (this.insideSectionException()) {
@@ -427,22 +427,6 @@ export class Formatter {
              * We aren't in comment block anymore, formatting rules will apply
              */
             this.insideCommentBlock = false;
-        } else {
-            /**
-             * Format comment contents
-             */
-            const indent = /^\s*/.exec(line);
-            /**
-             * If line indent is equal to or greater than correct indent, add line without formatting
-             * Otherwise increase line indent
-             */
-            const maxIndent = (
-                indent[0] && indent[0].length > this.currentIndent.length
-            ) ? indent : this.currentIndent;
-
-            console.log(line, maxIndent.length);
-
-            this.formattedText.push(maxIndent + line.trim())
         }
     }
 
