@@ -385,8 +385,8 @@ export class Formatter {
         } else {
             const indent = /^\s*/.exec(line);
 
-            if (indent && indent[0].length >= this.currentIndent.length * 2) {
-                this.formattedText.push(this.currentIndent + this.currentIndent + line.trim())
+            if (indent && indent[0].length >= this.currentIndent.length) {
+                this.formattedText.push(this.currentIndent + line.trim())
             } else {
                 this.formattedText.push(this.currentIndent + line)
             }
