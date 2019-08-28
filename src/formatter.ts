@@ -428,7 +428,13 @@ export class Formatter {
             /**
              * Format comment contents
              */
-            this.formattedText.push(line.trimRight())
+            const indent = /^\s*/.exec(line);
+            console.log(line, indent, indent.length)
+            const maxIndent = (
+                indent[0] && indent[0].length > this.currentIndent.length
+            ) ? indent : this.currentIndent;
+
+            this.formattedText.push(maxIndent + line.trim())
         }
     }
 
