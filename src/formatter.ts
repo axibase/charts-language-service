@@ -433,11 +433,11 @@ export class Formatter {
              * If line indent is equal to or greater than correct indent, add line without formatting
              * Otherwise increase line indent
              */
-            if (indent && indent[0].length >= this.currentIndent.length) {
-                this.formattedText.push(line.trimRight())
-            } else {
-                this.formattedText.push(this.currentIndent + line.trim())
-            }
+            const maxIndent = (
+                indent[0] && indent[0].length > this.currentIndent.length
+            ) ? indent : this.currentIndent;
+
+            this.formattedText.push(maxIndent + line.trim())
         }
     }
 
