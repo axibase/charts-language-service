@@ -32,20 +32,13 @@ suite("[column] section tests", () => {
         assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
     });
 
-    test("Incorrect: duplicate 'columns' setting", () => {
+    test("Correct: duplicate 'columns' are allowed", () => {
         const config = baseConfig(`columns = a, b
         columns = c, d
         `);
         const validator = new Validator(config);
         const actual = validator.lineByLine();
-        const expected = [
-            createDiagnostic(
-                createRange(
-                    8, "columns".length, 7
-                ),
-                "columns is already defined"
-            )
-        ];
+        const expected = [];
         assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
     });
 });
