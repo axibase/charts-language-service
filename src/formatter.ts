@@ -129,8 +129,8 @@ export class Formatter {
     public format(text: string): string {
         this.lines = text.split("\n");
         for (let line = this.getLine(this.currentLine); line !== void 0; line = this.nextLine()) {
-            if (this.insideCommentBlock && !isEmpty(line)) {
-                this.formattedText.push(line.trimRight())
+            if (this.insideCommentBlock || this.isCommentBlock(line)) {
+                this.handleCommentBlock(line);
                 continue;
             } else if (isEmpty(line)) {
                 if (this.insideSectionException()) {
@@ -140,9 +140,6 @@ export class Formatter {
                     }
                     this.decreaseIndent();
                 }
-                continue;
-            } else if (this.isCommentBlock(line)) {
-                this.handleCommentBlock(line);
                 continue;
             } else if (this.isSectionDeclaration(line)) {
                 this.handleSectionDeclaration();
@@ -427,6 +424,11 @@ export class Formatter {
              * We aren't in comment block anymore, formatting rules will apply
              */
             this.insideCommentBlock = false;
+        } else {
+            /**
+             * Format comment contents
+             */
+            this.formattedText.push(line.trimRight())
         }
     }
 
