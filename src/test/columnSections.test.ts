@@ -41,4 +41,17 @@ suite("[column] section tests", () => {
         const expected = [];
         assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
     });
+
+    test("[column] is not interpreted as [tags]", () => {
+        const config = `[configuration]
+      [group]
+        [widget]
+          type = console
+          [column]
+            summary-text = row.date`;
+        const validator = new Validator(config);
+        const actual = validator.lineByLine();
+        const expected = [];
+        assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
+    });
 });
