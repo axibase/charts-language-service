@@ -437,6 +437,8 @@ export class Formatter {
                 indent[0] && indent[0].length > this.currentIndent.length
             ) ? indent : this.currentIndent;
 
+            console.log(line, maxIndent.length);
+
             this.formattedText.push(maxIndent + line.trim())
         }
     }
