@@ -141,11 +141,11 @@ export class Formatter {
             } else if (this.isSectionDeclaration(line)) {
                 this.handleSectionDeclaration();
                 continue;
-            } else if (this.isCodeBlock(line)) {
-                this.handleCodeBlock();
-                continue;
             } else if (this.isCommentBlock(line) || this.insideCommentBlock) {
                 this.handleCommentBlock(line);
+                continue;
+            } else if (this.isCodeBlock(line)) {
+                this.handleCodeBlock();
                 continue;
             }
 
