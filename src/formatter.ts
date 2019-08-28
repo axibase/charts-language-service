@@ -165,7 +165,7 @@ export class Formatter {
     }
 
     /**
-     * Handles end keyword of control construction endcsv|endsql|endlist|endvar, etc
+     * Handle indent when we meet end keyword of control construction
      * @param line 
      */
     private handleKeyWordEnd(line: string): void {
@@ -178,7 +178,7 @@ export class Formatter {
     }
 
     /**
-     * Handles end keyword of control construction csv|sql|list|var, etc
+     * Handle indent when we meet start keyword of control construction
      * @param line 
      */
     private handleKeyWordStart(line: string): void {
