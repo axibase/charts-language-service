@@ -361,31 +361,26 @@ export class Formatter {
 
     private handleCommentBlock(line: string):void {
         if (MULTILINE_COMMENT_REGEX.test(line)) {
-            console.log('inside one-line block comment')
             this.indentLine(line);
         } else if (MULTILINE_COMMENT_START_REGEX.test(line)) {
             const match = line.match(MULTILINE_COMMENT_START_REGEX);
             const comment = match[1];
             const setting = match[2];
-            this.increaseIndent();
-            console.log('inside multiline start', match)
             this.formattedText.push(this.currentIndent + comment.trim());
             this.increaseIndent();
-            if (setting) {
+            if (!isEmpty(setting)) {
                 this.formattedText.push(this.currentIndent + setting.trim());
             }
             this.insideCommentBlock = true;
         } else if (MULTILINE_COMMENT_END_REGEX.test(line)) {
             const match = line.match(MULTILINE_COMMENT_END_REGEX);
             const comment = match[2];
-            console.log('inside multiline end', match)
             const setting = match[1];
-            if (setting.trim()) {
+            if (!isEmpty(setting)) {
                 this.formattedText.push(this.currentIndent + setting.trim());
             }
             this.decreaseIndent();
             this.formattedText.push(this.currentIndent + comment.trim());
-            this.decreaseIndent();
             this.insideCommentBlock = false;
         } else {
             this.indentLine(line);
