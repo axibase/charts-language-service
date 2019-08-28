@@ -385,11 +385,10 @@ export class Formatter {
         } else {
             const indent = /^\s*/.exec(line);
 
-            if (indent && indent[0] < this.currentIndent) {
-                this.formattedText.push(this.currentIndent + line.trim())
+            if (indent && indent[0].length >= this.currentIndent.length * 2) {
+                this.formattedText.push(this.currentIndent + this.currentIndent + line.trim())
             } else {
-                console.log('pushing original indent')
-                this.formattedText.push(line)
+                this.formattedText.push(this.currentIndent + line)
             }
         }
     }
