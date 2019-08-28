@@ -424,6 +424,7 @@ export class Formatter {
              * We aren't in comment block anymore, formatting rules will apply
              */
             this.insideCommentBlock = false;
+            this.increaseIndent();
         } else {
             /**
              * Format comment contents
