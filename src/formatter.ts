@@ -395,7 +395,7 @@ export class Formatter {
              * If text is present after open comment symbol, indent it and append next line
              */
             if (setting && !isEmpty(setting)) {
-                this.formattedText.push(this.currentIndent + this.currentIndent + setting.trim());
+                this.formattedText.push(this.currentIndent + setting.trim());
             }
             /**
              * We are inside comment block, formatting rules won't be applied
@@ -412,7 +412,7 @@ export class Formatter {
              * Setting text before comment closing symbol is placed separately 
              */
             if (setting && !isEmpty(setting)) {
-                this.formattedText.push(this.currentIndent + this.currentIndent + setting.trim());
+                this.formattedText.push(this.currentIndent + setting.trim());
             }
             /**
              * Then place closing comment symbol
