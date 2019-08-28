@@ -154,24 +154,40 @@ export class Formatter {
                 continue;
             }
 
-            if (TextRange.isClosing(line)) {
-                const stackHead: number | undefined = this.keywordsLevels.pop();
-                this.setIndent(stackHead);
-                this.insideKeyword = false;
-                this.lastKeywordIndent = "";
-            }
+            this.handleKeyWordEnd(line);
             this.indentLine(this.checkSign(line));
-            if (TextRange.isCloseAble(line) && this.shouldBeClosed()) {
-                this.keywordsLevels.push(this.currentIndent.length / Formatter.BASE_INDENT_SIZE);
-                this.lastKeywordIndent = this.currentIndent;
-                this.increaseIndent();
-                this.insideKeyword = true;
-            }
+            this.handleKeyWordStart(line);
         }
 
         this.handleEndLines();
 
         return this.formattedText.join("\n");
+    }
+
+    /**
+     * Handles end keyword of control construction endcsv|endsql|endlist|endvar, etc
+     * @param line 
+     */
+    private handleKeyWordEnd(line: string): void {
+        if (TextRange.isClosing(line)) {
+            const stackHead: number | undefined = this.keywordsLevels.pop();
+            this.setIndent(stackHead);
+            this.insideKeyword = false;
+            this.lastKeywordIndent = "";
+        }
+    }
+
+    /**
+     * Handles end keyword of control construction csv|sql|list|var, etc
+     * @param line 
+     */
+    private handleKeyWordStart(line: string): void {
+        if (TextRange.isCloseAble(line) && this.shouldBeClosed()) {
+            this.keywordsLevels.push(this.currentIndent.length / Formatter.BASE_INDENT_SIZE);
+            this.lastKeywordIndent = this.currentIndent;
+            this.increaseIndent();
+            this.insideKeyword = true;
+        }
     }
 
     /**
@@ -403,9 +419,7 @@ export class Formatter {
             if (setting && !isEmpty(setting)) {
                 this.indentLine(setting);
 
-                if (TextRange.isCloseAble(setting)) {
-                    this.increaseIndent();
-                }
+                this.handleKeyWordStart(setting);
             }
             /**
              * We are inside comment block, formatting rules won't be applied
@@ -422,9 +436,7 @@ export class Formatter {
              * Setting text before comment closing symbol is placed separately 
              */
             if (setting && !isEmpty(setting)) {
-                if (TextRange.isClosing(setting)) {
-                    this.decreaseIndent();
-                }
+                this.handleKeyWordEnd(setting);
                 this.indentLine(setting);
             }
             this.decreaseIndent();
