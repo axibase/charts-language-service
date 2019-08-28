@@ -430,6 +430,21 @@ export class Formatter {
              */
             this.insideCommentBlock = false;
         } else {
+
+            if (TextRange.isClosing(line)) {
+                const stackHead: number | undefined = this.keywordsLevels.pop();
+                this.setIndent(stackHead);
+                this.insideKeyword = false;
+                this.lastKeywordIndent = "";
+            }
+            
+            if (TextRange.isCloseAble(line) && this.shouldBeClosed()) {
+                this.keywordsLevels.push(this.currentIndent.length / Formatter.BASE_INDENT_SIZE);
+                this.lastKeywordIndent = this.currentIndent;
+                this.increaseIndent();
+                this.insideKeyword = true;
+            }
+
             /**
              * Format comment contents
              */
