@@ -367,7 +367,7 @@ export class Formatter {
             const match = line.match(MULTILINE_COMMENT_START_REGEX);
             const comment = match[1];
             const setting = match[2];
-            console.log('inside multiline start')
+            console.log('inside multiline start', match)
             this.formattedText.push(this.currentIndent + comment.trim());
             this.increaseIndent();
             if (setting) {
@@ -377,7 +377,7 @@ export class Formatter {
         } else if (MULTILINE_COMMENT_END_REGEX.test(line)) {
             const match = line.match(MULTILINE_COMMENT_END_REGEX);
             const comment = match[2];
-            console.log('inside multiline end')
+            console.log('inside multiline end', match)
             const setting = match[1];
             if (setting) {
                 this.formattedText.push(this.currentIndent + setting.trim());
