@@ -913,6 +913,7 @@ export class Validator {
     private isAllowedWidget(setting: Setting): boolean {
         return setting !== undefined
             && this.currentSection.text !== "tag"
+            && this.currentSection.text !== "column"
             && (setting.widget == null
                 || this.currentWidget === undefined
                 || setting.widget === this.currentWidget);
