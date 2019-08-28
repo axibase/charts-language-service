@@ -113,6 +113,9 @@ export class Formatter {
     private previousSection: Section = {};
     private currentSection: Section = {};
 
+    /**
+     * If we are inside comment block, formatting rules won't be applied
+     */
     private insideCommentBlock: boolean = false;
 
     public constructor(formattingOptions: FormattingOptions) {
@@ -172,7 +175,7 @@ export class Formatter {
      */
     private insideSectionException(): boolean {
         return (this.currentSection.name === "tags" && this.previousSection.name !== "widget")
-        || this.currentSection.name === "column";
+            || this.currentSection.name === "column";
     }
 
     /**
@@ -355,40 +358,85 @@ export class Formatter {
         this.formattedText.push(this.currentIndent + line.trim())
     }
 
+    /**
+     * Verify whether line is comment block or start/end of it
+     * @param line 
+     */
     private isCommentBlock(line): boolean {
-        return MULTILINE_COMMENT_REGEX.test(line) || MULTILINE_COMMENT_END_REGEX.test(line) || MULTILINE_COMMENT_START_REGEX.test(line);
+        return [
+            MULTILINE_COMMENT_REGEX,
+            MULTILINE_COMMENT_END_REGEX,
+            MULTILINE_COMMENT_START_REGEX
+        ].some(regex => regex.test(line));
     }
 
-    private handleCommentBlock(line: string):void {
+    /**
+     * Handle block comment
+     * @param line 
+     */
+    private handleCommentBlock(line: string): void {
+        /**
+         * In case of single-line block comment just indent
+         */
         if (MULTILINE_COMMENT_REGEX.test(line)) {
             this.indentLine(line);
         } else if (MULTILINE_COMMENT_START_REGEX.test(line)) {
+            /**
+             * Multiline block comment started
+             */
             const match = line.match(MULTILINE_COMMENT_START_REGEX);
             const comment = match[1];
             const setting = match[2];
-            this.formattedText.push(this.currentIndent + comment.trim());
+            /**
+             * Symbol '/*' is placed separately, text will go next line
+             */
+            this.formattedText.push(this.currentIndent + comment);
             this.increaseIndent();
+            /**
+             * If text is present after open comment symbol, indent it and append next line
+             */
             if (setting && !isEmpty(setting)) {
                 this.formattedText.push(this.currentIndent + setting.trim());
             }
+            /**
+             * We are inside comment block, formatting rules won't be applied
+             */
             this.insideCommentBlock = true;
         } else if (MULTILINE_COMMENT_END_REGEX.test(line)) {
+            /**
+             * Multiline block comment finished
+             */
             const match = line.match(MULTILINE_COMMENT_END_REGEX);
             const comment = match[2];
             const setting = match[1];
+            /**
+             * Setting text after comment closing symbol is placed separately 
+             */
             if (setting && !isEmpty(setting)) {
                 this.formattedText.push(this.currentIndent + setting.trim());
             }
             this.decreaseIndent();
-            this.formattedText.push(this.currentIndent + comment.trim());
+            /**
+             * Then place closing comment symbol
+             */
+            this.formattedText.push(this.currentIndent + comment);
+            /**
+             * We aren't in comment block anymore, formatting rules will apply
+             */
             this.insideCommentBlock = false;
         } else {
+            /**
+             * Format comment contents
+             */
             const indent = /^\s*/.exec(line);
-
+            /**
+             * If line indent is equal to or greater than correct indent, add line without formatting
+             * Otherwise increase line indent
+             */
             if (indent && indent[0].length >= this.currentIndent.length) {
                 this.formattedText.push(line)
             } else {
-                this.formattedText.push(this.currentIndent + line)
+                this.formattedText.push(this.currentIndent + line.trim())
             }
         }
     }
