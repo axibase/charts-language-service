@@ -368,7 +368,7 @@ export class Formatter {
             const setting = match[2];
             this.formattedText.push(this.currentIndent + comment.trim());
             this.increaseIndent();
-            if (!isEmpty(setting)) {
+            if (setting && !isEmpty(setting)) {
                 this.formattedText.push(this.currentIndent + setting.trim());
             }
             this.insideCommentBlock = true;
@@ -376,7 +376,7 @@ export class Formatter {
             const match = line.match(MULTILINE_COMMENT_END_REGEX);
             const comment = match[2];
             const setting = match[1];
-            if (!isEmpty(setting)) {
+            if (setting && !isEmpty(setting)) {
                 this.formattedText.push(this.currentIndent + setting.trim());
             }
             this.decreaseIndent();
