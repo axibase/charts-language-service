@@ -383,7 +383,13 @@ export class Formatter {
             this.formattedText.push(this.currentIndent + comment.trim());
             this.insideCommentBlock = false;
         } else {
-            this.indentLine(line);
+            const indent = /^\s*/.exec(line);
+
+            if (indent && indent[0] < this.currentIndent) {
+                this.formattedText.push(this.currentIndent + line.trim())
+            } else {
+                this.formattedText.push(line)
+            }
         }
     }
 
