@@ -1,5 +1,9 @@
 import { FormattingOptions } from "vscode-languageserver-types";
-import { BLOCK_SCRIPT_END, BLOCK_SCRIPT_START, RELATIONS_REGEXP, MULTILINE_COMMENT_START_REGEX, MULTILINE_COMMENT_END_REGEX, MULTILINE_COMMENT_REGEX } from "./regExpressions";
+import {
+    BLOCK_SCRIPT_END, BLOCK_SCRIPT_START,
+    RELATIONS_REGEXP, MULTILINE_COMMENT_START_REGEX,
+    MULTILINE_COMMENT_END_REGEX, MULTILINE_COMMENT_REGEX
+} from "./regExpressions";
 import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { TextRange } from "./textRange";
 import { isEmpty } from "./util";
@@ -390,13 +394,13 @@ export class Formatter {
             /**
              * Symbol '/*' is placed separately, text will go next line
              */
-            this.formattedText.push(this.currentIndent + comment);
+            this.indentLine(comment);
             this.increaseIndent();
             /**
              * If text is present after open comment symbol, indent it and append next line
              */
             if (setting && !isEmpty(setting)) {
-                this.formattedText.push(this.currentIndent + setting.trim());
+                this.indentLine(setting);
             }
             /**
              * We are inside comment block, formatting rules won't be applied
@@ -413,13 +417,13 @@ export class Formatter {
              * Setting text before comment closing symbol is placed separately 
              */
             if (setting && !isEmpty(setting)) {
-                this.formattedText.push(this.currentIndent + setting.trim());
+                this.indentLine(setting);
             }
             this.decreaseIndent();
             /**
              * Then place closing comment symbol
              */
-            this.formattedText.push(this.currentIndent + comment);
+            this.indentLine(comment);
             /**
              * We aren't in comment block anymore, formatting rules will apply
              */
