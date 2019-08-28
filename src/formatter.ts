@@ -391,6 +391,7 @@ export class Formatter {
              * Symbol '/*' is placed separately, text will go next line
              */
             this.formattedText.push(this.currentIndent + comment);
+            this.increaseIndent();
             /**
              * If text is present after open comment symbol, indent it and append next line
              */
@@ -414,6 +415,7 @@ export class Formatter {
             if (setting && !isEmpty(setting)) {
                 this.formattedText.push(this.currentIndent + setting.trim());
             }
+            this.decreaseIndent();
             /**
              * Then place closing comment symbol
              */
@@ -432,7 +434,7 @@ export class Formatter {
              * Otherwise increase line indent
              */
             if (indent && indent[0].length >= this.currentIndent.length) {
-                this.formattedText.push(this.currentIndent + line)
+                this.formattedText.push(line)
             } else {
                 this.formattedText.push(this.currentIndent + line.trim())
             }
