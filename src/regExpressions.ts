@@ -95,4 +95,4 @@ export const MULTILINE_COMMENT_START_REGEX: RegExp = /(\/\*)(?:\s*)([^*/]*)?/;
 export const MULTILINE_COMMENT_END_REGEX: RegExp = /(.*)(\*\/)/;
 
 // block comment - /* some-text */
-export const MULTILINE_COMMENT_REGEX: RegExp = /\/\*([\s\S]*?)(?=\*\/)/;
+export const BLOCK_COMMENT_REGEX: RegExp = /\/\*([\s\S]*?)(?=\*\/)/;

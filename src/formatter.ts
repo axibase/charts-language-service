@@ -1,8 +1,9 @@
 import { FormattingOptions } from "vscode-languageserver-types";
 import {
-    BLOCK_SCRIPT_END, BLOCK_SCRIPT_START,
-    RELATIONS_REGEXP, MULTILINE_COMMENT_START_REGEX,
-    MULTILINE_COMMENT_END_REGEX, MULTILINE_COMMENT_REGEX
+    BLOCK_COMMENT_REGEX, BLOCK_SCRIPT_END,
+    BLOCK_SCRIPT_START, RELATIONS_REGEXP,
+    MULTILINE_COMMENT_START_REGEX,
+    MULTILINE_COMMENT_END_REGEX
 } from "./regExpressions";
 import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { TextRange } from "./textRange";
@@ -368,7 +369,7 @@ export class Formatter {
      */
     private isCommentBlock(line: string): boolean {
         return [
-            MULTILINE_COMMENT_REGEX,
+            BLOCK_COMMENT_REGEX,
             MULTILINE_COMMENT_END_REGEX,
             MULTILINE_COMMENT_START_REGEX
         ].some(regex => regex.test(line));
@@ -382,7 +383,7 @@ export class Formatter {
         /**
          * In case of single-line block comment just indent
          */
-        if (MULTILINE_COMMENT_REGEX.test(line)) {
+        if (BLOCK_COMMENT_REGEX.test(line)) {
             this.indentLine(line);
         } else if (MULTILINE_COMMENT_START_REGEX.test(line)) {
             /**
