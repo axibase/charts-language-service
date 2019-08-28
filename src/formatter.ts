@@ -129,7 +129,10 @@ export class Formatter {
     public format(text: string): string {
         this.lines = text.split("\n");
         for (let line = this.getLine(this.currentLine); line !== void 0; line = this.nextLine()) {
-            if (isEmpty(line)) {
+            if (this.insideCommentBlock) {
+                this.handleCommentBlock(line);
+                continue;
+            } else if (isEmpty(line)) {
                 if (this.insideSectionException()) {
                     Object.assign(this.currentSection, this.previousSection);
                     if (this.shouldInsertBlankLineInsideSection()) {
@@ -138,7 +141,7 @@ export class Formatter {
                     this.decreaseIndent();
                 }
                 continue;
-            } else if (this.isCommentBlock(line) || this.insideCommentBlock) {
+            } else if (this.isCommentBlock(line)) {
                 this.handleCommentBlock(line);
                 continue;
             } else if (this.isSectionDeclaration(line)) {
