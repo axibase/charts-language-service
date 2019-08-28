@@ -138,11 +138,11 @@ export class Formatter {
                     this.decreaseIndent();
                 }
                 continue;
-            } else if (this.isSectionDeclaration(line)) {
-                this.handleSectionDeclaration();
-                continue;
             } else if (this.isCommentBlock(line) || this.insideCommentBlock) {
                 this.handleCommentBlock(line);
+                continue;
+            } else if (this.isSectionDeclaration(line)) {
+                this.handleSectionDeclaration();
                 continue;
             } else if (this.isCodeBlock(line)) {
                 this.handleCodeBlock();
@@ -434,7 +434,7 @@ export class Formatter {
              * Otherwise increase line indent
              */
             if (indent && indent[0].length >= this.currentIndent.length) {
-                this.formattedText.push(line)
+                this.formattedText.push(line.trimRight())
             } else {
                 this.formattedText.push(this.currentIndent + line.trim())
             }
