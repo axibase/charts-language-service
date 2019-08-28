@@ -388,6 +388,7 @@ export class Formatter {
             if (indent && indent[0] < this.currentIndent) {
                 this.formattedText.push(this.currentIndent + line.trim())
             } else {
+                console.log('pushing original indent')
                 this.formattedText.push(line)
             }
         }
