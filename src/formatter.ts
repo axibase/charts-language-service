@@ -380,7 +380,7 @@ export class Formatter {
             const comment = match[2];
             console.log('inside multiline end', match)
             const setting = match[1];
-            if (setting) {
+            if (setting.trim()) {
                 this.formattedText.push(this.currentIndent + setting.trim());
             }
             this.decreaseIndent();
