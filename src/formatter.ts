@@ -429,7 +429,7 @@ export class Formatter {
              * Format comment contents
              */
             const indent = /^\s*/.exec(line);
-            console.log(line, indent, indent.length)
+            console.log(line, indent[0], indent[0].length)
             const maxIndent = (
                 indent[0] && indent[0].length > this.currentIndent.length
             ) ? indent : this.currentIndent;
