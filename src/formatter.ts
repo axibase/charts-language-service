@@ -402,6 +402,10 @@ export class Formatter {
              */
             if (setting && !isEmpty(setting)) {
                 this.indentLine(setting);
+
+                if (TextRange.isCloseAble(setting)) {
+                    this.increaseIndent();
+                }
             }
             /**
              * We are inside comment block, formatting rules won't be applied
@@ -418,6 +422,9 @@ export class Formatter {
              * Setting text before comment closing symbol is placed separately 
              */
             if (setting && !isEmpty(setting)) {
+                if (TextRange.isClosing(setting)) {
+                    this.decreaseIndent();
+                }
                 this.indentLine(setting);
             }
             this.decreaseIndent();

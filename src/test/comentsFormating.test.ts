@@ -57,4 +57,26 @@ suite("Сomments formatting tests", () => {
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
+
+  test("Commented script", () => {
+    const text = `/*   script
+    window.userFunction = function () {
+      hello();
+    };
+  endscript */
+
+`;
+const expected = `/*
+  script
+    window.userFunction = function () {
+      hello();
+    };
+  endscript
+*/
+
+`;
+    const formatter = new Formatter(FORMATTING_OPTIONS);
+    const actual = formatter.format(text);
+    deepStrictEqual(actual, expected);
+  });
 });
