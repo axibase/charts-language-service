@@ -410,7 +410,7 @@ export class Validator {
                 this.createRange(this.match.index, this.match[0].length),
                 `Freemarker expressions are deprecated.\nUse a native collection: list, csv table, var object.` +
                 `\nMigration examples are available at ` +
-                `https://github.com/axibase/charts/blob/master/syntax/freemarker.md`,
+                `https://axibase.com/docs/charts/syntax/freemarker.html`,
                 DiagnosticSeverity.Information,
             ));
             this.match = /(as\s*(\S+)>)/.exec(line);

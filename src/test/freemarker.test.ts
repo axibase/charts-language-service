@@ -4,7 +4,7 @@ import { Test } from "./test";
 
 const deprecationMessage: string = `Freemarker expressions are deprecated.
 Use a native collection: list, csv table, var object.` +
-    `\nMigration examples are available at https://github.com/axibase/charts/blob/master/syntax/freemarker.md`;
+    `\nMigration examples are available at https://axibase.com/docs/charts/syntax/freemarker.html`;
 
 suite("Freemarker templates", () => {
     new Test("Freemarker assign rises warning on open and close tags",
