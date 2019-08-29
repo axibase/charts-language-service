@@ -1,9 +1,7 @@
 import { FormattingOptions } from "vscode-languageserver-types";
 import {
-    BLOCK_COMMENT_REGEX, BLOCK_SCRIPT_END,
-    BLOCK_SCRIPT_START, RELATIONS_REGEXP,
-    MULTILINE_COMMENT_START_REGEX,
-    MULTILINE_COMMENT_END_REGEX
+    BLOCK_SCRIPT_END,
+    BLOCK_SCRIPT_START, RELATIONS_REGEXP, ONE_LINE_COMMENT_REGEX
 } from "./regExpressions";
 import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { TextRange } from "./textRange";
@@ -118,10 +116,8 @@ export class Formatter {
     private previousSection: Section = {};
     private currentSection: Section = {};
 
-    /**
-     * If we are inside comment block, formatting rules won't be applied
-     */
-    private insideCommentBlock: boolean = false;
+    private minIndent: number = Infinity;
+    private commentsBuffer: string[] = [];
 
     public constructor(formattingOptions: FormattingOptions) {
         this.options = formattingOptions;
@@ -134,7 +130,7 @@ export class Formatter {
     public format(text: string): string {
         this.lines = text.split("\n");
         for (let line = this.getLine(this.currentLine); line !== void 0; line = this.nextLine()) {
-            if (this.insideCommentBlock || this.isCommentBlock(line)) {
+            if (this.isCommentBlockStart(line)) {
                 this.handleCommentBlock(line);
                 continue;
             } else if (isEmpty(line)) {
@@ -172,6 +168,10 @@ export class Formatter {
         this.handleEndLines();
 
         return this.formattedText.join("\n");
+    }
+
+    private isCommentBlockStart(line: string): boolean {
+        return line.indexOf("/*") > -1 && !ONE_LINE_COMMENT_REGEX.test(line);
     }
 
     /**
@@ -364,82 +364,55 @@ export class Formatter {
     }
 
     /**
-     * Check whether line is comment block or start/end of it
-     * @param line 
-     */
-    private isCommentBlock(line: string): boolean {
-        return [
-            BLOCK_COMMENT_REGEX,
-            MULTILINE_COMMENT_END_REGEX,
-            MULTILINE_COMMENT_START_REGEX
-        ].some(regex => regex.test(line));
-    }
-
-    /**
      * Handle block comment
      * @param line 
      */
     private handleCommentBlock(line: string): void {
-        /**
-         * In case of single-line block comment just indent
-         */
-        if (BLOCK_COMMENT_REGEX.test(line)) {
-            this.indentLine(line);
-        } else if (MULTILINE_COMMENT_START_REGEX.test(line)) {
-            /**
-             * Multiline block comment started
-             */
-            const match = line.match(MULTILINE_COMMENT_START_REGEX);
-            const comment = match[1];
-            const setting = match[2];
-            /**
-             * Symbol '/*' is placed separately, text will go next line
-             */
-            this.indentLine(comment);
-            this.increaseIndent();
-            /**
-             * If text is present after open comment symbol, indent it and append next line
-             */
-            if (setting && !isEmpty(setting)) {
-                this.indentLine(setting);
-            }
-            /**
-             * We are inside comment block, formatting rules won't be applied
-             */
-            this.insideCommentBlock = true;
-        } else if (MULTILINE_COMMENT_END_REGEX.test(line)) {
-            /**
-             * Multiline block comment finished
-             */
-            const match = line.match(MULTILINE_COMMENT_END_REGEX);
-            const comment = match[2];
-            const setting = match[1];
-            /**
-             * Setting text before comment closing symbol is placed separately 
-             */
-            if (setting && !isEmpty(setting)) {
-                this.indentLine(setting);
-            }
-            this.decreaseIndent();
-            /**
-             * Then place closing comment symbol
-             */
-            this.indentLine(comment);
-            /**
-             * We aren't in comment block anymore, formatting rules will apply
-             */
-            this.insideCommentBlock = false;
-        } else {
-            /**
-             * Format comment contents
-             */
-            const indent = /^\s*/.exec(line);
-            const maxIndent = (
-                indent[0] && indent[0].length > this.currentIndent.length
-            ) ? indent : this.currentIndent;
+        const [, before, after] = line.match(/(\/\*+)(.*)/);
 
-            this.formattedText.push(maxIndent + line.trim())
+        /** Write comment start symbol */
+        this.indentLine(before);
+        /** Push setting after comment start to line stream */
+        if (!isEmpty(after)) {
+            this.lineStreamPush(after);
         }
+
+        line = this.nextLine();
+        while (line != undefined) {
+            if (/(.*)(\*\/)/.test(line)) {
+                // Assuming in is not inline block comment
+                let [, before, after] = line.match(/(.*)(\*\/)/);
+                if (!isEmpty(before)) {
+                    this.pushBuffer(before)
+                }
+                this.dumpBuffer();
+                this.lineStreamPush(after)
+                return;
+            } else {
+                this.pushBuffer(line)
+            }
+            line = this.nextLine();
+        }
+    }
+
+    private pushBuffer(line: string): void {
+        let indent = line.search(/[^ ]/);
+        if (indent >= 0 && this.minIndent > indent) {
+            this.minIndent = indent;
+        }
+        this.commentsBuffer.push(line);
+    }
+
+    private dumpBuffer() {
+        this.increaseIndent();
+
+        for (let line of this.commentsBuffer) {
+            this.formattedText.push(this.currentIndent + line.substring(this.minIndent).trimRight())
+        }
+
+        this.decreaseIndent();
+
+        this.commentsBuffer.length = 0;
     }
 
     /**
@@ -494,6 +467,14 @@ export class Formatter {
      */
     private nextLine(): string | undefined {
         return this.getLine(++this.currentLine);
+    }
+
+    /**
+     * Insert line to the config
+     * @param line 
+     */
+    private lineStreamPush(line: string): void {
+        this.lines.splice(this.currentLine + 1, 0, line);
     }
 
     /**
