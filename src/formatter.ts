@@ -154,40 +154,24 @@ export class Formatter {
                 continue;
             }
 
-            this.handleKeyWordEnd(line);
+            if (TextRange.isClosing(line)) {
+                const stackHead: number | undefined = this.keywordsLevels.pop();
+                this.setIndent(stackHead);
+                this.insideKeyword = false;
+                this.lastKeywordIndent = "";
+            }
             this.indentLine(this.checkSign(line));
-            this.handleKeyWordStart(line);
+            if (TextRange.isCloseAble(line) && this.shouldBeClosed()) {
+                this.keywordsLevels.push(this.currentIndent.length / Formatter.BASE_INDENT_SIZE);
+                this.lastKeywordIndent = this.currentIndent;
+                this.increaseIndent();
+                this.insideKeyword = true;
+            }
         }
 
         this.handleEndLines();
 
         return this.formattedText.join("\n");
-    }
-
-    /**
-     * Handle indent when we meet end keyword of control construction
-     * @param line 
-     */
-    private handleKeyWordEnd(line: string): void {
-        if (TextRange.isClosing(line)) {
-            const stackHead: number | undefined = this.keywordsLevels.pop();
-            this.setIndent(stackHead);
-            this.insideKeyword = false;
-            this.lastKeywordIndent = "";
-        }
-    }
-
-    /**
-     * Handle indent when we meet start keyword of control construction
-     * @param line 
-     */
-    private handleKeyWordStart(line: string): void {
-        if (TextRange.isCloseAble(line) && this.shouldBeClosed()) {
-            this.keywordsLevels.push(this.currentIndent.length / Formatter.BASE_INDENT_SIZE);
-            this.lastKeywordIndent = this.currentIndent;
-            this.increaseIndent();
-            this.insideKeyword = true;
-        }
     }
 
     /**
@@ -418,8 +402,6 @@ export class Formatter {
              */
             if (setting && !isEmpty(setting)) {
                 this.indentLine(setting);
-
-                this.handleKeyWordStart(setting);
             }
             /**
              * We are inside comment block, formatting rules won't be applied
@@ -436,7 +418,6 @@ export class Formatter {
              * Setting text before comment closing symbol is placed separately 
              */
             if (setting && !isEmpty(setting)) {
-                this.handleKeyWordEnd(setting);
                 this.indentLine(setting);
             }
             this.decreaseIndent();
