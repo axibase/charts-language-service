@@ -116,7 +116,8 @@ export class Formatter {
     private previousSection: Section = {};
     private currentSection: Section = {};
 
-    private minIndent: number = Infinity;
+    /** Store comment block lines indents */
+    private commentBlockIndents: number[] = [];
     private commentsBuffer: string[] = [];
 
     public constructor(formattingOptions: FormattingOptions) {
@@ -376,17 +377,17 @@ export class Formatter {
         if (!isEmpty(after)) {
             this.lineStreamPush(after);
         }
-
         line = this.nextLine();
         while (line != undefined) {
             if (/(.*)(\*\/)/.test(line)) {
                 // Assuming in is not inline block comment
-                let [, before, after] = line.match(/(.*)(\*\/)/);
+                let [, before, after] = line.match(/(.*?)(\*+\/)/);
                 if (!isEmpty(before)) {
                     this.pushBuffer(before)
                 }
                 this.dumpBuffer();
                 this.lineStreamPush(after)
+                this.commentBlockIndents.length = 0;
                 return;
             } else {
                 this.pushBuffer(line)
@@ -397,8 +398,8 @@ export class Formatter {
 
     private pushBuffer(line: string): void {
         let indent = line.search(/[^ ]/);
-        if (indent >= 0 && this.minIndent > indent) {
-            this.minIndent = indent;
+        if (indent >= 0) {
+            this.commentBlockIndents.push(indent);
         }
         this.commentsBuffer.push(line);
     }
@@ -407,7 +408,11 @@ export class Formatter {
         this.increaseIndent();
 
         for (let line of this.commentsBuffer) {
-            this.formattedText.push(this.currentIndent + line.substring(this.minIndent).trimRight())
+            this.formattedText.push(
+                this.currentIndent + line.substring(
+                    Math.min(...this.commentBlockIndents)
+                ).trimRight()
+            )
         }
 
         this.decreaseIndent();
