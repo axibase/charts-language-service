@@ -96,3 +96,6 @@ export const BLOCK_COMMENT_END: RegExp = /(.*)(\*\/)/;
 
 // block comment - /* some-text */
 export const ONE_LINE_COMMENT: RegExp = /\/\*([\s\S]*?)(?=\*\/)/;
+
+// number of spaces until first non-space character -  "   hello" // 3
+export const SPACES_AT_START: RegExp = /[^ ]/;

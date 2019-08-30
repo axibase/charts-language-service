@@ -2,7 +2,8 @@ import { FormattingOptions } from "vscode-languageserver-types";
 import {
     BLOCK_SCRIPT_END, BLOCK_SCRIPT_START,
     RELATIONS_REGEXP, BLOCK_COMMENT_START,
-    BLOCK_COMMENT_END, ONE_LINE_COMMENT
+    BLOCK_COMMENT_END, ONE_LINE_COMMENT, 
+    SPACES_AT_START
 } from "./regExpressions";
 import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { TextRange } from "./textRange";
@@ -411,7 +412,7 @@ export class Formatter {
 
     /** Push line of comment block to buffer and calculate indent */
     private pushCommentBuffer(line: string): void {
-        const indent = line.search(/[^ ]/);
+        const indent = line.search(SPACES_AT_START);
         if (indent >= 0 && indent < this.commentsBuffer.minIndent) {
             this.commentsBuffer.minIndent = indent;
         }
