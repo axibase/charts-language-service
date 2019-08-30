@@ -18,10 +18,8 @@ suite("Сomments formatting tests", () => {
 
   test("Two commented settings in [configuration]", () => {
     const text = `[configuration]
-    /* 
-    height-units = 4
-    width-units = 1
-    */`;
+  /*  height-units = 4
+  width-units = 1 */`;
     const expected = `[configuration]
   /*
     height-units = 4
@@ -46,14 +44,12 @@ suite("Сomments formatting tests", () => {
 
   test("Two commented sections", () => {
     const text = `[configuration]
-    /* 
-    [group]
-    [widget]
-    */`;
+    /* [group]
+    [widget] */`;
     const expected = `[configuration]
   /*
     [group]
-    [widget]
+       [widget]
   */
 
 `;

@@ -1,7 +1,8 @@
 import { FormattingOptions } from "vscode-languageserver-types";
 import {
-    BLOCK_SCRIPT_END,
-    BLOCK_SCRIPT_START, RELATIONS_REGEXP, ONE_LINE_COMMENT_REGEX
+    BLOCK_SCRIPT_END, BLOCK_SCRIPT_START,
+    RELATIONS_REGEXP, BLOCK_COMMENT_START,
+    BLOCK_COMMENT_END, ONE_LINE_COMMENT
 } from "./regExpressions";
 import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { TextRange } from "./textRange";
@@ -18,6 +19,11 @@ export const FORMATTING_OPTIONS: FormattingOptions = {
     insertSpaces: true,
     tabSize: 2
 };
+
+type CommentData = {
+    lines: string[];
+    minIndent: number;
+}
 
 /**
  * Language formatting configuration
@@ -116,9 +122,13 @@ export class Formatter {
     private previousSection: Section = {};
     private currentSection: Section = {};
 
-    /** Store comment block lines indents */
-    private commentBlockIndents: number[] = [];
-    private commentsBuffer: string[] = [];
+    /** 
+     * Comment block lines and their minimal commmon indent 
+     */
+    private commentsBuffer: CommentData = {
+        lines: [],
+        minIndent: Infinity
+    };
 
     public constructor(formattingOptions: FormattingOptions) {
         this.options = formattingOptions;
@@ -171,8 +181,12 @@ export class Formatter {
         return this.formattedText.join("\n");
     }
 
+    /** 
+     * We met a multiline block comment.
+     * Single-line comments are formatted as regular settings 
+     */
     private isCommentBlockStart(line: string): boolean {
-        return line.indexOf("/*") > -1 && !ONE_LINE_COMMENT_REGEX.test(line);
+        return line.indexOf("/*") > -1 && !ONE_LINE_COMMENT.test(line);
     }
 
     /**
@@ -365,59 +379,59 @@ export class Formatter {
     }
 
     /**
-     * Handle block comment
+     * Format multiline block comment
      * @param line 
      */
     private handleCommentBlock(line: string): void {
-        const [, before, after] = line.match(/(\/\*+)(.*)/);
+        const [, commentStart, setting] = line.match(BLOCK_COMMENT_START);
 
         /** Write comment start symbol */
-        this.indentLine(before);
+        this.indentLine(commentStart);
         /** Push setting after comment start to line stream */
-        if (!isEmpty(after)) {
-            this.lineStreamPush(after);
+        if (!isEmpty(setting)) {
+            this.lineStreamPush(setting);
         }
         line = this.nextLine();
         while (line != undefined) {
-            if (/(.*)(\*\/)/.test(line)) {
-                // Assuming in is not inline block comment
-                let [, before, after] = line.match(/(.*?)(\*+\/)/);
-                if (!isEmpty(before)) {
-                    this.pushBuffer(before)
+            const commentEndMatch = line.match(BLOCK_COMMENT_END);
+            if (commentEndMatch !== null) {
+                let [, setting, commentEnd] = commentEndMatch;
+                if (!isEmpty(setting)) {
+                    this.pushCommentBuffer(setting)
                 }
-                this.dumpBuffer();
-                this.lineStreamPush(after)
-                this.commentBlockIndents.length = 0;
+                this.dumpCommentBuffer();
+                this.lineStreamPush(commentEnd)
                 return;
             } else {
-                this.pushBuffer(line)
+                this.pushCommentBuffer(line)
             }
             line = this.nextLine();
         }
     }
 
-    private pushBuffer(line: string): void {
-        let indent = line.search(/[^ ]/);
-        if (indent >= 0) {
-            this.commentBlockIndents.push(indent);
+    /** Push line of comment block to buffer and calculate indent */
+    private pushCommentBuffer(line: string): void {
+        const indent = line.search(/[^ ]/);
+        if (indent >= 0 && indent < this.commentsBuffer.minIndent) {
+            this.commentsBuffer.minIndent = indent;
         }
-        this.commentsBuffer.push(line);
+        this.commentsBuffer.lines.push(line);
     }
 
-    private dumpBuffer() {
+    /** Write block comment data */
+    private dumpCommentBuffer() {
+        const { lines, minIndent } = this.commentsBuffer;
         this.increaseIndent();
 
-        for (let line of this.commentsBuffer) {
+        for (let line of lines) {
             this.formattedText.push(
-                this.currentIndent + line.substring(
-                    Math.min(...this.commentBlockIndents)
-                ).trimRight()
+                this.currentIndent + line.substring(minIndent).trimEnd()
             )
         }
-
         this.decreaseIndent();
 
-        this.commentsBuffer.length = 0;
+        /** Comment block finished */
+        this.commentsBuffer = null;
     }
 
     /**
