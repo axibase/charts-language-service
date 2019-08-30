@@ -1,14 +1,14 @@
 import { FormattingOptions } from "vscode-languageserver-types";
+import { LanguageFormattingOptions, NestedCodeFormatter } from "./nestedCodeFormatter";
 import {
+    BLOCK_COMMENT_END, BLOCK_COMMENT_START,
     BLOCK_SCRIPT_END, BLOCK_SCRIPT_START,
-    RELATIONS_REGEXP, BLOCK_COMMENT_START,
-    BLOCK_COMMENT_END, ONE_LINE_COMMENT, 
+    ONE_LINE_COMMENT, RELATIONS_REGEXP,
     SPACES_AT_START
 } from "./regExpressions";
 import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { TextRange } from "./textRange";
 import { isEmpty } from "./util";
-import { LanguageFormattingOptions, NestedCodeFormatter } from "./nestedCodeFormatter";
 
 interface Section {
     indent?: string;
@@ -21,7 +21,7 @@ export const FORMATTING_OPTIONS: FormattingOptions = {
     tabSize: 2
 };
 
-type CommentData = {
+interface CommentData {
     lines: string[];
     minIndent: number;
 }
@@ -33,9 +33,9 @@ type CommentData = {
  * getOptions - function computing language formatting options based on current indent
  */
 interface LanguageConfiguration {
-    languageId: string,
-    endRegex: RegExp,
-    getOptions(indent: string, tabSize: number): LanguageFormattingOptions
+    languageId: string;
+    endRegex: RegExp;
+    getOptions(indent: string, tabSize: number): LanguageFormattingOptions;
 }
 
 /**
@@ -43,15 +43,15 @@ interface LanguageConfiguration {
  */
 const NestedLanguages = new Map<RegExp, LanguageConfiguration>([
     [BLOCK_SCRIPT_START, {
-        languageId: "js",
         endRegex: BLOCK_SCRIPT_END,
         getOptions: (indent: string, tabSize: number) => {
             return {
+                adjustMultilineComment: true,
                 base: (indent.length / tabSize) + 1,
-                style: " ".repeat(tabSize),
-                adjustMultilineComment: true
-            }
-        }
+                style: " ".repeat(tabSize)
+            };
+        },
+        languageId: "js",
     }]
 ]);
 
@@ -123,8 +123,8 @@ export class Formatter {
     private previousSection: Section = {};
     private currentSection: Section = {};
 
-    /** 
-     * Comment block lines and their minimal commmon indent 
+    /**
+     * Comment block lines and their minimal commmon indent
      */
     private commentsBuffer: CommentData = {
         lines: [],
@@ -149,7 +149,7 @@ export class Formatter {
                 if (this.insideSectionException()) {
                     Object.assign(this.currentSection, this.previousSection);
                     if (this.shouldInsertBlankLineInsideSection()) {
-                        this.insertBlankLineAfter()
+                        this.insertBlankLineAfter();
                     }
                     this.decreaseIndent();
                 }
@@ -182,9 +182,9 @@ export class Formatter {
         return this.formattedText.join("\n");
     }
 
-    /** 
+    /**
      * We met a multiline block comment.
-     * Single-line comments are formatted as regular settings 
+     * Single-line comments are formatted as regular settings
      */
     private isCommentBlockStart(line: string): boolean {
         return line.indexOf("/*") > -1 && !ONE_LINE_COMMENT.test(line);
@@ -205,7 +205,7 @@ export class Formatter {
     private shouldInsertBlankLineInsideSection(): boolean {
         const nextLine = this.lines[this.currentLine + 1];
         /** Next line is not empty OR undefined */
-        return nextLine && !this.isSectionDeclaration(nextLine)
+        return nextLine && !this.isSectionDeclaration(nextLine);
     }
 
     /**
@@ -229,7 +229,6 @@ export class Formatter {
 
     /**
      * Determines by regex is line a start of code block
-     * @param line 
      */
     private isCodeBlock(line: string): boolean {
         for (let [regex, configuration] of NestedLanguages.entries()) {
@@ -376,12 +375,11 @@ export class Formatter {
      * @param line to indent
      */
     private indentLine(line: string = this.getCurrentLine()): void {
-        this.formattedText.push(this.currentIndent + line.trim())
+        this.formattedText.push(this.currentIndent + line.trim());
     }
 
     /**
      * Format multiline block comment
-     * @param line 
      */
     private handleCommentBlock(line: string): void {
         const [, commentStart, setting] = line.match(BLOCK_COMMENT_START);
@@ -393,18 +391,18 @@ export class Formatter {
             this.lineStreamPush(setting);
         }
         line = this.nextLine();
-        while (line != undefined) {
+        while (line !== undefined) {
             const commentEndMatch = line.match(BLOCK_COMMENT_END);
             if (commentEndMatch !== null) {
-                let [, setting, commentEnd] = commentEndMatch;
-                if (!isEmpty(setting)) {
-                    this.pushCommentBuffer(setting)
+                let [, configSetting, commentEnd] = commentEndMatch;
+                if (!isEmpty(configSetting)) {
+                    this.pushCommentBuffer(configSetting);
                 }
                 this.dumpCommentBuffer();
-                this.lineStreamPush(commentEnd)
+                this.lineStreamPush(commentEnd);
                 return;
             } else {
-                this.pushCommentBuffer(line)
+                this.pushCommentBuffer(line);
             }
             line = this.nextLine();
         }
@@ -427,7 +425,7 @@ export class Formatter {
         for (let line of lines) {
             this.formattedText.push(
                 this.currentIndent + line.substring(minIndent).trimRight()
-            )
+            );
         }
         this.decreaseIndent();
 
@@ -494,7 +492,6 @@ export class Formatter {
 
     /**
      * Insert line to the config
-     * @param line 
      */
     private lineStreamPush(line: string): void {
         this.lines.splice(this.currentLine + 1, 0, line);
