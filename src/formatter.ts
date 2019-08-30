@@ -425,7 +425,7 @@ export class Formatter {
 
         for (let line of lines) {
             this.formattedText.push(
-                this.currentIndent + line.substring(minIndent).trimEnd()
+                this.currentIndent + line.substring(minIndent).trimRight()
             )
         }
         this.decreaseIndent();
