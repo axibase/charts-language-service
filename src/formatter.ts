@@ -432,7 +432,10 @@ export class Formatter {
         this.decreaseIndent();
 
         /** Comment block finished */
-        this.commentsBuffer = null;
+        this.commentsBuffer = {
+            lines: [],
+            minIndent: Infinity
+        };
     }
 
     /**

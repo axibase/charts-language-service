@@ -79,4 +79,29 @@ const expected = `/*
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
+
+  test("Two block comments", () => {
+    const text = `/* style = stroke-width: 2
+ color = black */
+
+  height-units = 4
+
+  /* width-units = 4
+ type = chart */
+`;
+    const expected = `/*
+  style = stroke-width: 2
+  color = black
+*/
+height-units = 4
+/*
+  width-units = 4
+  type = chart
+*/
+
+`;
+    const formatter = new Formatter(FORMATTING_OPTIONS);
+    const actual = formatter.format(text);
+    deepStrictEqual(actual, expected);
+  });
 });
