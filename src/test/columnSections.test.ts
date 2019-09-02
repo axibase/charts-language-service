@@ -1,5 +1,4 @@
 import assert = require("assert");
-import { createDiagnostic, createRange } from "../util";
 import { Validator } from "../validator";
 
 const baseConfig = (setting: string) => `[configuration]
