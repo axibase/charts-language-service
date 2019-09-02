@@ -305,7 +305,7 @@ export class Formatter {
         }
         if (spacesAfter !== " ") {
             const start = line.indexOf(sign) + sign.length;
-            line = line.substring(0, start) + " " + line.substring(start);
+            line = line.substring(0, start) + " " + line.substring(start).trimLeft();
         }
 
         return line;
