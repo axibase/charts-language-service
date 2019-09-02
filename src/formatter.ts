@@ -1,9 +1,14 @@
 import { FormattingOptions } from "vscode-languageserver-types";
-import { BLOCK_SCRIPT_END, BLOCK_SCRIPT_START, RELATIONS_REGEXP } from "./regExpressions";
+import { LanguageFormattingOptions, NestedCodeFormatter } from "./nestedCodeFormatter";
+import {
+    BLOCK_COMMENT_END, BLOCK_COMMENT_START,
+    BLOCK_SCRIPT_END, BLOCK_SCRIPT_START,
+    ONE_LINE_COMMENT, RELATIONS_REGEXP,
+    SPACES_AT_START
+} from "./regExpressions";
 import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { TextRange } from "./textRange";
 import { isEmpty } from "./util";
-import { LanguageFormattingOptions, NestedCodeFormatter } from "./nestedCodeFormatter";
 
 interface Section {
     indent?: string;
@@ -16,6 +21,11 @@ export const FORMATTING_OPTIONS: FormattingOptions = {
     tabSize: 2
 };
 
+interface CommentData {
+    lines: string[];
+    minIndent: number;
+}
+
 /**
  * Language formatting configuration
  * languageId - language id
@@ -23,9 +33,9 @@ export const FORMATTING_OPTIONS: FormattingOptions = {
  * getOptions - function computing language formatting options based on current indent
  */
 interface LanguageConfiguration {
-    languageId: string,
-    endRegex: RegExp,
-    getOptions(indent: string, tabSize: number): LanguageFormattingOptions
+    languageId: string;
+    endRegex: RegExp;
+    getOptions(indent: string, tabSize: number): LanguageFormattingOptions;
 }
 
 /**
@@ -33,15 +43,15 @@ interface LanguageConfiguration {
  */
 const NestedLanguages = new Map<RegExp, LanguageConfiguration>([
     [BLOCK_SCRIPT_START, {
-        languageId: "js",
         endRegex: BLOCK_SCRIPT_END,
         getOptions: (indent: string, tabSize: number) => {
             return {
+                adjustMultilineComment: true,
                 base: (indent.length / tabSize) + 1,
-                style: " ".repeat(tabSize),
-                adjustMultilineComment: true
-            }
-        }
+                style: " ".repeat(tabSize)
+            };
+        },
+        languageId: "js",
     }]
 ]);
 
@@ -113,6 +123,14 @@ export class Formatter {
     private previousSection: Section = {};
     private currentSection: Section = {};
 
+    /**
+     * Comment block lines and their minimal commmon indent
+     */
+    private commentsBuffer: CommentData = {
+        lines: [],
+        minIndent: Infinity
+    };
+
     public constructor(formattingOptions: FormattingOptions) {
         this.options = formattingOptions;
     }
@@ -124,11 +142,14 @@ export class Formatter {
     public format(text: string): string {
         this.lines = text.split("\n");
         for (let line = this.getLine(this.currentLine); line !== void 0; line = this.nextLine()) {
-            if (isEmpty(line)) {
+            if (this.isCommentBlockStart(line)) {
+                this.handleCommentBlock(line);
+                continue;
+            } else if (isEmpty(line)) {
                 if (this.insideSectionException()) {
                     Object.assign(this.currentSection, this.previousSection);
                     if (this.shouldInsertBlankLineInsideSection()) {
-                        this.insertBlankLineAfter()
+                        this.insertBlankLineAfter();
                     }
                     this.decreaseIndent();
                 }
@@ -162,12 +183,20 @@ export class Formatter {
     }
 
     /**
+     * We met a multiline block comment.
+     * Single-line comments are formatted as regular settings
+     */
+    private isCommentBlockStart(line: string): boolean {
+        return line.indexOf("/*") > -1 && !ONE_LINE_COMMENT.test(line);
+    }
+
+    /**
      * We are inside tags/column section
      * They may contain empty line between their own and parent-level settings
      */
     private insideSectionException(): boolean {
         return (this.currentSection.name === "tags" && this.previousSection.name !== "widget")
-        || this.currentSection.name === "column";
+            || this.currentSection.name === "column";
     }
 
     /**
@@ -176,7 +205,7 @@ export class Formatter {
     private shouldInsertBlankLineInsideSection(): boolean {
         const nextLine = this.lines[this.currentLine + 1];
         /** Next line is not empty OR undefined */
-        return nextLine && !this.isSectionDeclaration(nextLine)
+        return nextLine && !this.isSectionDeclaration(nextLine);
     }
 
     /**
@@ -200,7 +229,6 @@ export class Formatter {
 
     /**
      * Determines by regex is line a start of code block
-     * @param line 
      */
     private isCodeBlock(line: string): boolean {
         for (let [regex, configuration] of NestedLanguages.entries()) {
@@ -347,7 +375,65 @@ export class Formatter {
      * @param line to indent
      */
     private indentLine(line: string = this.getCurrentLine()): void {
-        this.formattedText.push(this.currentIndent + line.trim())
+        this.formattedText.push(this.currentIndent + line.trim());
+    }
+
+    /**
+     * Format multiline block comment
+     */
+    private handleCommentBlock(line: string): void {
+        const [, commentStart, setting] = line.match(BLOCK_COMMENT_START);
+
+        /** Write comment start symbol */
+        this.indentLine(commentStart);
+        /** Push setting after comment start to line stream */
+        if (!isEmpty(setting)) {
+            this.lineStreamPush(setting);
+        }
+        line = this.nextLine();
+        while (line !== undefined) {
+            const commentEndMatch = line.match(BLOCK_COMMENT_END);
+            if (commentEndMatch !== null) {
+                let [, configSetting, commentEnd] = commentEndMatch;
+                if (!isEmpty(configSetting)) {
+                    this.pushCommentBuffer(configSetting);
+                }
+                this.dumpCommentBuffer();
+                this.lineStreamPush(commentEnd);
+                return;
+            } else {
+                this.pushCommentBuffer(line);
+            }
+            line = this.nextLine();
+        }
+    }
+
+    /** Push line of comment block to buffer and calculate indent */
+    private pushCommentBuffer(line: string): void {
+        const indent = line.search(SPACES_AT_START);
+        if (indent >= 0 && indent < this.commentsBuffer.minIndent) {
+            this.commentsBuffer.minIndent = indent;
+        }
+        this.commentsBuffer.lines.push(line);
+    }
+
+    /** Write block comment data */
+    private dumpCommentBuffer() {
+        const { lines, minIndent } = this.commentsBuffer;
+        this.increaseIndent();
+
+        for (let line of lines) {
+            this.formattedText.push(
+                this.currentIndent + line.substring(minIndent).trimRight()
+            );
+        }
+        this.decreaseIndent();
+
+        /** Comment block finished */
+        this.commentsBuffer = {
+            lines: [],
+            minIndent: Infinity
+        };
     }
 
     /**
@@ -402,6 +488,13 @@ export class Formatter {
      */
     private nextLine(): string | undefined {
         return this.getLine(++this.currentLine);
+    }
+
+    /**
+     * Insert line to the config
+     */
+    private lineStreamPush(line: string): void {
+        this.lines.splice(this.currentLine + 1, 0, line);
     }
 
     /**
