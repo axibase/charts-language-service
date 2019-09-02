@@ -783,7 +783,7 @@ suite("Formatting indents tests: !=, ==, =", () => {
     deepStrictEqual(actual, expected);
   });
 
-  test("Incorrect =, extra space", () => {
+  test("Incorrect =, extra space after", () => {
     const text = `type =  bar`;
     const expected = `type = bar
 
