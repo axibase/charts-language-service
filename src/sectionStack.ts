@@ -1,9 +1,9 @@
 import { Diagnostic, DiagnosticSeverity, Position, Range } from "vscode-languageserver-types";
+import { LanguageService } from "./languageService";
+import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { Setting } from "./setting";
 import { TextRange } from "./textRange";
 import { createDiagnostic } from "./util";
-import { LanguageService } from "./languageService";
-import { ResourcesProviderBase } from "./resourcesProviderBase";
 
 interface DependencyResolveInfo {
     resolvedCount: number;

@@ -82,11 +82,11 @@ export const CALCULATED_REGEXP: RegExp = /[@$]\{.+\}/;
 // =, ==, !=, >=, <=, >, <
 export const RELATIONS_REGEXP: RegExp = new RegExp(`(^\\s*.+?)(\\s*?)(${RELATIONS.join("|")})(\\s*)`);
 
-// tag(s)|key(s)|column — sections, whose settings are handled in different way
-export const SECTIONS_EXCEPTIONS_REGEXP: RegExp = /(?:tag|key)s?|column/;
+// tag(s)|key(s) — sections, whose settings are handled in different way
+export const SECTIONS_EXCEPTIONS_REGEXP: RegExp = /(?:tag|key)s?/;
 
-// tag|column
-export const TAG_OR_COLUMN_REGEXP: RegExp = /tag|column/;
+// tag(s) section regex
+export const TAG_REGEXP: RegExp = /tag/;
 
 // start of block comment - /*
 export const BLOCK_COMMENT_START: RegExp = /(\/\*+)(.*)/;

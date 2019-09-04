@@ -21,8 +21,8 @@ import {
     CSV_INLINE_HEADER_PATTERN,
     CSV_KEYWORD_PATTERN,
     CSV_NEXT_LINE_HEADER_PATTERN,
-    TAG_OR_COLUMN_REGEXP,
-    SECTIONS_EXCEPTIONS_REGEXP
+    SECTIONS_EXCEPTIONS_REGEXP,
+    TAG_REGEXP
 } from "./regExpressions";
 import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { SectionStack } from "./sectionStack";
@@ -34,9 +34,9 @@ import {
     createRange,
     getSetting,
     isAnyInArray,
+    isEmpty,
     isInMap,
-    repetitionDiagnostic,
-    isEmpty
+    repetitionDiagnostic
 } from "./util";
 
 const placeholderContainingSettings = [
@@ -427,9 +427,9 @@ export class Validator {
         if (this.currentSection === undefined) {
             return;
         }
-        if (this.previousSection && TAG_OR_COLUMN_REGEXP.test(this.currentSection.text)) {
+        if (this.previousSection && TAG_REGEXP.test(this.currentSection.text)) {
             /**
-             * [tags] or [column] has finished, perform checks for parent section.
+             * [tags] has finished, perform checks for parent section.
              */
             this.currentSettings = this.previousSettings;
             this.currentSection = this.previousSection;
@@ -564,7 +564,7 @@ export class Validator {
             /**
              * We are in [tags] section and current line is empty - [tags] section has finished
              */
-            (isEmpty(line) && this.currentSection && TAG_OR_COLUMN_REGEXP.test(this.currentSection.text))) {
+            (isEmpty(line) && this.currentSection && this.currentSection.text === "tags")) {
             // We met start of the next section, that means that current section has finished
             if (this.match !== null) {
                 this.spellingCheck();
@@ -828,8 +828,9 @@ export class Validator {
             return;
         }
         const [, indent, name] = this.match;
-        const nextIsTagsOrColumn = this.currentSection && TAG_OR_COLUMN_REGEXP.test(name);
-        if (!nextIsTagsOrColumn) {
+        const nextIsTags = this.currentSection && /tag/i.test(name);
+
+        if (!nextIsTags) {
             /**
              * If the next is [tags], no need to perform checks for current section now,
              * they will be done after [tags] section finished.
@@ -885,11 +886,11 @@ export class Validator {
             return;
         }
         const line: string = this.config.getCurrentLine();
-        // tag(s)|key(s)|column — sections, whose settings are handled in different way
+        // tag(s)|key(s) — sections, whose settings are handled in different way
         if (this.currentSection === undefined || !SECTIONS_EXCEPTIONS_REGEXP.test(this.currentSection.text)) {
             this.handleRegularSetting();
         } else if (SECTIONS_EXCEPTIONS_REGEXP.test(this.currentSection.text) &&
-            // We are in tags/keys/column section
+            // We are in tags/keys section
             /(^[ \t]*)([a-z].*?[a-z])[ \t]*=/.test(line)) {
             this.match = /(^[ \t]*)([a-z].*?[a-z])[ \t]*=/.exec(line);
             if (this.match === null) {
@@ -913,7 +914,6 @@ export class Validator {
     private isAllowedWidget(setting: Setting): boolean {
         return setting !== undefined
             && this.currentSection.text !== "tag"
-            && this.currentSection.text !== "column"
             && (setting.widget == null
                 || this.currentWidget === undefined
                 || setting.widget === this.currentWidget);
@@ -949,7 +949,7 @@ export class Validator {
     }
 
     /**
-     * Processes a regular setting which is defined not in tags/keys/column section
+     * Processes a regular setting which is defined not in tags/keys section
      */
     private handleRegularSetting(): void {
         const line: string = this.config.getCurrentLine();

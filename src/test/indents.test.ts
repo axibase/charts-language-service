@@ -811,7 +811,7 @@ suite("Formatting indents tests: >=, <=, >, <", () => {
 `;
     const expected = text;
     const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.format(text);;
+    const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
 
