@@ -928,18 +928,6 @@ export class Validator {
             return true;
         }
 
-        if (this.currentSettings.some(item => item.name === "columns") && setting.section !== "widget") {
-            const [, indent, name] = this.match;
-            this.result.push(createDiagnostic(
-                this.createRange(indent.length, name.length),
-                `${setting.displayName} is referred to [widget]`, DiagnosticSeverity.Information,
-            ));
-        }
-
-        if (this.currentSection.text === "column" && setting.name === "columns") {
-            this.currentSection = this.sectionStack.getSectionRange("widget");
-        }
-
         const currDepth: number = ResourcesProviderBase.sectionDepthMap[this.currentSection.text];
         if (setting.name === "mode") {
             if (this.currentWidget == null) {
