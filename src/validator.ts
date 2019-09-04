@@ -927,7 +927,6 @@ export class Validator {
         if (setting.section == null || this.currentSection == null) {
             return true;
         }
-
         const currDepth: number = ResourcesProviderBase.sectionDepthMap[this.currentSection.text];
         if (setting.name === "mode") {
             if (this.currentWidget == null) {
