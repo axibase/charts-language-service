@@ -146,9 +146,9 @@ export class Formatter {
                 this.handleCommentBlock(line);
                 continue;
             } else if (isEmpty(line)) {
-                if (this.insideSectionException()) {
+                if (this.currentSection.name === "tags" && this.previousSection.name !== "widget") {
                     Object.assign(this.currentSection, this.previousSection);
-                    if (this.shouldInsertBlankLineInsideSection()) {
+                    if (this.shouldInsertBlankLineAfterTags()) {
                         this.insertBlankLineAfter();
                     }
                     this.decreaseIndent();
@@ -191,18 +191,9 @@ export class Formatter {
     }
 
     /**
-     * We are inside tags/column section
-     * They may contain empty line between their own and parent-level settings
+     * Determines if blank line after tags should be inserted
      */
-    private insideSectionException(): boolean {
-        return (this.currentSection.name === "tags" && this.previousSection.name !== "widget")
-            || this.currentSection.name === "column";
-    }
-
-    /**
-     * Determines if blank line after tags/column should be inserted
-     */
-    private shouldInsertBlankLineInsideSection(): boolean {
+    private shouldInsertBlankLineAfterTags(): boolean {
         const nextLine = this.lines[this.currentLine + 1];
         /** Next line is not empty OR undefined */
         return nextLine && !this.isSectionDeclaration(nextLine);

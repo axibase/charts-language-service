@@ -1,4 +1,5 @@
 import assert = require("assert");
+import { createDiagnostic, createRange } from "../util";
 import { Validator } from "../validator";
 
 const baseConfig = (setting: string) => `[configuration]
@@ -6,19 +7,23 @@ const baseConfig = (setting: string) => `[configuration]
     [widget]
         type = chart
         [column]
-
-        ${setting}
+          ${setting}
         [series]
             metric = a
             entity = b`;
 
 suite("[column] section tests", () => {
-    test("Correct: 'sort' gives no warning", () => {
+    test("Incorrect: 'sort' is [widget] setting", () => {
         const config = baseConfig(`sort = command
         `);
         const validator = new Validator(config);
         const actual = validator.lineByLine();
-        const expected = [];
+        const expected = [
+            createDiagnostic(
+                createRange(10, "sort".length, 5),
+                "sort setting is not allowed here."
+            )
+        ];
         assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
     });
 
