@@ -121,7 +121,6 @@ suite("Formatting indents tests: sections and settings", () => {
   [widget]
     type = chart
     for server in servers
-
       [series]
         entity = @{server}
     endfor
@@ -154,7 +153,6 @@ suite("Formatting indents tests: sections and settings", () => {
   [widget]
     type = chart
     for server in servers
-
       [series]
         entity = @{server}
     endfor
@@ -193,7 +191,6 @@ suite("Formatting indents tests: sections and settings", () => {
       vds
     endlist
     for item in servers
-
       [series]
         entity = @{item}
         if @{item} = vps
@@ -220,7 +217,6 @@ suite("Formatting indents tests: sections and settings", () => {
       nurswgvml007
     endlist
     for server in servers
-
       [series]
     entity = @{server}
 
@@ -247,7 +243,6 @@ suite("Formatting indents tests: sections and settings", () => {
       nurswgvml007
     endlist
     for server in servers
-
       [series]
         entity = @{server}
 
@@ -255,7 +250,6 @@ suite("Formatting indents tests: sections and settings", () => {
         entity = @{server}
     endfor
     for server in servers
-
       [series]
         entity = @{server}
         if server == 'nurswgvml007'
@@ -318,7 +312,6 @@ suite("Formatting indents tests: sections and settings", () => {
     type = chart
     var servers = [ 'vps', 'vds' ]
     for item in servers
-
       [series]
         entity = @{item}
         metric = cpu_busy
@@ -464,7 +457,6 @@ starttime = 2018
       label = Count
       list metrics = a, b
       for metric in metrics
-
         [series]
           metric = @{metric}
       endfor
@@ -659,7 +651,6 @@ column-time = null
     var sites = getTags("iis.errors", "site", "\${entity}")
     for site in sites
       if site ! = "DefaultWebSite"
-
         [column]
           label = @{site}
 
@@ -714,7 +705,6 @@ column-time = null
       var f_systems = getTags("nmon.disk_%busy", "id", "\${entity}", "now - 2 * day")
       for id in f_systems
         if id != 'total'
-
           [series]
             label = @{id}
 

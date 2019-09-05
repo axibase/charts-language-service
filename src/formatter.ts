@@ -124,6 +124,11 @@ export class Formatter {
     private currentSection: Section = {};
 
     /**
+     * Collects sections inside keyword structure
+     */
+    private keywordSections: Section[] = [];
+
+    /**
      * Comment block lines and their minimal commmon indent
      */
     private commentsBuffer: CommentData = {
@@ -167,6 +172,7 @@ export class Formatter {
                 this.setIndent(stackHead);
                 this.insideKeyword = false;
                 this.lastKeywordIndent = "";
+                this.keywordSections = [];
             }
             this.indentLine(this.checkSign(line));
             if (TextRange.isCloseAble(line) && this.shouldBeClosed()) {
@@ -206,7 +212,17 @@ export class Formatter {
         this.calculateSectionIndent();
         this.indentLine();
         this.increaseIndent();
+        this.handleSectionInsideKeyword();
         this.insertLineBeforeSection();
+    }
+
+    /**
+     * If section is inside keyword structure, push it to collection
+     */
+    private handleSectionInsideKeyword(): void {
+        if (this.insideKeyword) {
+            this.keywordSections.push(this.currentSection);
+        }
     }
 
     /**
@@ -489,10 +505,17 @@ export class Formatter {
     }
 
     /**
+     * Determines whether section is first inside keyword structure
+     */
+    private get firstSectionInsideKeyword(): boolean {
+        return this.insideKeyword && this.keywordSections.length === 1;
+    }
+
+    /**
      * Inserts blank line before section except for configuration
      */
     private insertLineBeforeSection(): void {
-        if (this.currentSection.name === "configuration") {
+        if (this.currentSection.name === "configuration" || this.firstSectionInsideKeyword) {
             return;
         }
 
