@@ -24,6 +24,7 @@ const sectionStackStub: SectionStack = {
 
 /**
  * Contains a test case and executes the test
+ * @deprecated Use standard TDD.
  */
 export class Test {
     /**
