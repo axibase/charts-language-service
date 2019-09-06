@@ -120,6 +120,7 @@ suite("Formatting indents tests: sections and settings", () => {
 
   [widget]
     type = chart
+
     for server in servers
       [series]
         entity = @{server}
@@ -152,6 +153,7 @@ suite("Formatting indents tests: sections and settings", () => {
 
   [widget]
     type = chart
+
     for server in servers
       [series]
         entity = @{server}
@@ -184,15 +186,17 @@ suite("Formatting indents tests: sections and settings", () => {
     endfor
 
 `;
-    const expected = `
-  [widget]
+    const expected = `  [widget]
     type = chart
+
     list servers = vps,
       vds
     endlist
+
     for item in servers
       [series]
         entity = @{item}
+
         if @{item} = vps
           metric = cpu_busy
         elseif @{item} = vds
@@ -209,8 +213,7 @@ suite("Formatting indents tests: sections and settings", () => {
   });
 
   test("Incorrect formatting in the first for, correct in second", () => {
-    const text = `
-  [widget]
+    const text = `  [widget]
     type = chart
     metric = cpu_busy
     list servers = nurswgvml006,
@@ -235,13 +238,14 @@ suite("Formatting indents tests: sections and settings", () => {
     endfor
 
 `;
-    const expected = `
-  [widget]
+    const expected = `  [widget]
     type = chart
     metric = cpu_busy
+
     list servers = nurswgvml006,
       nurswgvml007
     endlist
+
     for server in servers
       [series]
         entity = @{server}
@@ -249,9 +253,11 @@ suite("Formatting indents tests: sections and settings", () => {
       [series]
         entity = @{server}
     endfor
+
     for server in servers
       [series]
         entity = @{server}
+
         if server == 'nurswgvml007'
           color = red
         elseif server == 'nurswgvml006'
@@ -266,8 +272,7 @@ suite("Formatting indents tests: sections and settings", () => {
   });
 
   test("A couple of correct groups", () => {
-    const text = `
-[group]
+    const text = `[group]
 
   [widget]
     type = chart
@@ -307,10 +312,10 @@ suite("Formatting indents tests: sections and settings", () => {
   });
 
   test("Correct for after var declaration", () => {
-    const text = `
-  [widget]
+    const text = `  [widget]
     type = chart
     var servers = [ 'vps', 'vds' ]
+
     for item in servers
       [series]
         entity = @{item}
@@ -339,8 +344,7 @@ suite("Formatting indents tests: sections and settings", () => {
   });
 
   test("Align series setting declared after [tags] and empty line", () => {
-    const text = `
-    [series]
+    const text = `[series]
       entity = server
       metric = cpu_busy
 
@@ -350,8 +354,7 @@ suite("Formatting indents tests: sections and settings", () => {
 starttime = 2018
 
 `;
-    const expected = `
-    [series]
+    const expected = `    [series]
       entity = server
       metric = cpu_busy
 
@@ -456,6 +459,7 @@ starttime = 2018
       key = value
       label = Count
       list metrics = a, b
+
       for metric in metrics
         [series]
           metric = @{metric}
@@ -483,8 +487,7 @@ column-time = null
   });
 
   test("[series] at the same indent as [tags] in [widget]", () => {
-    const text = `
-  [widget]
+    const text = `[widget]
     type = chart
 
     [tags]
@@ -493,8 +496,7 @@ column-time = null
   [series]
 
 `;
-    const expected = `
-  [widget]
+    const expected = `  [widget]
     type = chart
 
     [tags]
@@ -643,13 +645,14 @@ column-time = null
   });
 
   test("[column] > [series] > [tags] inside if and for", () => {
-    const text = `
-[group]
+    const text = `[group]
 
   [widget]
     type = bar
     var sites = getTags("iis.errors", "site", "\${entity}")
+
     for site in sites
+
       if site ! = "DefaultWebSite"
         [column]
           label = @{site}
@@ -668,6 +671,7 @@ column-time = null
             "type" = notfound
             site = @{site}
       endif
+
     endfor
 
 `;
@@ -678,8 +682,7 @@ column-time = null
   });
 
   test("Two [option] at the same indent", () => {
-    const text = `
-    [dropdown]
+    const text = `    [dropdown]
       change-field = series.metric
 
       [option]
@@ -698,12 +701,13 @@ column-time = null
   });
 
   test("Child inside keywords, parent - outside", () => {
-    const text = `
-    [column]
+    const text = `    [column]
       key = value
       label = Disk Busy, %
       var f_systems = getTags("nmon.disk_%busy", "id", "\${entity}", "now - 2 * day")
+
       for id in f_systems
+
         if id != 'total'
           [series]
             label = @{id}
@@ -712,6 +716,7 @@ column-time = null
               name = id
               value = @{id}
         endif
+
       endfor
 
 `;

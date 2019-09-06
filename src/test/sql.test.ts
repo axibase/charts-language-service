@@ -71,20 +71,24 @@ endsql
 });
 
 suite("Formatter: SQL indents tests", () => {
-    const config =
-        "\n  [widget]\n" +
-        "    type = chart\n" +
-        "    sql = SELECT time, entity, value FROM cpu_busy\n" +
-        "    sql = WHERE /* time */ > now - 5 * minute\n\n" +
-        "    [series]\n\n" +
-        "" +
-        "  [widget]\n" +
-        "    type = chart\n" +
-        "    sql\n" +
-        "      SELECT time, entity, value FROM cpu_busy\n" +
-        "      WHERE /* time */ > now - 5 * minute\n" +
-        "    endsql\n\n" +
-        "    [series]\n\n";
+    const config = `  [widget]
+    type = chart
+    sql = SELECT time, entity, value FROM cpu_busy
+    sql = WHERE /* time */ > now - 5 * minute
+
+    [series]
+
+  [widget]
+    type = chart
+
+    sql
+      SELECT time, entity, value FROM cpu_busy
+      WHERE /* time */ > now - 5 * minute
+    endsql
+
+    [series]
+
+`;
     const expected = config;
     const formatter = new Formatter(FORMATTING_OPTIONS);
     const actual = formatter.format(config);

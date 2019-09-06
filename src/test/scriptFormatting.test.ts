@@ -63,17 +63,15 @@ endscript
   });
 
   test("Unformatted code inside script tag in [group]", () => {
-    const text = `
-[group]
+    const text = `[group]
   script
     window.userFunction = function () {
     return Math.round(value / 10) * 10;
     };
   endscript
-  
-  `;
-    const expected = `
-[group]
+
+`;
+    const expected = `[group]
   script
     window.userFunction = function () {
       return Math.round(value / 10) * 10;

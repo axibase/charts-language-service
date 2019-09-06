@@ -3,8 +3,8 @@ import { LanguageFormattingOptions, NestedCodeFormatter } from "./nestedCodeForm
 import {
     BLOCK_COMMENT_END, BLOCK_COMMENT_START,
     BLOCK_SCRIPT_END, BLOCK_SCRIPT_START,
-    ONE_LINE_COMMENT, RELATIONS_REGEXP,
-    SPACES_AT_START
+    ENDKEYWORDS_WITH_LF, ONE_LINE_COMMENT,
+    RELATIONS_REGEXP, SPACES_AT_START
 } from "./regExpressions";
 import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { TextRange } from "./textRange";
@@ -180,12 +180,39 @@ export class Formatter {
                 this.lastKeywordIndent = this.currentIndent;
                 this.increaseIndent();
                 this.insideKeyword = true;
+                /**
+                 * We don't need blank line before else|elseif
+                 */
+                if (!/\b(else|elseif)\b/.test(line)) {
+                    this.insertBlankLineBefore();
+                }
             }
         }
 
         this.handleEndLines();
 
         return this.formattedText.join("\n");
+    }
+
+    /**
+     * Checks that line formatted before current exists and not empty
+     */
+    private shouldInsertLineBefore(): boolean {
+        const previousFormattedLine: string = this.formattedText[this.formattedText.length - 2];
+        return (
+            previousFormattedLine !== undefined
+            && !isEmpty(previousFormattedLine)
+        );
+    }
+
+    /**
+     * Last formatted line contains endkeyword (endif|endcsv|endscript|endsql|endfor|endlist|endvar|endexpr)
+     */
+    private checkEndKeyword() {
+        const formattedLine: string = this.formattedText[this.formattedText.length - 1];
+        if (ENDKEYWORDS_WITH_LF.test(formattedLine)) {
+            this.insertBlankLineAfter();
+        }
     }
 
     /**
@@ -314,7 +341,7 @@ export class Formatter {
         const previousLine: string = this.lines[this.currentLine - 1];
         const linesToDelete: number = this.getBlankLinesAtEnd();
 
-        if (previousLine === undefined) {
+        if (previousLine === undefined || !this.shouldInsertLineBefore()) {
             return;
         }
 
