@@ -1,107 +1,151 @@
 import { deepStrictEqual } from "assert";
 import { DiagnosticSeverity, Position, Range } from "vscode-languageserver-types";
-import { createDiagnostic } from "../util";
+import { createDiagnostic, createRange } from "../util";
 import { Validator } from "../validator";
 import { Test } from "./test";
 
-suite("Required settings for sections tests", () => {
-  const tests: Test[] = [
-    new Test(
-      "correct series without parent section",
-      `[series]
+suite("Required settings for sections - simple cases", () => {
+
+    test("Correct: required settings are in current section", () => {
+        const config = `[configuration]
+   [group]
+   [widget]
+   type = chart
+   [series]
    entity = hello
-   metric = hello`,
-      [],
-    ),
-    new Test(
-      "incorrect series without parent categories",
-      `[series]
-   metric = hello`,
-      [
-        createDiagnostic(
-          Range.create(Position.create(0, "[".length), Position.create(0, "[".length + "series".length)),
-          "entity is required",
-        )],
-    ),
-    new Test(
-      "correct series with parent section",
-      `[widget]
+   metric = hello`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        deepStrictEqual(actualDiagnostics, [], `Config: \n${config}`);
+    });
+
+    test("Correct: required setting is in parent section", () => {
+        const config = `[configuration]
+   [group]
+   [widget]
    type = chart
    entity = hello
    [series]
-       metric = hello`,
-      [],
-    ),
-    new Test(
-      "correct series with grandparent section",
-      `[group]
+       metric = hello`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        deepStrictEqual(actualDiagnostics, [], `Config: \n${config}`);
+    });
+
+    test("Correct: required setting is in grandparent section", () => {
+        const config = `[configuration]
+        [group]
    entity = hello
 [widget]
    type = chart
    [series]
-       metric = hello`,
-      [],
-    ),
-    new Test(
-      "correct series with greatgrandparent section",
-      `[configuration]
+       metric = hello`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        deepStrictEqual(actualDiagnostics, [], `Config: \n${config}`);
+    });
+
+    test("Correct: required setting is in greatgrandparent section", () => {
+        const config = `[configuration]
    entity = hello
 [group]
 [widget]
    type = chart
    [series]
-       metric = hello`,
-      [],
-    ),
-    new Test(
-      "correct series with greatgrandparent section and empty line",
-      `[configuration]
+       metric = hello`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        deepStrictEqual(actualDiagnostics, [], `Config: \n${config}`);
+    });
+
+    test("Correct: required setting is in greatgrandparent section after empty line", () => {
+        const config = `[configuration]
 
    entity = hello
 [group]
 [widget]
    type = chart
    [series]
-       metric = hello`,
-      [],
-    ),
-    new Test(
-      "incorrect series with closed parent section",
-      `[group]
-   type = chart
+       metric = hello`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        deepStrictEqual(actualDiagnostics, [], `Config: \n${config}`);
+    });
+
+    test("Incorrect: several required settings are not declared", () => {
+        const config = `[configuration]
+   [group]
    [widget]
+   type = chart
+[series]`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        deepStrictEqual(actualDiagnostics, [
+            createDiagnostic(createRange("[".length, "series".length, 4), "entity is required"),
+            createDiagnostic(createRange("[".length, "series".length, 4), "metric is required")
+        ], `Config: \n${config}`);
+    });
+
+    test("Incorrect: required setting is not declared in tree (one branch)", () => {
+        const config = `[configuration]
+   [group]
+   [widget]
+   type = chart
+[series]
+   metric = hello`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        deepStrictEqual(actualDiagnostics, [
+            createDiagnostic(createRange("[".length, "series".length, 4), "entity is required")
+        ], `Config: \n${config}`);
+    });
+
+    test("Incorrect: required setting is not declared in current tree branch", () => {
+        const config = `[configuration]
+        [group]
+   [widget]
+   type = chart
        entity = hello
        [series]
            metric = hello
 
    [widget]
-       [series]
-           metric = hello`,
-      [
-        createDiagnostic(
-          Range.create(Position.create(8, "       [".length), Position.create(8, "       [series".length)),
-          "entity is required",
-        )],
-    ),
-    new Test(
-      "two incorrect series without parent categories",
-      `[series]
-   metric = hello
+   type = chart
 [series]
-   entity = hello`,
-      [
-        createDiagnostic(
-          Range.create(Position.create(0, "[".length), Position.create(0, "[".length + "series".length)),
-          "entity is required",
-        ),
-        createDiagnostic(
-          Range.create(Position.create(2, "[".length), Position.create(2, "[".length + "series".length)),
-          "metric is required",
-        )],
-    ),
-    new Test(
-      "A setting is specified in if statement",
-      `list servers = vps, vds
+           metric = hello`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        deepStrictEqual(actualDiagnostics, [
+            createDiagnostic(createRange("[".length, "series".length, 10), "entity is required")
+        ], `Config: \n${config}`);
+    });
+
+    test("Incorrect: required setting is not declared in both tree branches", () => {
+        const config = `[configuration]
+        [group]
+   [widget]
+   type = chart
+[series]
+           metric = hello
+
+   [widget]
+   type = chart
+[series]
+    entity = hello`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        deepStrictEqual(actualDiagnostics, [
+            createDiagnostic(createRange("[".length, "series".length, 4), "entity is required"),
+            createDiagnostic(createRange("[".length, "series".length, 9), "metric is required")
+        ], `Config: \n${config}`);
+    });
+
+    test("Correct: setting is specified in if statement", () => {
+        const config = `[configuration]
+        [group]
+   [widget]
+   type = chart
+list servers = vps, vds
 for server in servers
    [series]
        metric = cpu_busy
@@ -110,131 +154,132 @@ for server in servers
        else
            entity = vps
        endif
-endfor`,
-      [],
-    ),
-    new Test(
-      "A setting is specified only in if-elseif statements",
-      `list servers = vps, vds
+endfor`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        deepStrictEqual(actualDiagnostics, [], `Config: \n${config}`);
+    });
+
+    /**
+     * Branch handling needs proper support.
+     * @see https://github.com/axibase/charts-language-service/issues/44
+     * @see https://github.com/axibase/charts-language-service/issues/47
+     */
+    test.skip("Incorrect: setting is specified only in if-elseif statements", () => {
+        const config = `[configuration]
+        [group]
+   [widget]
+   type = chart
+list servers = vps, vds
 for server in servers
-   [series]
+[series]
        metric = cpu_busy
        if server == 'vps'
            entity = vds
        elseif server = 'vds'
            entity = vps
        endif
-endfor`,
-      [
-        createDiagnostic(
-          Range.create(Position.create(2, "   [".length), Position.create(2, "   [".length + "series".length)),
-          "entity is required",
-        )],
-    ),
-    new Test(
-      "Derived series",
-      `[series]
+endfor`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        deepStrictEqual(actualDiagnostics, [
+            createDiagnostic(createRange("[".length, "series".length, 6), "entity is required")
+        ], `Config: \n${config}`);
+    });
+
+    test("Correct: only value is required for derived series", () => {
+        const config = `[configuration]
+        [group]
+   [widget]
+   type = chart
+[series]
   entity = server
   metric = cpu_busy
   alias = srv
 [series]
-  value = value('srv')`,
-      [],
-    ),
-    new Test(
-      "Entities instead of entity",
-      `[series]
+  value = value('srv')`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        deepStrictEqual(actualDiagnostics, [], `Config: \n${config}`);
+    });
+
+    test("Correct: entities instead of entity", () => {
+        const config = `[configuration]
+        [group]
+   [widget]
+   type = chart
+[series]
   entities = server
-  metric = cpu_busy`,
-      [],
-    ),
-    new Test(
-      "Do not raise error if both column-metric and column-value are null",
-      `list lpars = abc, cde, efg
-[widget]
-  type = table
-  column-metric = null
-  column-value = null
-  [series]
-    entity = @{lpar}`,
-      [],
-    ),
-    new Test(
-      "Raise error if column-metric is not null",
-      `list lpars = abc, cde, efg
-[widget]
-  type = table
-  column-metric = undefined
-  column-value = null
-  [series]
-    entity = @{lpar}`,
-      [
-        createDiagnostic(
-          Range.create(5, "  [".length, 5, "  [".length + "series".length),
-          "metric is required",
-        )],
-    ),
-    new Test(
-      "Raise error if column-value is not specified",
-      `list lpars = abc, cde, efg
-[widget]
-  type = table
-  column-metric = null
-  [series]
-    entity = @{lpar}`,
-      [
-        createDiagnostic(
-          Range.create(4, "  [".length, 4, "  [".length + "series".length),
-          "metric is required",
-        )],
-    ),
-    new Test(
-      "Correct handling of complex configuration",
-      `[configuration]
-  entity = \${entity}
-  [series]
-    metric = nmon.processes.asleep_diocio
-[widget]
-  type = table
-  metric = nmon.jfs_filespace_%used
-  [series]`,
-      [],
-    ),
-    new Test(
-      "Table and attribute are declared in a grandparent section",
-      `[configuration]
+  metric = cpu_busy`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        deepStrictEqual(actualDiagnostics, [], `Config: \n${config}`);
+    });
+
+    test("Correct: entity-expression instead of entity", () => {
+        const config = `[configuration]
+        [group]
+   [widget]
+   type = chart
+[series]
+  entity-expression = server*
+  metric = cpu_busy`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        deepStrictEqual(actualDiagnostics, [], `Config: \n${config}`);
+    });
+
+    test("Correct: entity-expression instead of entity", () => {
+        const config = `[configuration]
+        [group]
+   [widget]
+   type = chart
+[series]
+  entity-expression = server*
+  metric = cpu_busy`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        deepStrictEqual(actualDiagnostics, [], `Config: \n${config}`);
+    });
+
+    test("Correct: table and attribute are declared in a grandparent section", () => {
+        const config = `[configuration]
   table = abc
   attribute = cde
 [group]
   [widget]
     type = calendar
     [series]
-      entity = ent1`,
-      [],
-    ),
-    new Test(
-      "Allow entity-expression as an alternative to entity",
-      `[configuration]
-      width-units = 6.2
-[group]
-  [widget]
-    type = chart
-    [series]
-      entity-expression = entity-1, e-2
-      metric = metric-1`,
-      [],
-    ),
-  ];
+      entity = ent1`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        deepStrictEqual(actualDiagnostics, [], `Config: \n${config}`);
+    });
 
-  tests.forEach((test: Test) => {
-    test.validationTest();
-  });
+    test("Correct: common entity in group", () => {
+        const config = `[configuration]
+  [group]
+  entity = \${entity}
+  [widget]
+  type = table
+  [series]
+    metric = nmon.processes.asleep_diocio
+[widget]
+  type = table
+  metric = nmon.jfs_filespace_%used
+  [series]`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        deepStrictEqual(actualDiagnostics, [], `Config: \n${config}`);
+    });
 
 });
 
-suite("Required: [series] declared inside if", () => {
-  new Test("Correct: metric and entity are declared in [series], no [tags]",
-    `[configuration]
+suite("Required settings for sections - specific cases", () => {
+    suite("[series] declared inside if", () => {
+
+        test("Correct: metric and entity are declared in [series], no [tags]", () => {
+            const config = `[configuration]
     [group]
       [widget]
         type = bar
@@ -242,10 +287,14 @@ suite("Required: [series] declared inside if", () => {
         [series]
           entity = a
           metric = b
-    endif`, []).validationTest();
+    endif`;
+            const validator = new Validator(config);
+            const actualDiagnostics = validator.lineByLine();
+            deepStrictEqual(actualDiagnostics, [], `Config: \n${config}`);
+        });
 
-  new Test("Correct: metric and entity are declared in [series] with [tags]",
-    `[configuration]
+        test("Correct: metric and entity are declared in [series] with [tags]", () => {
+            const config = `[configuration]
     [group]
       [widget]
         type = bar
@@ -256,24 +305,31 @@ suite("Required: [series] declared inside if", () => {
           [tags]
               a = b
     endif
-    `, []).validationTest();
+    `;
+            const validator = new Validator(config);
+            const actualDiagnostics = validator.lineByLine();
+            deepStrictEqual(actualDiagnostics, [], `Config: \n${config}`);
+        });
 
-  new Test("Incorrect: no metric, no [tags]",
-    `[configuration]
+        test("Incorrect: no metric, no [tags]", () => {
+            const config = `[configuration]
     [group]
       [widget]
         type = bar
     if "a" == "a"
 [series]
           entity = a
-    endif`, [
-      createDiagnostic(
-        Range.create(5, 1, 5, "series]".length),
-        "metric is required",
-      )]).validationTest();
+    endif`;
+            const validator = new Validator(config);
+            const actualDiagnostics = validator.lineByLine();
+            deepStrictEqual(actualDiagnostics, [
+                createDiagnostic(
+                    createRange("[".length, "series".length, 5), "metric is required")
+            ], `Config: \n${config}`);
+        });
 
-  new Test("Incorrect: no metric, [tags] at EOF - expected one error",
-    `[configuration]
+        test("Incorrect: no metric, [tags] at EOF - expected one error", () => {
+            const config = `[configuration]
     [group]
       [widget]
         type = bar
@@ -282,14 +338,17 @@ suite("Required: [series] declared inside if", () => {
           entity = a
         [tags]
           a = b
-    endif`, [
-      createDiagnostic(
-        Range.create(5, 1, 5, "series]".length),
-        "metric is required",
-      )]).validationTest();
+    endif`;
+            const validator = new Validator(config);
+            const actualDiagnostics = validator.lineByLine();
+            deepStrictEqual(actualDiagnostics, [
+                createDiagnostic(
+                    createRange("[".length, "series".length, 5), "metric is required")
+            ], `Config: \n${config}`);
+        });
 
-  new Test("Incorrect: no metric, [tags] - expected one error",
-    `[configuration]
+        test("Incorrect: no metric, [tags] - expected one error", () => {
+            const config = `[configuration]
     [group]
       [widget]
         type = bar
@@ -299,48 +358,91 @@ suite("Required: [series] declared inside if", () => {
         [tags]
           a = b
     endif
-    `, [
-      createDiagnostic(
-        Range.create(5, 1, 5, "series]".length),
-        "metric is required",
-      )]).validationTest();
-});
+    `;
+            const validator = new Validator(config);
+            const actualDiagnostics = validator.lineByLine();
+            deepStrictEqual(actualDiagnostics, [
+                createDiagnostic(
+                    createRange("[".length, "series".length, 5), "metric is required")
+            ], `Config: \n${config}`);
+        });
+    });
 
-suite("Required: No metric is required if change-field value contains \"metric\"", () => {
-  new Test("Correct, no errors shoud be raised",
-    `[configuration]
+    suite("no duplicate errors with [tags]", () => {
+        test("[tags] at EOF in [widget] without type", () => {
+            const config = `[configuration]
+    entity = atsd
+    metric = a
+  [group]
+[widget]
+    [tags]
+      host = *
+      `;
+            const validator = new Validator(config);
+            const actualDiagnostics = validator.lineByLine();
+            deepStrictEqual(actualDiagnostics, [
+                createDiagnostic(
+                    createRange("[".length, "widget".length, 4),
+                    "Required section [series] is not declared."),
+                createDiagnostic(
+                    createRange("[".length, "widget".length, 4), "type is required")
+            ],
+                `Config: \n${config}`);
+        });
+
+        test("[tags] in [widget] without type", () => {
+            const config = `[configuration]
+    entity = atsd
+    metric = a
+  [group]
+[widget]
+    [tags]
+      host = *
+  [series]`;
+            const validator = new Validator(config);
+            const actualDiagnostics = validator.lineByLine();
+            deepStrictEqual(actualDiagnostics, [
+                createDiagnostic(
+                    createRange("[".length, "widget".length, 4), "type is required")
+            ],
+                `Config: \n${config}`);
+        });
+    });
+
+    suite("change-field value contains metric", () => {
+
+        test("Correct: no metric is required - dropdown is before series", () => {
+            const config = `[configuration]
     entity = atsd
   [group]
     [widget]
       type = chart
   [dropdown]
     change-field = metric
-  [series]`, []).validationTest();
-});
+  [series]`;
+            const validator = new Validator(config);
+            const actualDiagnostics = validator.lineByLine();
+            deepStrictEqual(actualDiagnostics, [], `Config: \n${config}`);
+        });
 
-suite("Required: No duplicate errors with [tags]", () => {
-  new Test("[tags] at EOF in [widget] without type",
-    `[widget]
-    [tags]
-      host = *
-      `, [
-      createDiagnostic(
-        Range.create(0, 1, 0, "widget]".length),
-        "type is required",
-      )]).validationTest();
+        test("Correct: no metric is required - dropdown is after series", () => {
+            const config = `[configuration]
+    entity = atsd
+  [group]
+    [widget]
+      type = chart
+  [series]
+  [dropdown]
+    change-field = metric`;
+            const validator = new Validator(config);
+            const actualDiagnostics = validator.lineByLine();
+            deepStrictEqual(actualDiagnostics, [], `Config: \n${config}`);
+        });
+    });
 
-  new Test("[tags] in [widget] without type",
-    `[widget]
-    [tags]
-      host = *`,  [createDiagnostic(
-        Range.create(0, 1, 0, "widget]".length),
-        "type is required",
-      )]).validationTest();
-});
-
-suite("UDF settings tests", () => {
-  test("Required evaluate-expression is missing", () => {
-    const config = `[configuration]
+    suite("UDF settings", () => {
+        test("Incorrect: evaluate-expression is missing", () => {
+            const config = `[configuration]
           [group]
           [widget]
               type = chart
@@ -349,18 +451,18 @@ suite("UDF settings tests", () => {
                   [series]
                   entity = b
                   metrics = c, d, e`;
-    const validator = new Validator(config);
-    const actualDiagnostics = validator.lineByLine();
-    const expectedDiagnostic = createDiagnostic(
-      Range.create(Position.create(6, 19), Position.create(6, 25)),
-      "If metrics is specified, either evaluate-expression or expr block is required",
-      DiagnosticSeverity.Error,
-    );
-    deepStrictEqual(actualDiagnostics, [expectedDiagnostic]);
-  });
+            const validator = new Validator(config);
+            const actualDiagnostics = validator.lineByLine();
+            const expectedDiagnostic = createDiagnostic(
+                Range.create(Position.create(6, 19), Position.create(6, 25)),
+                "If metrics is specified, either evaluate-expression or expr block is required",
+                DiagnosticSeverity.Error
+            );
+            deepStrictEqual(actualDiagnostics, [expectedDiagnostic], `Config: \n${config}`);
+        });
 
-  test("No error: evaluate-expression is present", () => {
-    const config = `[configuration]
+        test("Correct: evaluate-expression is present", () => {
+            const config = `[configuration]
           [group]
           [widget]
               type = chart
@@ -370,13 +472,13 @@ suite("UDF settings tests", () => {
                   entity = b
                   evaluate-expression = c LIKE 'cpu*'
                   metrics = c, d, e`;
-    const validator = new Validator(config);
-    const actualDiagnostics = validator.lineByLine();
-    deepStrictEqual(actualDiagnostics, []);
-  });
+            const validator = new Validator(config);
+            const actualDiagnostics = validator.lineByLine();
+            deepStrictEqual(actualDiagnostics, [], `Config: \n${config}`);
+        });
 
-  test("No error: expr block is present", () => {
-    const config = `[configuration]
+        test("Correct: expr block is present", () => {
+            const config = `[configuration]
           [group]
           [widget]
               type = chart
@@ -388,8 +490,9 @@ suite("UDF settings tests", () => {
                   expr
                     c LIKE 'cpu*'
                   endexpr`;
-    const validator = new Validator(config);
-    const actualDiagnostics = validator.lineByLine();
-    deepStrictEqual(actualDiagnostics, []);
-  });
+            const validator = new Validator(config);
+            const actualDiagnostics = validator.lineByLine();
+            deepStrictEqual(actualDiagnostics, [], `Config: \n${config}`);
+        });
+    });
 });

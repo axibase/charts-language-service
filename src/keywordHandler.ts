@@ -26,7 +26,7 @@ export class KeywordHandler {
      */
     public exprBlockIsDeclared: boolean = false;
     /**
-     * Last if statement. Used to get/set settings in ifSettigns.
+     * Last if statement. Used to get/set settings in ifSettings.
      */
     public lastCondition?: string;
     private config: Config;

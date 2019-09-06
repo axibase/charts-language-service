@@ -1,7 +1,7 @@
 import { readFileSync } from "fs";
-import { Setting } from "../../setting";
-import { ResourcesProviderBase } from "../../resourcesProviderBase";
 import { join } from "path";
+import { ResourcesProviderBase } from "../../resourcesProviderBase";
+import { Setting } from "../../setting";
 
 interface IDictionary { $schema: string; settings: Setting[]; }
 

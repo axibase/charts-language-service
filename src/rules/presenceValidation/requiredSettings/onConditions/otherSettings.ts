@@ -1,13 +1,13 @@
 import { Diagnostic } from "vscode-languageserver-types";
-import { Section } from "../../configTree/section";
-import { noRequiredSetting, noRequiredSettings } from "../../messageUtil";
-import { Setting } from "../../setting";
-import { createDiagnostic } from "../../util";
-import { requiredCondition } from "../utils/condition";
-import { Requirement, Rule } from "../utils/interfaces";
+import { Section } from "../../../../configTree/section";
+import { noRequiredSetting, noRequiredSettings } from "../../../../messageUtil";
+import { Setting } from "../../../../setting";
+import { createDiagnostic } from "../../../../util";
+import { requiredCondition } from "../../../utils/condition";
+import { Requirement, Rule } from "../../../utils/interfaces";
 
 /**
- * If key (dependent) is declared in the section and the section matches all of conditions, then:
+ * If the section matches all of conditions and key (dependent) is declared in the section, then:
  *   a) setting, specified in `requiredSetting` is required for this section;
  *      or
  *   b) required at least one setting from `requiredSetting` array.
@@ -15,26 +15,10 @@ import { Requirement, Rule } from "../utils/interfaces";
  */
 const checks: Map<string, Requirement> = new Map<string, Requirement>([
     [
-        "colors", {
-            /**
-             * If "colors" is specified:
-             *  1) check that:
-             *      1) "type" is "calendar", "treemap " or "gauge";
-             *      2) "mode" is "half" or "default";
-             *  2) require "thresholds" (try to search in tree and create Diagnostic if neccessary).
-             */
-            conditions: [
-                requiredCondition("type", ["calendar", "treemap", "gauge"]),
-                requiredCondition("mode", ["half", "default"])
-            ],
-            requiredSetting: "thresholds"
-        }],
-    [
         "forecast-horizon-start-time", {
             /**
-             * If "forecast-horizon-start-time" is specified:
-             *  1) check that "type" is "chart";
-             *  2) require any of "forecast-horizon-end-time", "forecast-horizon-interval", "forecast-horizon-length".
+             * If "type" is "chart" and "forecast-horizon-start-time" is specified
+             * require any of "forecast-horizon-end-time", "forecast-horizon-interval", "forecast-horizon-length".
              */
             conditions: [
                 requiredCondition("type", ["chart"])

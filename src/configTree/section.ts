@@ -1,10 +1,10 @@
-import { Condition } from "../relatedSettingsRules/utils/condition";
+import { Condition } from "../rules/utils/condition";
 import { Setting } from "../setting";
 import { TextRange } from "../textRange";
 
 /**
  * Settings, that are frequently used in conditions checks,
- * see requiredSettings.ts, uselessSettings.ts and date checks.
+ * see otherSettings.ts, uselessSettings.ts and date checks.
  */
 const sectionScopeSettings: string[] = ["type", "mode", "endtime", "timezone"];
 
@@ -53,11 +53,30 @@ export class Section {
     /**
      * Returns setting from this section by it's name.
      *
-     * @param name - Setting.name
+     * @param settingName - Setting.name
      * @returns Setting with name equal to `settingName`
      */
     public getSetting(settingName: string): Setting | undefined {
         return this.settings.find(s => s.name === settingName);
+    }
+
+    /**
+     * Searches setting in neighbour sections, matching specified name.
+     *
+     * @param settingName - Setting.name
+     * @param neighbourName - Name of section, in which setting is need to be searched
+     * @returns Setting with name equal to `settingName`
+     */
+    public getSettingFromNeighbours(settingName: string, neighbourName: string): Setting | undefined {
+        const neighbours = this.parent.children;
+        for (const neighbour of neighbours) {
+            if (neighbour.name === neighbourName) {
+                const targetSetting: Setting = neighbour.getSetting(settingName);
+                if (targetSetting != null) {
+                    return targetSetting;
+                }
+            }
+        }
     }
 
     /**
