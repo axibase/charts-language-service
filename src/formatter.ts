@@ -3,8 +3,8 @@ import { LanguageFormattingOptions, NestedCodeFormatter } from "./nestedCodeForm
 import {
     BLOCK_COMMENT_END, BLOCK_COMMENT_START,
     BLOCK_SCRIPT_END, BLOCK_SCRIPT_START,
-    ENDKEYWORDS_WITH_LF, ONE_LINE_COMMENT,
-    RELATIONS_REGEXP, SPACES_AT_START
+    ELSE_ELSEIF_REGEX, ONE_LINE_COMMENT, RELATIONS_REGEXP,
+    SPACES_AT_START
 } from "./regExpressions";
 import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { TextRange } from "./textRange";
@@ -183,7 +183,7 @@ export class Formatter {
                 /**
                  * We don't need blank line before else|elseif
                  */
-                if (!/\b(else|elseif)\b/.test(line)) {
+                if (!ELSE_ELSEIF_REGEX.test(line)) {
                     this.insertBlankLineBefore();
                 }
             }
@@ -200,19 +200,8 @@ export class Formatter {
     private shouldInsertLineBefore(): boolean {
         const previousFormattedLine: string = this.formattedText[this.formattedText.length - 2];
         return (
-            previousFormattedLine !== undefined
-            && !isEmpty(previousFormattedLine)
+            previousFormattedLine !== undefined && !isEmpty(previousFormattedLine)
         );
-    }
-
-    /**
-     * Last formatted line contains endkeyword (endif|endcsv|endscript|endsql|endfor|endlist|endvar|endexpr)
-     */
-    private checkEndKeyword() {
-        const formattedLine: string = this.formattedText[this.formattedText.length - 1];
-        if (ENDKEYWORDS_WITH_LF.test(formattedLine)) {
-            this.insertBlankLineAfter();
-        }
     }
 
     /**
@@ -304,27 +293,10 @@ export class Formatter {
     }
 
     /**
-     * Count how many blank lines are present at the end to avoid extra insertion
-     */
-    private getBlankLinesAtEnd(): number {
-        let blankLines: number = 0;
-        let start = this.formattedText.length - 1;
-        while (isEmpty(this.formattedText[start--])) {
-            blankLines++;
-        }
-
-        return blankLines;
-    }
-
-    /**
      * Append specified number of blank lines to the end of the document
      */
     private handleEndLines(): void {
-        /**
-         * We may have blank lines inserted after keywords - they should be taken into accout
-         */
-        const blankLinesToInsert = this.blankLinesAtEnd - this.getBlankLinesAtEnd();
-        this.formattedText.push(...new Array(blankLinesToInsert).fill(""));
+        this.formattedText.push(...new Array(this.blankLinesAtEnd).fill(""));
     }
 
     /**
@@ -339,13 +311,12 @@ export class Formatter {
      */
     private insertBlankLineBefore(): void {
         const previousLine: string = this.lines[this.currentLine - 1];
-        const linesToDelete: number = this.getBlankLinesAtEnd();
 
         if (previousLine === undefined || !this.shouldInsertLineBefore()) {
             return;
         }
 
-        this.formattedText.splice(this.formattedText.length - 1, linesToDelete, "");
+        this.formattedText.splice(this.formattedText.length - 1, 0, "");
     }
 
     /**

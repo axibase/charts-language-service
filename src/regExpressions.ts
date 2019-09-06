@@ -106,6 +106,9 @@ export const IF_CONDITION_REGEX: RegExp = /^[\s]*if\s*(.*)/;
 // if|csv|script|sql|for|list|var|expr - keywords separated with line feed
 export const KEYWORDS_WITH_LF: RegExp = new RegExp(`\\b(${CONTROL_KEYWORDS.join("|")})\\b`);
 
+// else|elseif - do not need line feed before these keywords
+export const ELSE_ELSEIF_REGEX: RegExp = /\b(else|elseif)\b/;
+
 // endif|endcsv|endscript|endsql|endfor|endlist|endvar|endexpr - endkeywords separated with line feed
 export const ENDKEYWORDS_WITH_LF: RegExp = new RegExp(
     `\\b(${CONTROL_KEYWORDS.map(word => "end" + word).join("|")})\\b`
