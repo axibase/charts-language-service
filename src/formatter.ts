@@ -174,7 +174,7 @@ export class Formatter {
                 this.lastKeywordIndent = "";
                 this.keywordSections = [];
             }
-            this.indentLine(this.checkSign(line));
+            this.indentLine();
             if (TextRange.isCloseAble(line) && this.shouldBeClosed()) {
                 this.keywordsLevels.push(this.currentIndent.length / Formatter.BASE_INDENT_SIZE);
                 this.lastKeywordIndent = this.currentIndent;
@@ -277,10 +277,27 @@ export class Formatter {
     }
 
     /**
+     * Count how many blank lines are present at the end to avoid extra insertion
+     */
+    private getBlankLinesAtEnd(): number {
+        let blankLines: number = 0;
+        let start = this.formattedText.length - 1;
+        while (isEmpty(this.formattedText[start--])) {
+            blankLines++;
+        }
+
+        return blankLines;
+    }
+
+    /**
      * Append specified number of blank lines to the end of the document
      */
     private handleEndLines(): void {
-        this.formattedText.push(...new Array(this.blankLinesAtEnd).fill(""));
+        /**
+         * We may have blank lines inserted after keywords - they should be taken into accout
+         */
+        const blankLinesToInsert = this.blankLinesAtEnd - this.getBlankLinesAtEnd();
+        this.formattedText.push(...new Array(blankLinesToInsert).fill(""));
     }
 
     /**
@@ -294,7 +311,14 @@ export class Formatter {
      * Inserts blank line before current line
      */
     private insertBlankLineBefore(): void {
-        this.formattedText.splice(this.formattedText.length - 1, 0, "");
+        const previousLine: string = this.lines[this.currentLine - 1];
+        const linesToDelete: number = this.getBlankLinesAtEnd();
+
+        if (previousLine === undefined) {
+            return;
+        }
+
+        this.formattedText.splice(this.formattedText.length - 1, linesToDelete, "");
     }
 
     /**
@@ -382,7 +406,7 @@ export class Formatter {
      * @param line to indent
      */
     private indentLine(line: string = this.getCurrentLine()): void {
-        this.formattedText.push(this.currentIndent + line.trim());
+        this.formattedText.push(this.currentIndent + this.checkSign(line.trim()));
     }
 
     /**
