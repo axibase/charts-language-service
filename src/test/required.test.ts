@@ -229,19 +229,6 @@ endfor`;
         deepStrictEqual(actualDiagnostics, [], `Config: \n${config}`);
     });
 
-    test("Correct: entity-expression instead of entity", () => {
-        const config = `[configuration]
-        [group]
-   [widget]
-   type = chart
-[series]
-  entity-expression = server*
-  metric = cpu_busy`;
-        const validator = new Validator(config);
-        const actualDiagnostics = validator.lineByLine();
-        deepStrictEqual(actualDiagnostics, [], `Config: \n${config}`);
-    });
-
     test("Correct: table and attribute are declared in a grandparent section", () => {
         const config = `[configuration]
   table = abc
