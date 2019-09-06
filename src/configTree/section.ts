@@ -72,7 +72,7 @@ export class Section {
         for (const neighbour of neighbours) {
             if (neighbour.name === neighbourName) {
                 const targetSetting: Setting = neighbour.getSetting(settingName);
-                if (targetSetting !== undefined) {
+                if (targetSetting != null) {
                     return targetSetting;
                 }
             }
