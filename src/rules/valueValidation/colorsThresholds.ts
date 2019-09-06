@@ -6,10 +6,8 @@ import { requiredCondition } from "../utils/condition";
 import { Rule } from "../utils/interfaces";
 
 const rule: Rule = {
-    name: "Checks colors is less than thresholds by 1",
+    name: "Checks that colors is used with thresholds and is less than thresholds by 1",
     check(section: Section): Diagnostic | void {
-        let colorsValues;
-        let thresholdsValues;
 
         if (!section.matchesConditions([
             requiredCondition("type", ["calendar", "treemap", "gauge"]),
@@ -28,6 +26,8 @@ const rule: Rule = {
                 `thresholds is required if colors is specified`);
         }
 
+        let colorsValues;
+        let thresholdsValues;
         if (colorsSetting.values.length > 0) {
             colorsSetting.values.push(colorsSetting.value);
             colorsValues = colorsSetting.values;

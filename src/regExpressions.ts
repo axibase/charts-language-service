@@ -60,6 +60,17 @@ export const EXPR_START = /^\s*expr\s*$/;
 // endexpr
 export const EXPR_END = /^\s*endexpr\s*$/;
 
+/** Comment expressions */
+
+// start of block comment - /*
+export const BLOCK_COMMENT_START: RegExp = /(\/\*+)(.*)/;
+
+// end of block comment - */
+export const BLOCK_COMMENT_END: RegExp = /(.*)(\*\/)/;
+
+// block comment - /* some-text */
+export const ONE_LINE_COMMENT: RegExp = /\/\*([\s\S]*?)(?=\*\/)/;
+
 /** Various regular expressions */
 
 // false, no, null, none, 0, off, true, yes, on, 1
@@ -88,17 +99,14 @@ export const SECTIONS_EXCEPTIONS_REGEXP: RegExp = /(?:tag|key)s?/;
 // tag(s) section regex
 export const TAG_REGEXP: RegExp = /tag/;
 
-// start of block comment - /*
-export const BLOCK_COMMENT_START: RegExp = /(\/\*+)(.*)/;
-
-// end of block comment - */
-export const BLOCK_COMMENT_END: RegExp = /(.*)(\*\/)/;
-
-// block comment - /* some-text */
-export const ONE_LINE_COMMENT: RegExp = /\/\*([\s\S]*?)(?=\*\/)/;
-
 // number of spaces until first non-space character -  "   hello" // 3
 export const SPACES_AT_START: RegExp = /[^ ]/;
+
+// [configuration], [series]
+export const SECTION_DECLARATION: RegExp = /(^\s*\[)(\w+)\]\s*$/;
+
+// [configuration
+export const UNCLOSED_SECTION_DECLARATION: RegExp = /(^\s*\[)(\w+)\s*$/;
 
 // extract if condition — if a == 2 // condition:  a == 2
 export const IF_CONDITION_REGEX: RegExp = /^[\s]*if\s*(.*)/;
@@ -113,3 +121,5 @@ export const ELSE_ELSEIF_REGEX: RegExp = /\b(else|elseif)\b/;
 export const ENDKEYWORDS_WITH_LF: RegExp = new RegExp(
     `\\b(${CONTROL_KEYWORDS.map(word => "end" + word).join("|")})\\b`
 );
+// width-units = 6.2
+export const SETTING_DECLARATION: RegExp = /(^\s*)([a-z].*?[a-z])\s*=\s*(.*?)\s*$/;
