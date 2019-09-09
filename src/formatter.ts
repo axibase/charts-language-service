@@ -253,7 +253,7 @@ export class Formatter {
     /**
      * Checks that line formatted before current exists and not empty
      */
-    private shouldInsertLineBefore(): boolean {
+    private get shouldInsertLineBefore(): boolean {
         const previousFormattedLine: string = this.formattedText[this.formattedText.length - 2];
         return previousFormattedLine !== undefined && !isEmpty(previousFormattedLine);
     }
@@ -368,7 +368,7 @@ export class Formatter {
     private insertBlankLineBefore(): void {
         const previousLine: string = this.lines[this.currentLine - 1];
 
-        if (previousLine === undefined || !this.shouldInsertLineBefore()) {
+        if (previousLine === undefined || !this.shouldInsertLineBefore) {
             return;
         }
 
