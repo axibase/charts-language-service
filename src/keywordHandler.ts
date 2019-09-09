@@ -11,6 +11,7 @@ import {
     EXPR_END,
     EXPR_START,
     EXPR_START_WITHOUT_LF,
+    IF_CONDITION_REGEX,
     ONE_LINE_SCRIPT,
     ONE_LINE_SQL
 } from "./regExpressions";
@@ -74,8 +75,7 @@ export class KeywordHandler {
      */
     public handleIf(): void {
         const line = this.config.getCurrentLine();
-        const ifConditionRegex: RegExp = /^[\s].*if\s*(.*)/;
-        const ifCondition = ifConditionRegex.exec(line)[1];
+        const ifCondition = IF_CONDITION_REGEX.exec(line)[1];
 
         if (ifCondition.trim() === "") {
             this.diagnostics.push(

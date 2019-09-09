@@ -84,4 +84,19 @@ suite("If condition syntax tests", () => {
         );
         deepStrictEqual(actualDiagnostics, [expectedDiagnostic], `Config: \n${config}`);
     });
+
+    test("Correct if condition with no space before `if`", () => {
+        const config = `[configuration]
+        [group]
+          [widget]
+            type = chart
+            [series]
+              entity = a
+              metric = b
+if true
+              endif`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        deepStrictEqual(actualDiagnostics, [], `Config: \n${config}`);
+    });
 });
