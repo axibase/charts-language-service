@@ -17,6 +17,13 @@ interface Section {
     name?: string;
 }
 
+/**
+ * Describes sections inside control structure
+ */
+interface InnerSection extends Section {
+    hasSettingBefore?: boolean;
+}
+
 /** Document formatting options */
 export const FORMATTING_OPTIONS: FormattingOptions = {
     insertSpaces: true,
@@ -128,7 +135,7 @@ export class Formatter {
     /**
      * Collects sections inside keyword structure
      */
-    private keywordSections: Section[] = [];
+    private keywordSections: InnerSection[] = [];
 
     /**
      * Comment block lines and their minimal commmon indent
@@ -284,7 +291,9 @@ export class Formatter {
      */
     private handleSectionInsideKeyword(): void {
         if (this.insideKeyword) {
-            this.keywordSections.push(this.currentSection);
+            const previousFormattedLine = this.formattedText[this.formattedText.length - 2];
+            const hasSettingBefore = SETTING_DECLARATION.test(previousFormattedLine);
+            this.keywordSections.push(Object.assign(this.currentSection, { hasSettingBefore }));
         }
     }
 
@@ -574,17 +583,17 @@ export class Formatter {
     }
 
     /**
-     * Determines whether section is first inside keyword structure
+     * Determines whether blank line should be inserted before setting inside control structure
      */
-    private get firstSectionInsideKeyword(): boolean {
-        return this.insideKeyword && this.keywordSections.length === 1;
+    private get noBlankLineBeforeSectionInKeyword(): boolean {
+        return this.insideKeyword && this.keywordSections.length === 1 && !this.keywordSections[0].hasSettingBefore;
     }
 
     /**
      * Inserts blank line before section except for configuration
      */
     private insertLineBeforeSection(): void {
-        if (this.currentSection.name === "configuration" || this.firstSectionInsideKeyword) {
+        if (this.currentSection.name === "configuration" || this.noBlankLineBeforeSectionInKeyword) {
             return;
         }
 
