@@ -123,9 +123,3 @@ export const ENDKEYWORDS_WITH_LF: RegExp = new RegExp(
 );
 // width-units = 6.2
 export const SETTING_DECLARATION: RegExp = /(^\s*)([a-z].*?[a-z])\s*=\s*(.*?)\s*$/;
-
-// control structures indented to parent section
-export const OUTDENTED_STRUCTURES: RegExp = /\b(for|list|if|var|csv)\b/;
-
-// control structures in sections except for [configuration], [group] and [widget] will be outdented
-export const OUTDENTED_SECTIONS: RegExp = /^((?!configuration|group|widget).)*$/;

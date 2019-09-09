@@ -4,8 +4,7 @@ import {
     BLOCK_COMMENT_END, BLOCK_COMMENT_START,
     BLOCK_SCRIPT_END, BLOCK_SCRIPT_START,
     ELSE_ELSEIF_REGEX, ENDKEYWORDS_WITH_LF,
-    ONE_LINE_COMMENT, OUTDENTED_SECTIONS,
-    OUTDENTED_STRUCTURES, RELATIONS_REGEXP,
+    ONE_LINE_COMMENT, RELATIONS_REGEXP,
     SETTING_DECLARATION, SPACES_AT_START
 } from "./regExpressions";
 import { ResourcesProviderBase } from "./resourcesProviderBase";
@@ -184,7 +183,6 @@ export class Formatter {
                 this.keywordSections = [];
             }
             this.formatControlStructure();
-            this.alignControlStructure();
             this.indentLine();
             if (TextRange.isCloseAble(line) && this.shouldBeClosed()) {
                 this.keywordsLevels.push(this.currentIndent.length / Formatter.BASE_INDENT_SIZE);
@@ -203,27 +201,6 @@ export class Formatter {
         this.handleEndLines();
 
         return this.formattedText.join("\n");
-    }
-
-    /**
-     * Control structures (for|list|if|var|csv) will be aligned to parent section if possible
-     */
-    private alignControlStructure(line: string = this.getCurrentLine()): void {
-        /**
-         * It isn't block control structure or it has no parent section
-         */
-        if (!TextRange.isCloseAble(line) || !this.shouldBeClosed() || !this.lastAddedParent.indent) {
-            return;
-        }
-
-        /**
-         * If control structure is nested, only first level will be aligned to parent
-         */
-        const outdentCondition = OUTDENTED_STRUCTURES.test(line) && OUTDENTED_SECTIONS.test(this.currentSection.name);
-        if (outdentCondition && !this.insideKeyword) {
-            const depth: number = ResourcesProviderBase.sectionDepthMap[this.currentSection.name];
-            this.setIndent(depth - 1);
-        }
     }
 
     /**
