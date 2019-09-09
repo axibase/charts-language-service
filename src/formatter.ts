@@ -228,9 +228,7 @@ export class Formatter {
      */
     private shouldInsertLineBefore(): boolean {
         const previousFormattedLine: string = this.formattedText[this.formattedText.length - 2];
-        return (
-            previousFormattedLine !== undefined && !isEmpty(previousFormattedLine)
-        );
+        return previousFormattedLine !== undefined && !isEmpty(previousFormattedLine);
     }
 
     /**
