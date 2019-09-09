@@ -4,7 +4,9 @@ import {
     BLOCK_COMMENT_END, BLOCK_COMMENT_START,
     BLOCK_SCRIPT_END, BLOCK_SCRIPT_START,
     ELSE_ELSEIF_REGEX, ONE_LINE_COMMENT, RELATIONS_REGEXP,
-    SPACES_AT_START
+    SPACES_AT_START,
+    SETTING_DECLARATION,
+    ENDKEYWORDS_WITH_LF
 } from "./regExpressions";
 import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { TextRange } from "./textRange";
@@ -174,6 +176,7 @@ export class Formatter {
                 this.lastKeywordIndent = "";
                 this.keywordSections = [];
             }
+            this.formatControlStructure();
             this.indentLine();
             if (TextRange.isCloseAble(line) && this.shouldBeClosed()) {
                 this.keywordsLevels.push(this.currentIndent.length / Formatter.BASE_INDENT_SIZE);
@@ -192,6 +195,32 @@ export class Formatter {
         this.handleEndLines();
 
         return this.formattedText.join("\n");
+    }
+
+    /**
+     * Inserts blank line after keyword end if needed
+     */
+    private formatControlStructure(): void {
+        const currentLine = this.getCurrentLine();
+        /**
+         * If `current` line is regular setting or keyword end, then we need to check `previous formatted` line
+         * Otherwise do nothing
+         */
+        const insertLineCondition = SETTING_DECLARATION.test(currentLine) || ENDKEYWORDS_WITH_LF.test(currentLine);
+
+        if (currentLine === undefined || !insertLineCondition) {
+            return;
+        }
+
+        /**
+         * Check `previous formatted` line.
+         * If it is keyword end, blank line should inserted between it and current line
+         */
+        const previousFormattedLine = this.formattedText[this.formattedText.length - 1];
+
+        if (ENDKEYWORDS_WITH_LF.test(previousFormattedLine)) {
+            this.insertBlankLineAfter();
+        }
     }
 
     /**
