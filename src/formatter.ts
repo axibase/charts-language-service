@@ -225,12 +225,10 @@ export class Formatter {
     private formatControlStructure(): void {
         const currentLine = this.getCurrentLine();
         /**
-         * If `current` line is regular setting or keyword end, then we need to check `previous formatted` line
+         * If `current` line is regular setting, then we need to check `previous formatted` line
          * Otherwise do nothing
          */
-        const insertLineCondition = SETTING_DECLARATION.test(currentLine) || ENDKEYWORDS_WITH_LF.test(currentLine);
-
-        if (currentLine === undefined || !insertLineCondition) {
+        if (currentLine === undefined || !SETTING_DECLARATION.test(currentLine)) {
             return;
         }
 

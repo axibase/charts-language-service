@@ -204,7 +204,6 @@ suite("Formatting indents tests: sections and settings", () => {
         else
           metric = cpu_system
         endif
-
     endfor
 
 `;
@@ -264,7 +263,6 @@ suite("Formatting indents tests: sections and settings", () => {
         elseif server == 'nurswgvml006'
           color = yellow
         endif
-
     endfor
 
 `;
