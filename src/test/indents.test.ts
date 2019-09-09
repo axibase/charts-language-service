@@ -462,10 +462,10 @@ starttime = 2018
       label = Count
       list metrics = a, b
 
-      for metric in metrics
-        [series]
-          metric = @{metric}
-      endfor
+    for metric in metrics
+      [series]
+        metric = @{metric}
+    endfor
 
     [column]
       key = value
