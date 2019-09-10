@@ -182,7 +182,7 @@ export class Formatter {
                 this.lastKeywordIndent = "";
                 this.keywordSections = [];
             }
-            this.formatControlStructure();
+            this.insertBlankLineAfterKeywordEnd();
             this.indentLine();
             if (TextRange.isCloseAble(line) && this.shouldBeClosed()) {
                 this.keywordsLevels.push(this.currentIndent.length / Formatter.BASE_INDENT_SIZE);
@@ -206,7 +206,7 @@ export class Formatter {
     /**
      * Inserts blank line after keyword end if needed
      */
-    private formatControlStructure(): void {
+    private insertBlankLineAfterKeywordEnd(): void {
         const currentLine = this.getCurrentLine();
         /**
          * If `current` line is regular setting, then we need to check `previous formatted` line

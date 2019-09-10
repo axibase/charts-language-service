@@ -725,6 +725,96 @@ column-time = null
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
+
+  test("Single [series] inside keyword, no settings before it", () => {
+    const text = `[configuration]
+
+[group]
+
+  [widget]
+
+    for item in collection
+      [series]
+    endfor
+
+`;
+    const expected = text;
+    const formatter = new Formatter(FORMATTING_OPTIONS);
+    const actual = formatter.format(text);
+    deepStrictEqual(actual, expected);
+  });
+
+  test("Multiple [series] inside keyword, only first without blank line", () => {
+    const text = `[configuration]
+
+[group]
+
+  [widget]
+
+    for item in collection
+      [series]
+
+      [series]
+        entity = a
+
+      [series]
+    endfor
+
+`;
+    const expected = text;
+    const formatter = new Formatter(FORMATTING_OPTIONS);
+    const actual = formatter.format(text);
+    deepStrictEqual(actual, expected);
+  });
+
+  test("Single [series] inside keyword, blank line should be deleted", () => {
+    const text = `[configuration]
+
+[group]
+
+  [widget]
+
+    for item in collection
+
+      [series]
+    endfor
+
+`;
+    const expected = `[configuration]
+
+[group]
+
+  [widget]
+
+    for item in collection
+      [series]
+    endfor
+
+`;
+    const formatter = new Formatter(FORMATTING_OPTIONS);
+    const actual = formatter.format(text);
+    deepStrictEqual(actual, expected);
+  });
+
+  test("Single [series] inside keyword with setting before it", () => {
+    const text = `[configuration]
+
+[group]
+
+  [widget]
+
+    for item in collection
+      entity = @{item}
+
+      [series]
+    endfor
+
+`;
+    const expected = text;
+    const formatter = new Formatter(FORMATTING_OPTIONS);
+    const actual = formatter.format(text);
+    deepStrictEqual(actual, expected);
+  });
 });
 
 suite("Formatting indents tests: !=, ==, =", () => {
