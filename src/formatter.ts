@@ -4,7 +4,9 @@ import {
     BLOCK_COMMENT_END, BLOCK_COMMENT_START,
     BLOCK_SCRIPT_END, BLOCK_SCRIPT_START,
     ONE_LINE_COMMENT, RELATIONS_REGEXP,
-    SPACES_AT_START
+    SPACES_AT_START,
+    VAR_OPEN_BRACKET_NEXT_LINE,
+    VAR_OPEN_BRACKET_SAME_LINE
 } from "./regExpressions";
 import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { TextRange } from "./textRange";
@@ -548,7 +550,8 @@ export class Formatter {
         }
         switch (this.match[1]) {
             case "var": {
-                if (/=\s*(\[|\{)(|.*,)\s*$/m.test(line)) {
+                const nextLine = this.lines[this.currentLine + 1];
+                if (VAR_OPEN_BRACKET_SAME_LINE.test(line) || nextLine && VAR_OPEN_BRACKET_NEXT_LINE.test(nextLine)) {
                     return true;
                 }
                 break;
