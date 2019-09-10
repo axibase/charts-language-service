@@ -1,7 +1,7 @@
 import { deepStrictEqual } from "assert";
 import { Position, Range } from "vscode-languageserver-types";
 import { Formatter, FORMATTING_OPTIONS } from "../formatter";
-import { createDiagnostic } from "../util";
+import { createDiagnostic, createRange } from "../util";
 import { Validator } from "../validator";
 
 const baseConfig = (setting: string) => `[configuration]
@@ -63,7 +63,7 @@ suite("Var endvar tests", () => {
         const actualDiagnostic = validator.lineByLine();
         const expectedDiagnostic = [
             createDiagnostic(
-                Range.create(Position.create(7, 6), Position.create(7, 9)),
+                createRange(6, 3, 7),
                 "var has no matching endvar",
             )
         ];
@@ -80,7 +80,7 @@ suite("Var endvar tests", () => {
         const actualDiagnostic = validator.lineByLine();
         const expectedDiagnostic = [
             createDiagnostic(
-                Range.create(Position.create(7, 6), Position.create(7, 9)),
+                createRange(6, 3, 7),
                 "var has no matching endvar",
             )
         ];
@@ -97,7 +97,7 @@ suite("Var endvar tests", () => {
         const actualDiagnostic = validator.lineByLine();
         const expectedDiagnostic = [
             createDiagnostic(
-                Range.create(Position.create(7, 6), Position.create(7, 9)),
+                createRange(6, 3, 7),
                 "var has no matching endvar",
             )
         ];
@@ -138,7 +138,7 @@ suite("Var endvar tests", () => {
         const actualDiagnostic = validator.lineByLine();
         const expectedDiagnostic = [
             createDiagnostic(
-                Range.create(Position.create(13, 8), Position.create(13, 14)),
+                createRange(8, 6, 13),
                 "endvar has no matching var",
             )
         ];
