@@ -102,3 +102,18 @@ export const SPACES_AT_START: RegExp = /[^ ]/;
 
 // extract if condition — if a == 2 // condition:  a == 2
 export const IF_CONDITION_REGEX: RegExp = /^[\s]*if\s*(.*)/;
+
+// width-units = 6.2
+export const SETTING_DECLARATION: RegExp = /(^\s*)([a-z].*?[a-z])\s*=\s*(.*?)\s*$/;
+
+// var test = [
+export const VAR_OPEN_BRACKET_SAME_LINE: RegExp = /=\s*(\[|\{)(|.*,)\s*$/g;
+
+// var test =
+// [
+export const VAR_OPEN_BRACKET_NEXT_LINE: RegExp = /\s*(\[|\{)(|.*,)\s*$/g;
+
+// var test = [
+//     ...
+// ]  <- close bracket
+export const VAR_CLOSE_BRACKET: RegExp = /((\s*[\]\}\)]\s*)+)/g;
