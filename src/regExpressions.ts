@@ -122,3 +122,6 @@ export const VAR_OPEN_BRACKET_NEXT_LINE: RegExp = /\s*(\[|\{)(|.*,)\s*$/g;
 //     ...
 // ]  <- close bracket
 export const VAR_CLOSE_BRACKET: RegExp = /((\s*[\]\}\)]\s*)+)/g;
+
+// extract if condition — if a == 2 // condition:  a == 2
+export const IF_CONDITION_REGEX: RegExp = /^[\s]*if\s*(.*)/;
