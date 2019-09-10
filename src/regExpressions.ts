@@ -110,3 +110,5 @@ export const UNCLOSED_SECTION_DECLARATION: RegExp = /(^\s*\[)(\w+)\s*$/;
 
 // width-units = 6.2
 export const SETTING_DECLARATION: RegExp = /(^\s*)([a-z].*?[a-z])\s*=\s*(.*?)\s*$/;
+// extract if condition — if a == 2 // condition:  a == 2
+export const IF_CONDITION_REGEX: RegExp = /^[\s]*if\s*(.*)/;
