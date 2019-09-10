@@ -99,3 +99,6 @@ export const ONE_LINE_COMMENT: RegExp = /\/\*([\s\S]*?)(?=\*\/)/;
 
 // number of spaces until first non-space character -  "   hello" // 3
 export const SPACES_AT_START: RegExp = /[^ ]/;
+
+// extract if condition — if a == 2 // condition:  a == 2
+export const IF_CONDITION_REGEX: RegExp = /^[\s]*if\s*(.*)/;
