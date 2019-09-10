@@ -110,3 +110,15 @@ export const UNCLOSED_SECTION_DECLARATION: RegExp = /(^\s*\[)(\w+)\s*$/;
 
 // width-units = 6.2
 export const SETTING_DECLARATION: RegExp = /(^\s*)([a-z].*?[a-z])\s*=\s*(.*?)\s*$/;
+
+// var test = [
+export const VAR_OPEN_BRACKET_SAME_LINE: RegExp = /=\s*(\[|\{)(|.*,)\s*$/g;
+
+// var test =
+// [
+export const VAR_OPEN_BRACKET_NEXT_LINE: RegExp = /\s*(\[|\{)(|.*,)\s*$/g;
+
+// var test = [
+//     ...
+// ]  <- close bracket
+export const VAR_CLOSE_BRACKET: RegExp = /((\s*[\]\}\)]\s*)+)/g;
