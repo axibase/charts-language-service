@@ -1121,7 +1121,22 @@ export class Validator {
             return;
         }
         const range: Range = this.createRange(this.match[1].length, this.match[2].length);
-        const diagnostic: Diagnostic | undefined = setting.checkType(range);
+        let diagnostic: Diagnostic | undefined;
+
+        if (setting.multiple) {
+            const incorrectItems = setting.value.split(",").some(
+                value => setting.checkType(range, value) !== undefined
+            );
+            if (incorrectItems) {
+                diagnostic = createDiagnostic(
+                    range,
+                    `${setting.displayName} has incorrect elements`,
+                    DiagnosticSeverity.Error,
+                );
+            }
+        } else {
+            diagnostic = setting.checkType(range);
+        }
         if (diagnostic != null) {
             this.result.push(diagnostic);
         }
