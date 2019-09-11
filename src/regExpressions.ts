@@ -113,3 +113,6 @@ export const ELSE_ELSEIF_REGEX: RegExp = /\b(else|elseif)\b/;
 export const ENDKEYWORDS_WITH_LF: RegExp = new RegExp(
     `\\b(${CONTROL_KEYWORDS.map(word => "end" + word).join("|")})\\b`
 );
+
+// width-units = 6.2
+export const SETTING_DECLARATION: RegExp = /(^\s*)([a-z].*?[a-z])\s*=\s*(.*?)\s*$/;
