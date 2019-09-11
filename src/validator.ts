@@ -24,8 +24,7 @@ import {
     SECTIONS_EXCEPTIONS_REGEXP,
     TAG_REGEXP,
     VAR_CLOSE_BRACKET,
-    VAR_OPEN_BRACKET_NEXT_LINE,
-    VAR_OPEN_BRACKET_SAME_LINE
+    VAR_OPEN_BRACKET,
 } from "./regExpressions";
 import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { SectionStack } from "./sectionStack";
@@ -1087,8 +1086,8 @@ export class Validator {
             }
             case "var": {
                 const nextLine = this.config.getLine(this.config.currentLineNumber + 1);
-                const openBrackets: RegExpMatchArray | null = line.match(VAR_OPEN_BRACKET_SAME_LINE) ||
-                    nextLine && (nextLine).match(VAR_OPEN_BRACKET_NEXT_LINE);
+                const openBrackets: RegExpMatchArray | null = line.match(VAR_OPEN_BRACKET) ||
+                    nextLine && (nextLine).match(VAR_OPEN_BRACKET);
                 const closeBrackets: RegExpMatchArray | null = line.match(VAR_CLOSE_BRACKET);
                 if (openBrackets) {
                     if (closeBrackets && openBrackets.map((s: string) => s.trim()).join("").length !==

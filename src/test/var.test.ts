@@ -171,7 +171,7 @@ endvar
         deepStrictEqual(actual, expected);
     });
 
-    test("Incorrect multiline var, bracket next line", () => {
+    test("Incorrect multiline var: bracket next line, wrong endvar indent", () => {
         const text = `var bmcs =
 [
 "b_idx_above",
@@ -197,7 +197,7 @@ endvar
         deepStrictEqual(actual, expected);
     });
 
-    test("Correct multiline var, bracket next line", () => {
+    test("Correct multiline var: bracket next line", () => {
         const text = `var bmcs =
   [
   "b_idx_above",
@@ -205,6 +205,23 @@ endvar
   "b_valmin",
   "b_win_greater"
   ]
+endvar
+
+`;
+        const expected = text;
+        const formatter = new Formatter(FORMATTING_OPTIONS);
+        const actual = formatter.format(text);
+        deepStrictEqual(actual, expected);
+    });
+
+    test("Correct multiline var: var is declared, parenthesis next line", () => {
+        const text = `var bmcs =
+  (
+  "b_idx_above",
+  "b_tail_below",
+  "b_valmin",
+  "b_win_greater"
+  )
 endvar
 
 `;
