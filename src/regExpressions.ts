@@ -96,11 +96,8 @@ export const RELATIONS_REGEXP: RegExp = new RegExp(`(^\\s*.+?)(\\s*?)(${RELATION
 // tag(s)|key(s) — sections, whose settings are handled in different way
 export const SECTIONS_EXCEPTIONS_REGEXP: RegExp = /(?:tag|key)s?/;
 
-// tag(s) section regex
-export const TAG_REGEXP: RegExp = /tag/;
-
-// number of spaces until first non-space character -  "   hello" // 3
-export const SPACES_AT_START: RegExp = /[^ ]/;
+// width-units = 6.2
+export const SETTING_DECLARATION = /(^\s*)([a-z].*?[a-z])\s*=\s*(.*?)\s*$/;
 
 // [configuration], [series]
 export const SECTION_DECLARATION: RegExp = /(^\s*\[)(\w+)\]\s*$/;
@@ -113,6 +110,3 @@ export const SPACES_AT_START = /[^ ]/;
 
 // extract if condition — if a == 2 // condition:  a == 2
 export const IF_CONDITION_REGEX = /^[\s]*if\s*(.*)/;
-
-// width-units = 6.2
-export const SETTING_DECLARATION = /(^\s*)([a-z].*?[a-z])\s*=\s*(.*?)\s*$/;
