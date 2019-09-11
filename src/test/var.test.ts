@@ -126,7 +126,7 @@ suite("Var endvar tests", () => {
         deepStrictEqual(actualDiagnostic, expectedDiagnostic, `Config: \n${config}`);
     });
 
-    test("Incorrect multiline var: bracket next line", () => {
+    test("Incorrect multiline var: no open var, bracket next line", () => {
         const config = baseConfig(`v =
         [
             "a"
