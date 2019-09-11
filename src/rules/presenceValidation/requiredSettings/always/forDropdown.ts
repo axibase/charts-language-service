@@ -8,13 +8,11 @@ const dropDownRequirements = ["onchange", "changefield"];
 const rule: Rule = {
     name: "Check [dropdown] contains either `on-change` or `change-field`",
     check(section: Section): Diagnostic | void {
-        for (const req of dropDownRequirements) {
-            const setting = section.getSetting(req);
-            if (setting != null) {
-                return;
-            }
+        const isDeclared = (settingName) => section.getSettingFromTree(settingName) != null;
+        const isAnyDeclared = dropDownRequirements.some(isDeclared);
+        if (!isAnyDeclared) {
+            return createDiagnostic(section.range.range, requiredIsMissed("on-change or change-field"));
         }
-        return createDiagnostic(section.range.range, requiredIsMissed("on-change or change-field"));
     }
 };
 

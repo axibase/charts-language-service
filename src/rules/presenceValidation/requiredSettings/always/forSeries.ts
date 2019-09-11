@@ -18,42 +18,26 @@ const rule: Rule = {
              */
             return;
         }
-
-        let entityIsDeclared = false;
-        for (const req of entitySettings) {
-            const entity = section.getSettingFromTree(req);
-            entityIsDeclared = entity != null;
-            if (entityIsDeclared) {
-                break;
-            }
-        }
-        let metricIsDeclared = false;
-        for (const req of metricSettings) {
-            const metric = section.getSettingFromTree(req);
-            metricIsDeclared = metric != null;
-            if (metricIsDeclared) {
-                break;
-            }
-        }
+        const isDeclared = (settingName) => section.getSettingFromTree(settingName) != null;
+        const isEntityDeclared = entitySettings.some(isDeclared);
+        const isMetricDeclared = metricSettings.some(isDeclared);
         const diagnostics: Diagnostic[] = [];
-        if (!entityIsDeclared) {
+        if (!isEntityDeclared) {
             diagnostics.push(createDiagnostic(section.range.range, requiredIsMissed("entity")));
         }
-        if (!metricIsDeclared) {
+        if (!isMetricDeclared) {
             const changeField = section.getSettingFromNeighbours("changefield", "dropdown");
             /**
              * [dropdown]
              *   change-field = metric
-             * @see https://apps.axibase.com/chartlab/7c6ada72
+             * @see {@link https://apps.axibase.com/chartlab/7c6ada72}
              */
             const switchMetric = changeField && METRIC.test(changeField.value);
             if (!switchMetric) {
                 diagnostics.push(createDiagnostic(section.range.range, requiredIsMissed("metric")));
             }
         }
-        if (diagnostics.length > 0) {
-            return diagnostics;
-        }
+        return diagnostics;
     }
 };
 
