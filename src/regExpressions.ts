@@ -116,3 +116,15 @@ export const ENDKEYWORDS_WITH_LF: RegExp = new RegExp(
 
 // width-units = 6.2
 export const SETTING_DECLARATION: RegExp = /(^\s*)([a-z].*?[a-z])\s*=\s*(.*?)\s*$/;
+// var test = [ <- open bracket
+//
+// OR
+//
+// var test =
+// [ <- open bracket
+export const VAR_OPEN_BRACKET: RegExp = /(=)?\s*[\[\{\(](|.*,)\s*$/;
+
+// var test = [
+//     ...
+// ]  <- close bracket
+export const VAR_CLOSE_BRACKET: RegExp = /\s*[\]\}\)]\s*/;

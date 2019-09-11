@@ -5,7 +5,8 @@ import {
     BLOCK_SCRIPT_END, BLOCK_SCRIPT_START,
     ELSE_ELSEIF_REGEX, ENDKEYWORDS_WITH_LF,
     ONE_LINE_COMMENT, RELATIONS_REGEXP,
-    SETTING_DECLARATION, SPACES_AT_START
+    SETTING_DECLARATION, SPACES_AT_START,
+    VAR_OPEN_BRACKET,
 } from "./regExpressions";
 import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { TextRange } from "./textRange";
@@ -437,7 +438,7 @@ export class Formatter {
      * @param line to indent
      */
     private indentLine(line: string = this.getCurrentLine()): void {
-        this.formattedText.push(this.currentIndent + this.checkSign(line.trim()));
+        this.formattedText.push(this.currentIndent + this.checkSign(line).trim());
     }
 
     /**
@@ -626,7 +627,8 @@ export class Formatter {
         }
         switch (this.match[1]) {
             case "var": {
-                if (/=\s*(\[|\{)(|.*,)\s*$/m.test(line)) {
+                const nextLine = this.lines[this.currentLine + 1];
+                if (VAR_OPEN_BRACKET.test(line) || nextLine && VAR_OPEN_BRACKET.test(nextLine)) {
                     return true;
                 }
                 break;
