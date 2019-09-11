@@ -103,9 +103,6 @@ export const SPACES_AT_START: RegExp = /[^ ]/;
 // extract if condition — if a == 2 // condition:  a == 2
 export const IF_CONDITION_REGEX: RegExp = /^[\s]*if\s*(.*)/;
 
-// width-units = 6.2
-export const SETTING_DECLARATION: RegExp = /(^\s*)([a-z].*?[a-z])\s*=\s*(.*?)\s*$/;
-
 // var test = [
 //
 // OR
