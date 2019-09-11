@@ -103,7 +103,7 @@ export const SPACES_AT_START: RegExp = /[^ ]/;
 // extract if condition — if a == 2 // condition:  a == 2
 export const IF_CONDITION_REGEX: RegExp = /^[\s]*if\s*(.*)/;
 
-// var test = [
+// var test = [ <- open bracket
 //
 // OR
 //
