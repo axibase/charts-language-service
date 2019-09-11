@@ -147,21 +147,17 @@ suite("Var endvar tests", () => {
 });
 
 suite("Var formatting tests", () => {
-    test("Incorrect multiline var, bracket same line", () => {
-        const text = `var bmcs =  [
-"b_idx_above",
-"b_tail_below",
-"b_valmin",
-"b_win_greater"
-]
+    test("Incorrect multiline var: wrong endvar indent, bracket same line", () => {
+        const text = `var data = [
+  "a",
+  "b",
+  ]
     endvar
 
 `;
-        const expected = `var bmcs = [
-  "b_idx_above",
-  "b_tail_below",
-  "b_valmin",
-  "b_win_greater"
+        const expected = `var data = [
+  "a",
+  "b",
   ]
 endvar
 
@@ -171,23 +167,19 @@ endvar
         deepStrictEqual(actual, expected);
     });
 
-    test("Incorrect multiline var: bracket next line, wrong endvar indent", () => {
-        const text = `var bmcs =
+    test("Incorrect multiline var: wrong endvar indent, bracket next line", () => {
+        const text = `var data =
 [
-"b_idx_above",
-"b_tail_below",
-"b_valmin",
-"b_win_greater"
+"a",
+"b",
 ]
     endvar
 
 `;
-        const expected = `var bmcs =
+        const expected = `var data =
   [
-  "b_idx_above",
-  "b_tail_below",
-  "b_valmin",
-  "b_win_greater"
+  "a",
+  "b",
   ]
 endvar
 
@@ -198,12 +190,10 @@ endvar
     });
 
     test("Correct multiline var: bracket next line", () => {
-        const text = `var bmcs =
+        const text = `var data =
   [
-  "b_idx_above",
-  "b_tail_below",
-  "b_valmin",
-  "b_win_greater"
+  "a",
+  "b",
   ]
 endvar
 
@@ -214,18 +204,65 @@ endvar
         deepStrictEqual(actual, expected);
     });
 
-    test("Correct multiline var: var is declared, parenthesis next line", () => {
-        const text = `var bmcs =
+    test("Correct multiline var: parenthesis next line", () => {
+        const text = `var data =
   (
-  "b_idx_above",
-  "b_tail_below",
-  "b_valmin",
-  "b_win_greater"
+  "a",
+  "b",
   )
 endvar
 
 `;
         const expected = text;
+        const formatter = new Formatter(FORMATTING_OPTIONS);
+        const actual = formatter.format(text);
+        deepStrictEqual(actual, expected);
+    });
+
+    test("Correct multiline var: braces next line", () => {
+        const text = `var data =
+  {
+  "a",
+  "b",
+  }
+endvar
+
+`;
+        const expected = text;
+        const formatter = new Formatter(FORMATTING_OPTIONS);
+        const actual = formatter.format(text);
+        deepStrictEqual(actual, expected);
+    });
+
+    test("Correct multiline var: braces same line", () => {
+        const text = `var data = {
+  "a",
+  "b",
+  }
+endvar
+
+`;
+        const expected = text;
+        const formatter = new Formatter(FORMATTING_OPTIONS);
+        const actual = formatter.format(text);
+        deepStrictEqual(actual, expected);
+    });
+
+    test("Incorrect multiline var: extra spaces after '=', braces same line", () => {
+        const text = `var data =    {
+  "a",
+  "b",
+  }
+endvar
+
+`;
+        const expected = `var data = {
+  "a",
+  "b",
+  }
+endvar
+
+`;
         const formatter = new Formatter(FORMATTING_OPTIONS);
         const actual = formatter.format(text);
         deepStrictEqual(actual, expected);
