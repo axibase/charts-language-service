@@ -108,5 +108,11 @@ export const SECTION_DECLARATION: RegExp = /(^\s*\[)(\w+)\]\s*$/;
 // [configuration
 export const UNCLOSED_SECTION_DECLARATION: RegExp = /(^\s*\[)(\w+)\s*$/;
 
+// number of spaces until first non-space character -  "   hello" // 3
+export const SPACES_AT_START = /[^ ]/;
+
+// extract if condition — if a == 2 // condition:  a == 2
+export const IF_CONDITION_REGEX = /^[\s]*if\s*(.*)/;
+
 // width-units = 6.2
-export const SETTING_DECLARATION: RegExp = /(^\s*)([a-z].*?[a-z])\s*=\s*(.*?)\s*$/;
+export const SETTING_DECLARATION = /(^\s*)([a-z].*?[a-z])\s*=\s*(.*?)\s*$/;
