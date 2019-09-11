@@ -23,7 +23,9 @@ import {
     CSV_NEXT_LINE_HEADER_PATTERN,
     SECTION_DECLARATION,
     SECTIONS_EXCEPTIONS_REGEXP, SETTING_DECLARATION,
-    UNCLOSED_SECTION_DECLARATION
+    UNCLOSED_SECTION_DECLARATION,
+    VAR_CLOSE_BRACKET,
+    VAR_OPEN_BRACKET
 } from "./regExpressions";
 import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { SectionStack } from "./sectionStack";
@@ -916,8 +918,10 @@ export class Validator {
                 break;
             }
             case "var": {
-                const openBrackets: RegExpMatchArray | null = line.match(/((\s*[\[\{\(]\s*)+)/g);
-                const closeBrackets: RegExpMatchArray | null = line.match(/((\s*[\]\}\)]\s*)+)/g);
+                const nextLine = this.config.getLine(this.config.currentLineNumber + 1);
+                const openBrackets: RegExpMatchArray | null = line.match(VAR_OPEN_BRACKET) ||
+                    nextLine && (nextLine).match(VAR_OPEN_BRACKET);
+                const closeBrackets: RegExpMatchArray | null = line.match(VAR_CLOSE_BRACKET);
                 if (openBrackets) {
                     if (closeBrackets && openBrackets.map((s: string) => s.trim()).join("").length !==
                         closeBrackets.map((s: string) => s.trim()).join("").length
