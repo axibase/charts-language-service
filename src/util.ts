@@ -26,6 +26,21 @@ export function isInMap<T>(value: T, map: Map<string, T[]> | Map<string, T[][]>)
 }
 
 /**
+ * @param target array of aliases
+ * @param array array to perform the search
+ * @returns true, if array contains a value from target
+ */
+export function isAnyInArray<T>(target: T[], array: T[]): boolean {
+    for (const item of target) {
+        if (array.includes(item)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
  * Clears the passed argument and looks for a setting with the same name
  * @param name name of the wanted setting
  * @param range TextRange of the setting in text.

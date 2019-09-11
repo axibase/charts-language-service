@@ -1,7 +1,7 @@
 import { Diagnostic } from "vscode-languageserver-types";
-import { Section } from "../../../../configTree/section";
-import { createDiagnostic } from "../../../../util";
-import { Rule } from "../../../utils/interfaces";
+import { Section } from "../../configTree/section";
+import { createDiagnostic } from "../../util";
+import { Rule } from "../utils/interfaces";
 
 const rule: Rule = {
     name: "If metrics is specified, either evaluate-expression or expr block is required",

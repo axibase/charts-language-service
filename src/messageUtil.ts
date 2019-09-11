@@ -79,5 +79,3 @@ export const dateError: MessageFactoryMethod = (specificMsg: string, name: strin
   `${specificMsg}. ${name} must be a date or calendar expression, for example:
  * current_hour + 1 minute
  * 2019-04-01T10:15:00Z`;
-
-export const requiredIsMissed: MessageFactoryMethod = (settingName: string): string => `${settingName} is required`;

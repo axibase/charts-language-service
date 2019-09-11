@@ -21,9 +21,8 @@ import {
     CSV_INLINE_HEADER_PATTERN,
     CSV_KEYWORD_PATTERN,
     CSV_NEXT_LINE_HEADER_PATTERN,
-    SECTION_DECLARATION,
-    SECTIONS_EXCEPTIONS_REGEXP, SETTING_DECLARATION,
-    UNCLOSED_SECTION_DECLARATION
+    SECTIONS_EXCEPTIONS_REGEXP,
+    TAG_REGEXP
 } from "./regExpressions";
 import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { SectionStack } from "./sectionStack";
@@ -34,6 +33,7 @@ import {
     createDiagnostic,
     createRange,
     getSetting,
+    isAnyInArray,
     isEmpty,
     isInMap,
     repetitionDiagnostic
@@ -90,6 +90,10 @@ export class Validator {
      */
     private match?: RegExpExecArray | null;
     /**
+     * Map of settings declared in parent sections. Keys are section names.
+     */
+    private readonly parentSettings: Map<string, Setting[]> = new Map<string, Setting[]>();
+    /**
      * Position of declaration of previous section and the name of the section
      */
     private previousSection?: TextRange;
@@ -98,9 +102,17 @@ export class Validator {
      */
     private previousSettings: Setting[] = [];
     /**
+     * Settings required to declare in the current section
+     */
+    private requiredSettings: DefaultSetting[][] = [];
+    /**
      * Validation result
      */
     private readonly result: Diagnostic[] = [];
+    /**
+     * Map of settings in the current widget and their values
+     */
+    private readonly settingValues: Map<string, string> = new Map<string, string>();
     /**
      * Map of defined variables, where key is type (for, var, csv...)
      */
@@ -119,9 +131,9 @@ export class Validator {
     /**
      * Stores sections with corresponding settings in tree order.
      */
-    private readonly configTree: ConfigTree;
+    private configTree: ConfigTree;
 
-    private readonly config: Config;
+    private config: Config;
 
     private keywordHandler: KeywordHandler;
 
@@ -158,7 +170,7 @@ export class Validator {
             if (this.isNotKeywordEnd("csv")) {
                 this.validateCsv();
             }
-            this.processLine();
+            this.eachLine();
             if (this.foundKeyword !== undefined) {
                 if (/\b(if|for|csv)\b/i.test(this.foundKeyword.text)) {
                     this.keywordsStack.push(this.foundKeyword);
@@ -168,12 +180,21 @@ export class Validator {
         }
         this.checkAliases();
         this.diagnosticForLeftKeywords();
+        this.checkRequredSettingsForSection();
         this.checkUrlPlaceholders();
         this.setSectionToStackAndTree(null);
         /**
          * Apply checks, which require walking through the ConfigTree.
          */
         let rulesDiagnostics: Diagnostic[] = ConfigTreeValidator.validate(this.configTree);
+        /**
+         * Ugly hack. Removes duplicates from rulesDiagnostics.
+         */
+        rulesDiagnostics = [
+            ...rulesDiagnostics.reduce(
+                ((allItems, item) => allItems.has(item.range) ? allItems : allItems.set(item.range, item)),
+                new Map()).values()
+        ];
         this.result.push(...rulesDiagnostics);
         return this.result.concat(this.keywordHandler.diagnostics);
     }
@@ -187,20 +208,48 @@ export class Validator {
     }
 
     /**
-     * Adds specified setting to array. If array is not specified, creates a new one.
-     * Adds diagnostic to this.result, if setting is already present in `array`.
-     * @param variable - Setting, which need to be added to `array`
-     * @param array - The target array
-     * @returns The array containing the `variable`
+     * Adds all current section setting to parent
+     * if they're required by a section
+     */
+    private addCurrentToParentSettings(): void {
+        if (this.currentSection !== undefined) {
+            for (const setting of this.currentSettings) {
+                this.addToParentsSettings(this.currentSection.text, setting);
+            }
+        }
+    }
+
+    /**
+     * Adds new entry to settingValue map and new Setting to SectionStack
+     * based on this.match, also sets value for setting.
+     * @param setting setting to which value will be set
+     */
+    private addSettingValue(setting: Setting): void {
+        if (this.match == null) {
+            throw new Error("Trying to add new entry to settingValues map and sectionStack based on undefined");
+        }
+        const value: string = Setting.clearValue(this.match[3]);
+        setting.value = value;
+        this.settingValues.set(setting.name, value);
+    }
+
+    /**
+     * Adds a setting based on this.match to array
+     * or creates a new diagnostic if setting is already present
+     * @param array the target array
+     * @returns the array containing the setting from this.match
      */
     private addToSettingArray(variable: Setting, array?: Setting[]): Setting[] {
         const result: Setting[] = (array === undefined) ? [] : array;
         if (this.match == null) {
             return result;
         }
+        const [, indent, name] = this.match;
+        if (variable === undefined) {
+            return result;
+        }
         const declaredAbove = result.find(v => v.name === variable.name);
         if (declaredAbove !== undefined) {
-            const [, indent, name] = this.match;
             const range: Range = this.createRange(indent.length, name.length);
             this.result.push(repetitionDiagnostic(range, declaredAbove, variable));
         } else {
@@ -208,6 +257,23 @@ export class Validator {
         }
 
         return result;
+    }
+
+    /**
+     * Adds a setting based on this.match to the target map
+     * or creates a new diagnostic if setting is already present
+     * @param key the key, which value will contain the setting
+     * @param setting which setting to add
+     * @returns the map regardless was it modified or not
+     */
+    private addToParentsSettings(key: string, setting: Setting): void {
+        let array: Setting[] | undefined = this.parentSettings.get(key);
+        if (array === undefined) {
+            array = [setting];
+        } else {
+            array.push(setting);
+        }
+        this.parentSettings.set(key, array);
     }
 
     /**
@@ -225,7 +291,7 @@ export class Validator {
         if (array.includes(variable)) {
             this.result.push(createDiagnostic(
                 this.createRange(indent.length, variable.length),
-                `${variable} is already defined`
+                `${variable} is already defined`,
             ));
         } else {
             result.push(variable);
@@ -249,7 +315,7 @@ export class Validator {
             const startPosition: number = this.match.index + indent.length;
             this.result.push(createDiagnostic(
                 this.createRange(startPosition, variable.length),
-                `${variable} is already defined`
+                `${variable} is already defined`,
             ));
         } else {
             let array: string[] | undefined = map.get(key);
@@ -310,7 +376,7 @@ export class Validator {
             this.keywordsStack.splice(index, 1);
             this.result.push(createDiagnostic(
                 this.foundKeyword.range,
-                `${expectedEnd} has finished before ${lastKeyword}`
+                `${expectedEnd} has finished before ${lastKeyword}`,
             ));
         }
     }
@@ -330,7 +396,7 @@ export class Validator {
                 const range: Range = this.createRange(indent.length, name.length);
                 this.result.push(createDiagnostic(
                     range,
-                    `${setting.displayName} can not be specified simultaneously with ${item.displayName}`
+                    `${setting.displayName} can not be specified simultaneously with ${item.displayName}`,
                 ));
             }
         }
@@ -345,13 +411,99 @@ export class Validator {
                 `Freemarker expressions are deprecated.\nUse a native collection: list, csv table, var object.` +
                 `\nMigration examples are available at ` +
                 `https://axibase.com/docs/charts/syntax/freemarker.html`,
-                DiagnosticSeverity.Information
+                DiagnosticSeverity.Information,
             ));
             this.match = /(as\s*(\S+)>)/.exec(line);
             if (this.match) {
                 this.addToStringArray(this.aliases);
             }
         }
+    }
+
+    /**
+     * Creates diagnostics if the current section does not contain required settings.
+     */
+    private checkRequredSettingsForSection(): void {
+        if (this.currentSection === undefined) {
+            return;
+        }
+        if (this.previousSection && TAG_REGEXP.test(this.currentSection.text)) {
+            /**
+             * [tags] has finished, perform checks for parent section.
+             */
+            this.currentSettings = this.previousSettings;
+            this.currentSection = this.previousSection;
+        }
+        const settingsMap = LanguageService.getResourcesProvider().settingsMap;
+        const sectionRequirements = ResourcesProviderBase.getRequiredSectionSettingsMap(settingsMap)
+            .get(this.currentSection.text);
+
+        if (!sectionRequirements) {
+            return;
+        }
+        const required: DefaultSetting[][] | undefined = sectionRequirements.settings;
+        if (required !== undefined) {
+            this.requiredSettings = required.concat(this.requiredSettings);
+        }
+        const notFound: string[] = [];
+        required: for (const options of this.requiredSettings) {
+            const displayName: string = options[0].displayName;
+            if (displayName === "metric") {
+                const columnMetric: string | undefined = this.settingValues.get("columnmetric");
+                const columnValue: string | undefined = this.settingValues.get("columnvalue");
+                if (columnMetric === "null" && columnValue === "null") {
+                    continue;
+                }
+                const changeField: string | undefined = this.settingValues.get("changefield");
+                if (/metric/.test(changeField)) {
+                    continue;
+                }
+            }
+            const optionsNames = options.map(s => s.name);
+            if (isAnyInArray(optionsNames, this.currentSettings.map(s => s.name))) {
+                continue;
+            }
+            for (const array of this.parentSettings.values()) {
+                // Trying to find in this section parents
+                if (isAnyInArray(optionsNames, array.map(s => s.name))) {
+                    continue required;
+                }
+            }
+            if (this.ifSettings.size > 0) {
+                for (const array of this.ifSettings.values()) {
+                    // Trying to find in each one of if-elseif-else... statement
+                    if (!isAnyInArray(optionsNames, array.map(s => s.name))) {
+                        notFound.push(displayName);
+                        continue required;
+                    }
+                }
+                const curSectLine = this.currentSection.range.end.line;
+                const lastCondLine = parseInt(this.keywordHandler.lastCondition.match(/^\d+/)[0], 10);
+                if (// if-elseif-else statement inside the section
+                    this.areWeIn("if") ||
+                    // section inside the if-elseif-else statement
+                    curSectLine < this.lastEndIf && curSectLine > lastCondLine) {
+                    continue;
+                }
+                let ifCounter: number = 0;
+                let elseCounter: number = 0;
+                for (const statement of this.ifSettings.keys()) {
+                    if (/\bif\b/.test(statement)) {
+                        ifCounter++;
+                    } else if (/\belse\b/.test(statement)) {
+                        elseCounter++;
+                    }
+                }
+                if (ifCounter === elseCounter) {
+                    continue;
+                }
+            }
+            notFound.push(displayName);
+        }
+        for (const option of notFound) {
+            this.result.push(createDiagnostic(this.currentSection.range, `${option} is required`));
+        }
+        this.requiredSettings.splice(0, this.requiredSettings.length);
     }
 
     /**
@@ -362,6 +514,8 @@ export class Validator {
         if (this.match == null) {
             return;
         }
+        const [, indent, name] = this.match;
+        const range: Range = this.createRange(indent.length, name.length);
 
         const lastCondition = this.keywordHandler.lastCondition;
         if (this.areWeIn("if")) {
@@ -374,8 +528,6 @@ export class Validator {
             const declaredAbove = this.currentSettings.find(v => v.name === setting.name);
             if (declaredAbove !== undefined) {
                 // The setting was defined before if
-                const indent = this.match[1];
-                const range: Range = this.createRange(indent.length, setting.name.length);
                 this.result.push(repetitionDiagnostic(range, declaredAbove, setting));
                 return;
             }
@@ -395,52 +547,46 @@ export class Validator {
             }
 
             this.result.push(createDiagnostic(
-                nestedConstruction.range, noMatching(nestedConstruction.text, `end${nestedConstruction.text}`)
+                nestedConstruction.range, noMatching(nestedConstruction.text, `end${nestedConstruction.text}`),
             ));
         }
-    }
-
-    private isTagsSectionFinished(line: string) {
-        /**
-         * We are in [tags] section and current line is empty - [tags] section has finished
-         */
-        return isEmpty(line) && this.currentSection && this.currentSection.text === "tags";
     }
 
     /**
-     * Process line in depend on it's content.
+     * Handles every line in the document, calls corresponding functions
      */
-    private processLine(): void {
+    private eachLine(): void {
         this.checkFreemarker();
         const line: string = this.config.getCurrentLine();
-        if (this.isTagsSectionFinished(line)) {
-            // Process previous section.
-            this.handlePreviousSection();
-            return;
-        }
-        this.match = SECTION_DECLARATION.exec(line);
-        if (this.match !== null) {
+        this.match = /(^[\t ]*\[)(\w+)\][\t ]*/.exec(line);
+        if ( // Section declaration, for example, [widget]
+            this.match !== null ||
+            /**
+             * We are in [tags] section and current line is empty - [tags] section has finished
+             */
+            (isEmpty(line) && this.currentSection && this.currentSection.text === "tags")) {
             // We met start of the next section, that means that current section has finished
-            this.checkTagsSectionName();
-            this.handlePreviousSection();
-            return;
-        }
-
-        this.match = SETTING_DECLARATION.exec(line);
-        if (this.match !== null) {
-            this.checkSettingsWhitespaces();
-            const [, indent, name] = this.match;
-            this.handleSetting(name, indent);
-            if (this.areWeIn("for")) {
-                this.validateFor();
+            if (this.match !== null) {
+                this.spellingCheck();
             }
-        }
-        this.match = UNCLOSED_SECTION_DECLARATION.exec(line);
-        if (this.match !== null) {
-            this.result.push(createDiagnostic(
-                this.createRange(this.match[1].length, this.match[2].length),
-                "Section declaration is unclosed"
-            ));
+            this.handleSection();
+        } else {
+            this.match = /(^\s*)([a-z].*?[a-z])\s*=\s*(.*?)\s*$/.exec(line);
+            if (this.match !== null) {
+                // Setting declaration, for example, width-units = 6.2
+                this.checkSettingsWhitespaces();
+                this.handleSettings();
+                if (this.areWeIn("for")) {
+                    this.validateFor();
+                }
+            }
+            this.match = /(^\s*\[)(\w+)\s*$/.exec(line);
+            if (this.match !== null) {
+                this.result.push(createDiagnostic(
+                    this.createRange(this.match[1].length, this.match[2].length),
+                    "Section tag is unclosed",
+                ));
+            }
         }
     }
 
@@ -507,8 +653,10 @@ export class Validator {
                 Object.assign(setting, { name: settingName, section: this.currentSection.text });
                 return setting;
             }
+            const message: string = unknownToken(settingName);
             this.result.push(createDiagnostic(
-                this.createRange(this.match[1].length, settingName.length), unknownToken(settingName)
+                this.createRange(this.match[1].length, settingName.length),
+                message,
             ));
 
             return undefined;
@@ -516,7 +664,7 @@ export class Validator {
 
         setting = setting.applyScope({
             section: this.currentSection ? this.currentSection.text.trim() : "",
-            widget: this.currentWidget || ""
+            widget: this.currentWidget || "",
         }) as Setting;
 
         return setting;
@@ -562,7 +710,7 @@ export class Validator {
      */
     private handleElse(): void {
         if (this.foundKeyword === undefined) {
-            throw new Error(`We're trying to handle 'else ', but foundKeyword is undefined`);
+            throw new Error(`We're trying to handle 'else ', but foundKeyword is ${this.foundKeyword}`);
         }
         this.keywordHandler.setLastCondition();
         let message: string | undefined;
@@ -634,7 +782,7 @@ export class Validator {
                 const start = this.match[0].indexOf("in");
                 this.result.push(createDiagnostic(
                     this.createRange(start, "in".length),
-                    "Empty 'in' statement"
+                    "Empty 'in' statement",
                 ));
             }
             this.addToStringMap(this.variables, "forVariables");
@@ -671,7 +819,7 @@ export class Validator {
      * Performs required operations after a section has finished.
      * Mostly empties arrays.
      */
-    private handlePreviousSection(): void {
+    private handleSection(): void {
         if (this.match == null) {
             if (this.previousSection !== undefined) {
                 this.currentSection = this.previousSection;
@@ -687,10 +835,13 @@ export class Validator {
              * If the next is [tags], no need to perform checks for current section now,
              * they will be done after [tags] section finished.
              */
+            this.checkRequredSettingsForSection();
+            this.addCurrentToParentSettings();
             if (/widget/i.test(name)) {
                 this.checkAliases();
                 this.deAliases.splice(0, this.deAliases.length);
                 this.aliases.splice(0, this.aliases.length);
+                this.settingValues.clear();
             }
             this.checkUrlPlaceholders();
             this.ifSettings.clear();
@@ -698,6 +849,7 @@ export class Validator {
         this.previousSettings = this.currentSettings.splice(0, this.currentSettings.length);
         this.previousSection = this.currentSection;
         this.currentSection = new TextRange(name, this.createRange(indent.length, name.length));
+        this.parentSettings.delete(this.currentSection.text);
         this.setSectionToStackAndTree(this.currentSection);
     }
 
@@ -729,21 +881,27 @@ export class Validator {
     /**
      * Calls functions in proper order to handle a found setting
      */
-    private handleSetting(name: string, indent: string): void {
-        const weAreInTagsOrKeys = this.currentSection && SECTIONS_EXCEPTIONS_REGEXP.test(this.currentSection.text);
-        if (!weAreInTagsOrKeys) {
-            this.handleRegularSetting();
+    private handleSettings(): void {
+        if (this.match == null) {
             return;
         }
-        if (weAreInTagsOrKeys && name) {
-            /**
-             * Check is there is setting, defined under [tags] or [keys].
-             */
+        const line: string = this.config.getCurrentLine();
+        // tag(s)|key(s) — sections, whose settings are handled in different way
+        if (this.currentSection === undefined || !SECTIONS_EXCEPTIONS_REGEXP.test(this.currentSection.text)) {
+            this.handleRegularSetting();
+        } else if (SECTIONS_EXCEPTIONS_REGEXP.test(this.currentSection.text) &&
+            // We are in tags/keys section
+            /(^[ \t]*)([a-z].*?[a-z])[ \t]*=/.test(line)) {
+            this.match = /(^[ \t]*)([a-z].*?[a-z])[ \t]*=/.exec(line);
+            if (this.match === null) {
+                return;
+            }
+            const [, indent, name] = this.match;
             const setting: Setting | undefined = this.getSetting(name);
             if (this.isAllowedWidget(setting)) {
                 this.result.push(createDiagnostic(
                     this.createRange(indent.length, name.length),
-                    settingNameInTags(name), DiagnosticSeverity.Information
+                    settingNameInTags(name), DiagnosticSeverity.Information,
                 ));
             }
         }
@@ -799,18 +957,24 @@ export class Validator {
         if (setting === undefined) {
             return;
         }
-        setting.value = Setting.clearValue(this.match[3]);
+        this.addSettingValue(setting);
 
         /**
          * Show hint if setting is deprecated
          */
         if (setting.deprecated) {
-            this.result.push(createDiagnostic(setting.textRange, setting.deprecated, DiagnosticSeverity.Warning));
+            this.result.push(createDiagnostic(
+                setting.textRange,
+                setting.deprecated,
+                DiagnosticSeverity.Warning
+            ));
         }
 
         if (!this.isAllowedInSection(setting)) {
-            this.result.push(
-                createDiagnostic(setting.textRange, illegalSetting(setting.displayName), DiagnosticSeverity.Error));
+            this.result.push(createDiagnostic(
+                setting.textRange,
+                illegalSetting(setting.displayName), DiagnosticSeverity.Error,
+            ));
         }
 
         if (setting.name === "type") {
@@ -858,12 +1022,12 @@ export class Validator {
                 if (this.currentSection.text === "tags") {
                     if (!/^["].+["]$/.test(settingName)) {
                         this.result.push(createDiagnostic(
-                            range, tagNameWithWhitespaces(settingName), DiagnosticSeverity.Warning
+                            range, tagNameWithWhitespaces(settingName), DiagnosticSeverity.Warning,
                         ));
                     }
                 } else if (this.currentSection.text !== "properties") {
                     this.result.push(createDiagnostic(
-                        range, settingsWithWhitespaces(settingName), DiagnosticSeverity.Warning
+                        range, settingsWithWhitespaces(settingName), DiagnosticSeverity.Warning,
                     ));
                 }
             }
@@ -871,17 +1035,17 @@ export class Validator {
     }
 
     /**
-     * Creates diagnostic if there is [tag] instead of [tags].
+     * Checks spelling mistakes in a section name
      */
-    private checkTagsSectionName(): void {
+    private spellingCheck(): void {
         if (this.match == null) {
             return;
         }
+        const indent: number = this.match[1].length;
         const word: string = this.match[2];
+        const range: Range = this.createRange(indent, word.length);
 
         if (word === "tag") {
-            const indent: number = this.match[1].length;
-            const range: Range = this.createRange(indent, word.length);
             this.result.push(createDiagnostic(range, deprecatedTagSection, DiagnosticSeverity.Warning));
         }
     }
@@ -890,6 +1054,9 @@ export class Validator {
      * Calls corresponding functions for the found keyword
      */
     private switchKeyword(): void {
+        if (this.foundKeyword === undefined) {
+            throw new Error(`We're trying to handle a keyword, but foundKeyword is undefined`);
+        }
         const line: string = this.config.getCurrentLine();
         switch (this.foundKeyword.text) {
             case "endfor":
@@ -970,7 +1137,7 @@ export class Validator {
             this.result.push(
                 createDiagnostic(
                     this.createRange(0, line.length),
-                    `Expected ${this.csvColumns} columns, but found ${columns}`
+                    `Expected ${this.csvColumns} columns, but found ${columns}`,
                 ));
         }
     }
@@ -1000,7 +1167,7 @@ export class Validator {
                     const message: string = unknownToken(variable);
                     this.result.push(createDiagnostic(
                         this.createRange(position, variable.length),
-                        message
+                        message,
                     ));
                 }
                 this.match = varRegexp.exec(substr);
@@ -1009,15 +1176,11 @@ export class Validator {
         }
     }
 
-    /**
-     * Get Setting from settingsMap and sets it's range.
-     * @param settingDisplayName - Display settingDisplayName of setting, which need to be returned.
-     */
-    private getSetting(settingDisplayName: string): Setting | undefined {
+    private getSetting(name: string): Setting | undefined {
         const line = this.config.getCurrentLine();
-        const start: number = line.indexOf(settingDisplayName);
-        const range: Range = (start > -1) ? this.createRange(start, settingDisplayName.length) : undefined;
-        return getSetting(settingDisplayName, range);
+        const start: number = line.indexOf(name);
+        const range: Range = (start > -1) ? this.createRange(start, name.length) : undefined;
+        return getSetting(name, range);
     }
 
     private checkUrlPlaceholders() {
@@ -1071,7 +1234,7 @@ export class Validator {
             this.result.push(createDiagnostic(
                 textRange,
                 `${displayName} should be a comma separated list. For example, ${example}`,
-                DiagnosticSeverity.Error
+                DiagnosticSeverity.Error,
             ));
         }
     }

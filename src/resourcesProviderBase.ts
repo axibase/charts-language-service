@@ -3,6 +3,7 @@ import { DefaultSetting } from "./defaultSetting";
 import { Setting } from "./setting";
 
 interface SectionRequirements {
+    settings?: DefaultSetting[][];
     sections?: string[][];
 }
 
@@ -74,13 +75,30 @@ export abstract class ResourcesProviderBase {
     ]);
 
     /**
-     * Contains sections, required for section matching key.
+     * Map of required settings for each section and their "aliases".
+     * For instance, `series` requires `entity`, but `entities` is also allowed.
+     * Additionally, `series` requires `metric`, but `table` with `attribute` is also ok
      */
-    public static requiredSectionsBySectionName: Map<string, SectionRequirements> = new Map<string, SectionRequirements>
-        ([
+    public static getRequiredSectionSettingsMap(
+        settingsMap: Map<string, DefaultSetting>
+    ): Map<string, SectionRequirements> {
+        return new Map<string, SectionRequirements>([
             ["configuration", {
                 sections: [
                     ["group"],
+                ],
+            }],
+            ["series", {
+                settings: [
+                    [
+                        settingsMap.get("entity")!, settingsMap.get("value")!,
+                        settingsMap.get("entities")!, settingsMap.get("entitygroup")!,
+                        settingsMap.get("entityexpression")!,
+                    ],
+                    [
+                        settingsMap.get("metric")!, settingsMap.get("value")!,
+                        settingsMap.get("table")!, settingsMap.get("attribute")!,
+                    ],
                 ],
             }],
             ["group", {
@@ -91,9 +109,23 @@ export abstract class ResourcesProviderBase {
             ["widget", {
                 sections: [
                     ["series"],
-                ]
-            }]
+                ],
+                settings: [
+                    [settingsMap.get("type")!],
+                ],
+            }],
+            ["dropdown", {
+                settings: [
+                    [settingsMap.get("onchange")!, settingsMap.get("changefield")!],
+                ],
+            }],
+            ["node", {
+                settings: [
+                    [settingsMap.get("id")],
+                ],
+            }],
         ]);
+    }
 
     /**
      * @returns array of parent sections for the section
@@ -135,7 +167,7 @@ export abstract class ResourcesProviderBase {
     }
     public settingsMap: Map<string, DefaultSetting>;
 
-    protected constructor() {
+    constructor() {
         this.settingsMap = this.createSettingsMap();
     }
 

@@ -1,5 +1,5 @@
 import { Diagnostic } from "vscode-languageserver-types";
-import validationRules from "../rules";
+import validationRules from "../relatedSettingsRules";
 import { ConfigTree } from "./configTree";
 import { Section } from "./section";
 
@@ -7,11 +7,11 @@ export class ConfigTreeValidator {
     /**
      * Goes through validationRules and performs checks on corresponding sections.
      *
-     * @param configTree - Configuration tree
-     * @returns Diagnostics about problems in sections
+     * @param сonfigTree - Configuration tree
+     * @returns Diagnosics about problems in sections
      */
-    public static validate(configTree: ConfigTree): Diagnostic[] {
-        const walker = new ConfigTreeWalker(configTree);
+    public static validate(сonfigTree: ConfigTree): Diagnostic[] {
+        const walker = new ConfigTreeWalker(сonfigTree);
         const diagnostics: Diagnostic[] = [];
         validationRules.forEach((rulesForSection, sectionName) => {
             const sectionsToCheck: Section[] = walker.getSectionsByName(sectionName);
@@ -39,8 +39,8 @@ class ConfigTreeWalker {
     private tree: ConfigTree;
     private requestedSections: Section[];
 
-    constructor(configTree: ConfigTree) {
-        this.tree = configTree;
+    constructor(сonfigTree: ConfigTree) {
+        this.tree = сonfigTree;
     }
 
     /**
@@ -59,7 +59,7 @@ class ConfigTreeWalker {
     }
 
     /**
-     * Recursively bypasses the ConfigTree starting from `startSection` and
+     * Recursively bypasses the ConfigTree starting from `startsection` and
      * adds every section with name `targetSection` to the `requestedSections` array.
      *
      * @param targetSection - Name of sections to be added to `requestedSections` array

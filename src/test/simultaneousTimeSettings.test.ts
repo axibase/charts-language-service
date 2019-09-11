@@ -1,7 +1,7 @@
 import { deepStrictEqual } from "assert";
 import { DiagnosticSeverity, Position, Range } from "vscode-languageserver-types";
 import { simultaneousTimeSettingsWarning } from "../messageUtil";
-import { createDiagnostic, createRange } from "../util";
+import { createDiagnostic } from "../util";
 import { Validator } from "../validator";
 
 const sameSectionAllSettings =
@@ -18,10 +18,10 @@ const sameSectionAllSettings =
 
 const differentSectionAllSettings =
   `[configuration]
+  type = chart
   start-time = 2017-04-22 01:00:00
 [group]
 [widget]
-  type = chart
   end-time = 2018-07-05 13:00:00
   timespan = 1 hour
   [series]
@@ -30,10 +30,10 @@ const differentSectionAllSettings =
 
 const differentSectionSomeSettings =
   `[configuration]
+  type = chart
   start-time = 2017-04-22 01:00:00
 [group]
 [widget]
-  type = chart
   timespan = 1 hour
   [series]
       entity = a
@@ -41,17 +41,16 @@ const differentSectionSomeSettings =
 
 const oneSectionCorrect =
   `[configuration]
+  type = chart
   start-time = 2017-04-22 01:00:00
   entity = a
   metric = b
 [group]
   [widget]
-  type = chart
     end-time = 2018-04-22 01:00:00
     timespan = 1 hour
     [series]
   [widget]
-  type = chart
     end-time = 2018-04-22 01:00:00
     [series]`;
 
@@ -72,7 +71,8 @@ suite("Simultaneous start-time, end-time and timespan", () => {
     const config = differentSectionAllSettings;
     const validator = new Validator(config);
     const actualDiagnostics = validator.lineByLine();
-    const expectedDiagnostic = createDiagnostic(createRange(1, 6, 3),
+    const expectedDiagnostic = createDiagnostic(
+      Range.create(Position.create(4, 1), Position.create(4, 7)),
       simultaneousTimeSettingsWarning(),
       DiagnosticSeverity.Warning
     );
@@ -83,7 +83,8 @@ suite("Simultaneous start-time, end-time and timespan", () => {
     const config = oneSectionCorrect;
     const validator = new Validator(config);
     const actualDiagnostics = validator.lineByLine();
-    const expectedDiagnostic = createDiagnostic(createRange(3, 6, 5),
+    const expectedDiagnostic = createDiagnostic(
+      Range.create(Position.create(6, 3), Position.create(6, 9)),
       simultaneousTimeSettingsWarning(),
       DiagnosticSeverity.Warning
     );

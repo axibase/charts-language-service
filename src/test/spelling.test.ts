@@ -88,7 +88,7 @@ entity = nurswgvml006
 metric = cpu_iowait`,
             [createDiagnostic(
                 Range.create(0, "[".length, 0, "[".length + "series".length),
-                "Section declaration is unclosed",
+                "Section tag is unclosed",
             )],
         ),
         new Test(
