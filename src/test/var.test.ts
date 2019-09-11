@@ -15,7 +15,7 @@ const baseConfig = (setting: string) => `[configuration]
 
 suite("Var endvar tests", () => {
 
-    test("Correct oneline var array", () => {
+    test("Correct one line var array", () => {
         const config = baseConfig("var v = [[9,3], [9,4]]");
         const validator = new Validator(config);
         const actualDiagnostic = validator.lineByLine();
@@ -23,7 +23,7 @@ suite("Var endvar tests", () => {
         deepStrictEqual(actualDiagnostic, expectedDiagnostic, `Config: \n${config}`);
     });
 
-    test("Correct oneline var props", () => {
+    test("Correct one line var props", () => {
         const config = baseConfig('var v = { "hello": "value", "array": ["val", "value"]}');
         const validator = new Validator(config);
         const actualDiagnostic = validator.lineByLine();
