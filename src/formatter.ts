@@ -193,17 +193,16 @@ export class Formatter {
      */
     private concatFormattedConfig(): string {
         const filteredConfig: string[] = [];
-
+        let lastEmpty = true;
         for (const line of this.formattedText) {
-            const previousFormattedLine: string = filteredConfig[filteredConfig.length - 1];
+            let isEmptyLine = isEmpty(line);
             /**
              * Skip empty lines at start and consequent blank lines
              */
-            if (isEmpty(line) && (isEmpty(previousFormattedLine) || !filteredConfig.length)) {
-                continue;
-            } else {
+            if (!isEmptyLine || !lastEmpty) {
                 filteredConfig.push(line);
             }
+            lastEmpty = isEmptyLine;
         }
 
         /**
