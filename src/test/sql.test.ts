@@ -37,7 +37,7 @@ endsq
         assert.deepStrictEqual(diags, [
             createDiagnostic(createRange(1, "widget".length, 6),
                 "Required section [series] is not declared."),
-                createDiagnostic(createRange(0, "sql".length, 8), `sql has no matching endsql`),
+            createDiagnostic(createRange(0, "sql".length, 8), `sql has no matching endsql`),
         ], `Config: \n${conf}`);
     });
 
@@ -71,7 +71,8 @@ endsql
 });
 
 suite("Formatter: SQL indents tests", () => {
-    const config = `  [widget]
+    test("Correct sql indents", () => {
+        const config = `  [widget]
     type = chart
     sql = SELECT time, entity, value FROM cpu_busy
     sql = WHERE /* time */ > now - 5 * minute
@@ -89,8 +90,9 @@ suite("Formatter: SQL indents tests", () => {
     [series]
 
 `;
-    const expected = config;
-    const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.format(config);
-    assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
+        const expected = config;
+        const formatter = new Formatter(FORMATTING_OPTIONS);
+        const actual = formatter.format(config);
+        assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
+    });
 });

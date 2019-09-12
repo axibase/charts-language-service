@@ -166,8 +166,7 @@ suite("Formatting indents tests: sections and settings", () => {
   });
 
   test("Incorrect nested if in for", () => {
-    const text = `
-  [widget]
+    const text = `  [widget]
     type = chart
     list servers = vps,
       vds
@@ -204,6 +203,7 @@ suite("Formatting indents tests: sections and settings", () => {
         else
           metric = cpu_system
         endif
+
     endfor
 
 `;
@@ -235,6 +235,7 @@ suite("Formatting indents tests: sections and settings", () => {
         elseif server == 'nurswgvml006'
           color = yellow
         endif
+
     endfor
 
 `;
@@ -263,6 +264,7 @@ suite("Formatting indents tests: sections and settings", () => {
         elseif server == 'nurswgvml006'
           color = yellow
         endif
+
     endfor
 
 `;

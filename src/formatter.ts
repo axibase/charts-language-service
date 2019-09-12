@@ -4,9 +4,9 @@ import {
     BLOCK_COMMENT_END, BLOCK_COMMENT_START,
     BLOCK_SCRIPT_END, BLOCK_SCRIPT_START,
     ELSE_ELSEIF_REGEX, ENDKEYWORDS_WITH_LF,
-    ONE_LINE_COMMENT, RELATIONS_REGEXP,
-    SETTING_DECLARATION, SPACES_AT_START,
-    VAR_OPEN_BRACKET,
+    KEYWORDS_WITH_LF, ONE_LINE_COMMENT,
+    RELATIONS_REGEXP, SETTING_DECLARATION,
+    SPACES_AT_START, VAR_OPEN_BRACKET
 } from "./regExpressions";
 import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { TextRange } from "./textRange";
@@ -15,13 +15,6 @@ import { isEmpty } from "./util";
 interface Section {
     indent?: string;
     name?: string;
-}
-
-/**
- * Describes sections inside control structure
- */
-interface InnerSection extends Section {
-    hasSettingBefore?: boolean;
 }
 
 /** Document formatting options */
@@ -133,11 +126,6 @@ export class Formatter {
     private currentSection: Section = {};
 
     /**
-     * Collects sections inside keyword structure
-     */
-    private keywordSections: InnerSection[] = [];
-
-    /**
      * Comment block lines and their minimal commmon indent
      */
     private commentsBuffer: CommentData = {
@@ -162,9 +150,7 @@ export class Formatter {
             } else if (isEmpty(line)) {
                 if (this.currentSection.name === "tags" && this.previousSection.name !== "widget") {
                     Object.assign(this.currentSection, this.previousSection);
-                    if (this.shouldInsertBlankLineAfterTags()) {
-                        this.insertBlankLineAfter();
-                    }
+                    this.insertBlankLineAfter();
                     this.decreaseIndent();
                 }
                 continue;
@@ -181,7 +167,6 @@ export class Formatter {
                 this.setIndent(stackHead);
                 this.insideKeyword = false;
                 this.lastKeywordIndent = "";
-                this.keywordSections = [];
             }
             this.insertBlankLineAfterKeywordEnd();
             this.indentLine();
@@ -199,24 +184,40 @@ export class Formatter {
             }
         }
 
-        this.handleEndLines();
+        return this.concatFormattedConfig();
+    }
 
-        return this.formattedText.join("\n");
+    /**
+     * Filters formatted text from consequent blank lines
+     * @returns formatted config text
+     */
+    private concatFormattedConfig(): string {
+        const filteredConfig: string[] = [];
+
+        for (const line of this.formattedText) {
+            const previousFormattedLine: string = filteredConfig[filteredConfig.length - 1];
+            /**
+             * Skip empty lines at start and consequent blank lines
+             */
+            if (isEmpty(line) && (isEmpty(previousFormattedLine) || !filteredConfig.length)) {
+                continue;
+            } else {
+                filteredConfig.push(line);
+            }
+        }
+
+        /**
+         * Append specified number of blank lines to the end of the config
+         */
+        filteredConfig.push(...new Array(this.blankLinesAtEnd).fill(""));
+
+        return filteredConfig.join("\n");
     }
 
     /**
      * Inserts blank line after keyword end if needed
      */
     private insertBlankLineAfterKeywordEnd(): void {
-        const currentLine = this.getCurrentLine();
-        /**
-         * If `current` line is regular setting, then we need to check `previous formatted` line
-         * Otherwise do nothing
-         */
-        if (currentLine === undefined || !SETTING_DECLARATION.test(currentLine)) {
-            return;
-        }
-
         /**
          * Check `previous formatted` line.
          * If it is keyword end, blank line should inserted between it and current line
@@ -229,28 +230,11 @@ export class Formatter {
     }
 
     /**
-     * Checks that line formatted before current exists and not empty
-     */
-    private get shouldInsertLineBefore(): boolean {
-        const previousFormattedLine: string = this.formattedText[this.formattedText.length - 2];
-        return previousFormattedLine !== undefined && !isEmpty(previousFormattedLine);
-    }
-
-    /**
      * We met a multiline block comment.
      * Single-line comments are formatted as regular settings
      */
     private isCommentBlockStart(line: string): boolean {
         return line.indexOf("/*") > -1 && !ONE_LINE_COMMENT.test(line);
-    }
-
-    /**
-     * Determines if blank line after tags should be inserted
-     */
-    private shouldInsertBlankLineAfterTags(): boolean {
-        const nextLine = this.lines[this.currentLine + 1];
-        /** Next line is not empty OR undefined */
-        return nextLine && !this.isSectionDeclaration(nextLine);
     }
 
     /**
@@ -260,19 +244,7 @@ export class Formatter {
         this.calculateSectionIndent();
         this.indentLine();
         this.increaseIndent();
-        this.handleSectionInsideKeyword();
         this.insertLineBeforeSection();
-    }
-
-    /**
-     * If section is inside keyword structure, push it to collection
-     */
-    private handleSectionInsideKeyword(): void {
-        if (this.insideKeyword) {
-            const previousFormattedLine = this.formattedText[this.formattedText.length - 2];
-            const hasSettingBefore = SETTING_DECLARATION.test(previousFormattedLine);
-            this.keywordSections.push(Object.assign(this.currentSection, { hasSettingBefore }));
-        }
     }
 
     /**
@@ -327,13 +299,6 @@ export class Formatter {
     }
 
     /**
-     * Append specified number of blank lines to the end of the document
-     */
-    private handleEndLines(): void {
-        this.formattedText.push(...new Array(this.blankLinesAtEnd).fill(""));
-    }
-
-    /**
      * Inserts blank line after current line
      */
     private insertBlankLineAfter(): void {
@@ -344,12 +309,6 @@ export class Formatter {
      * Inserts blank line before current line
      */
     private insertBlankLineBefore(): void {
-        const previousLine: string = this.lines[this.currentLine - 1];
-
-        if (previousLine === undefined || !this.shouldInsertLineBefore) {
-            return;
-        }
-
         this.formattedText.splice(this.formattedText.length - 1, 0, "");
     }
 
@@ -449,9 +408,9 @@ export class Formatter {
 
         /** Write comment start symbol */
         this.indentLine(commentStart);
-        /** Push setting after comment start to line stream */
+        /** Push setting after comment to comment buffer */
         if (!isEmpty(setting)) {
-            this.lineStreamPush(setting);
+            this.pushCommentBuffer(setting);
         }
         line = this.nextLine();
         while (line !== undefined) {
@@ -462,7 +421,7 @@ export class Formatter {
                     this.pushCommentBuffer(configSetting);
                 }
                 this.dumpCommentBuffer();
-                this.lineStreamPush(commentEnd);
+                this.indentLine(commentEnd);
                 return;
             } else {
                 this.pushCommentBuffer(line);
@@ -554,28 +513,17 @@ export class Formatter {
     }
 
     /**
-     * Insert line to the config
-     */
-    private lineStreamPush(line: string): void {
-        this.lines.splice(this.currentLine + 1, 0, line);
-    }
-
-    /**
-     * Determines whether blank line should be inserted before setting inside control structure
-     */
-    private get noBlankLineBeforeSectionInKeyword(): boolean {
-        return this.insideKeyword && this.keywordSections.length === 1 && !this.keywordSections[0].hasSettingBefore;
-    }
-
-    /**
-     * Inserts blank line before section except for configuration
+     * Inserts blank line before section
      */
     private insertLineBeforeSection(): void {
-        if (this.currentSection.name === "configuration" || this.noBlankLineBeforeSectionInKeyword) {
-            return;
-        }
+        const previousFormattedLine = this.formattedText[this.formattedText.length - 2];
 
-        this.insertBlankLineBefore();
+        /**
+         * Don't insert blank line before first section inside keyword unless it is preceded by setting
+         */
+        if (SETTING_DECLARATION.test(previousFormattedLine) || !KEYWORDS_WITH_LF.test(previousFormattedLine)) {
+            this.insertBlankLineBefore();
+        }
     }
 
     /**
