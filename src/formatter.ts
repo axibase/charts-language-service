@@ -208,7 +208,7 @@ export class Formatter {
         /**
          * Append specified number of blank lines to the end of the config
          */
-        filteredConfig.push(...new Array(this.blankLinesAtEnd).fill(""));
+        filteredConfig.length += this.blankLinesAtEnd;
 
         return filteredConfig.join("\n");
     }
