@@ -403,8 +403,10 @@ export class Formatter {
      * Format multiline block comment
      */
     private handleCommentBlock(line: string): void {
-        const [, commentStart, setting] = line.match(BLOCK_COMMENT_START);
-
+        const [, settingBefore, commentStart, setting] = line.match(BLOCK_COMMENT_START);
+        if (!isEmpty(settingBefore)) {
+            this.indentLine(settingBefore);
+        }
         /** Write comment start symbol */
         this.indentLine(commentStart);
         /** Push setting after comment to comment buffer */
@@ -415,12 +417,16 @@ export class Formatter {
         while (line !== undefined) {
             const commentEndMatch = line.match(BLOCK_COMMENT_END);
             if (commentEndMatch !== null) {
-                let [, configSetting, commentEnd] = commentEndMatch;
+                let [, configSetting, commentEnd, settingAfter] = commentEndMatch;
                 if (!isEmpty(configSetting)) {
                     this.pushCommentBuffer(configSetting);
                 }
                 this.dumpCommentBuffer();
                 this.indentLine(commentEnd);
+
+                if (!isEmpty(settingAfter)) {
+                    this.indentLine(settingAfter);
+                }
                 return;
             } else {
                 this.pushCommentBuffer(line);

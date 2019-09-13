@@ -89,10 +89,10 @@ export const SECTIONS_EXCEPTIONS_REGEXP: RegExp = /(?:tag|key)s?/;
 export const TAG_REGEXP: RegExp = /tag/;
 
 // start of block comment - /*
-export const BLOCK_COMMENT_START: RegExp = /(\/\*+)(.*)/;
+export const BLOCK_COMMENT_START: RegExp = /^(.*)(\/\*+)(.*)/;
 
 // end of block comment - */
-export const BLOCK_COMMENT_END: RegExp = /(.*)(\*\/)/;
+export const BLOCK_COMMENT_END: RegExp = /(.*)(\*\/)(.*)$/;
 
 // block comment - /* some-text */
 export const ONE_LINE_COMMENT: RegExp = /\/\*([\s\S]*?)(?=\*\/)/;
