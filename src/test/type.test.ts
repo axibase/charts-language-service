@@ -796,7 +796,7 @@ suite("string[] type tests", () => {
     const actualDiagnostics = validator.lineByLine();
     const expectedDiagnostic = createDiagnostic(
       createRange(18, 7, 9),
-      "metrics has incorrect elements",
+      "metrics can not contain empty elements",
       DiagnosticSeverity.Error
     );
     assert.deepStrictEqual(actualDiagnostics, [expectedDiagnostic]);

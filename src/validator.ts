@@ -1132,9 +1132,28 @@ export class Validator {
                 value => setting.checkType(range, value) !== undefined
             );
             if (incorrectItems) {
+                let errorMessage: string;
+
+                switch (setting.type) {
+                    case "string":
+                        errorMessage = `${setting.displayName} can not contain empty elements`;
+                        break;
+                    case "number":
+                        errorMessage = `All elements of ${setting.displayName} must be real (floating-point) numbers`;
+                        break;
+                    case "integer":
+                        errorMessage = `All elements of ${setting.displayName} must be integers`;
+                        break;
+                    case "boolean":
+                        errorMessage = `All elements of ${setting.displayName} must be boolean values`;
+                        break;
+                    default:
+                        errorMessage = `Some of ${setting.displayName}'s elements have wrong type`;
+                }
+
                 diagnostic = createDiagnostic(
                     range,
-                    `${setting.displayName} has incorrect elements`,
+                    errorMessage,
                     DiagnosticSeverity.Error,
                 );
             }

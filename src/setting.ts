@@ -69,11 +69,11 @@ export class Setting extends DefaultSetting {
         break;
       }
       case "number": {
-        const persent = /(\d*)%/.exec(value);
-        if (this.name === "arrowlength" && persent) {
+        const percent = /(\d*)%/.exec(value);
+        if (this.name === "arrowlength" && percent) {
           this.maxValue = typeof this.maxValue === "object" ? this.maxValue.value * 100 : this.maxValue * 100;
           this.minValue = typeof this.minValue === "object" ? this.minValue.value * 100 : this.minValue * 100;
-          this.value = persent[1];
+          this.value = percent[1];
         }
         result = this.checkNumber(NUMBER_REGEXP,
           `${this.displayName} should be a real (floating-point) number.`,
