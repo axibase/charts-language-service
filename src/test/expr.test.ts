@@ -69,9 +69,9 @@ endexpr
 
 suite("Formatter: expr indents tests", () => {
   test("Correct indents", () => {
-    const config = "\n" +
+    const config =
       "  [widget]\n" +
-      "    type = chart\n" +
+      "    type = chart\n\n" +
       "    expr\n" +
       "      expr_1;\n" +
       "    endexpr\n\n" +
