@@ -603,13 +603,16 @@ export class Validator {
         let deAlias: string;
         this.match = regexp.exec(line);
         while (this.match !== null) {
+            const { index } = this.match;
             deAlias = this.match[deAliasPosition];
             freemarkerExpr = /(\$\{(\S+)\})/.exec(deAlias);
             if (freemarkerExpr) {
                 // extract "lpar" from value('${lpar}PX')
                 deAlias = freemarkerExpr[deAliasPosition];
             }
-            this.deAliases.push(new TextRange(deAlias, this.createRange(line.indexOf(deAlias), deAlias.length)));
+            this.deAliases.push(new TextRange(deAlias, this.createRange(
+                line.indexOf(deAlias, index + 1), deAlias.length)
+            ));
             this.match = regexp.exec(line);
         }
     }
