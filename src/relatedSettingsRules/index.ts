@@ -10,6 +10,7 @@ import forecastSsaGroupAutoUnion from "./valueValidation/forecastSsaGroupAutoUni
 import forecastSsaGroupManualGroups from "./valueValidation/forecastSsaGroupManualGroups";
 import forecastStartTime from "./valueValidation/forecastStartTime";
 import startEndTime from "./valueValidation/startEndTime";
+import summarizePeriodTimespan from "./valueValidation/summarizePeriodTimespan";
 
 const rulesBySection: Map<string, Rule[]> = new Map<string, Rule[]>([
     [
@@ -29,7 +30,8 @@ const rulesBySection: Map<string, Rule[]> = new Map<string, Rule[]>([
         "widget", [
             noUselessSettingsForWidget,
             simultaneousTimeSettings,
-            startEndTime
+            startEndTime,
+            summarizePeriodTimespan
         ]
     ]
 ]);

@@ -7,6 +7,7 @@ import {
     shiftHour,
     shiftMinute
 } from "./utils";
+import { INTERVAL_REGEXP } from "../regExpressions";
 
 export class TimeParser {
     /**
@@ -169,11 +170,17 @@ export class TimeParser {
      * @returns Date object, corresponding to `settingValue` template.
      */
     public parseDateTemplate(settingValue: string): Date {
-        const v: string = settingValue.trim();
+        let v: string = settingValue.trim();
         const now = Date.now();
         const d = this.parseIsoLikeTemplate(v, now);
         if (d != null) {
             return d;
+        }
+        /**
+         * hack: allow to parse interval keywords alone, such as 1 hour
+         */
+        if (INTERVAL_REGEXP.exec(v)) {
+            v = `now + ${v}`;
         }
         // start-time = current_day + 9 hour + 50 minute
         const baseAndSpan = v.split(/([+\-])/);
