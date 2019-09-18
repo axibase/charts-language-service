@@ -1,7 +1,7 @@
 import { Diagnostic, DiagnosticSeverity } from "vscode-languageserver-types";
 import { Section } from "../../configTree/section";
 import { Setting } from "../../setting";
-import { IntervalParser } from "../../time/intervalParser";
+import { parseIntervalValue } from "../../time";
 import { createDiagnostic } from "../../util";
 import { requiredCondition } from "../utils/condition";
 import { Rule } from "../utils/interfaces";
@@ -19,12 +19,8 @@ const rule: Rule = {
         const summarizePeriod: Setting = section.getSettingFromTree("summarize-period");
         const timespan: Setting = section.getSettingFromTree("timespan");
 
-        if (summarizePeriod === undefined || timespan === undefined) {
-            return;
-        }
-
-        const summarizePeriodValue = IntervalParser.getValue(summarizePeriod.value);
-        const timespanValue = IntervalParser.getValue(timespan.value);
+        const summarizePeriodValue = parseIntervalValue(summarizePeriod);
+        const timespanValue = parseIntervalValue(timespan);
 
         if (!summarizePeriodValue || !timespanValue) {
             return;

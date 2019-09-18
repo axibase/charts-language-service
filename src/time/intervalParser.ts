@@ -1,7 +1,9 @@
-import { TIME_UNIT_REGEXP } from "../regExpressions";
+import { COUNT_UNIT_FORMAT } from "../regExpressions";
+import { TimeParseError } from "./timeParseError";
 
 export class IntervalParser {
-    public static timeUnits: Map<string, number> = new Map([
+    public static unitMillis: Map<string, number> = new Map<string, number>([
+        ["millisecond", 1],
         ["sec", 1000],
         ["second", 1000],
         ["min", 60000],
@@ -10,34 +12,33 @@ export class IntervalParser {
         ["day", 86400000],
         ["week", 604800000],
         ["month", 2592000000],
-        ["year", 31536000000],
+        ["quarter", 3 * 2592000000], // quarter = 3 month
+        ["year", 31536000000]
     ]);
 
-    public static getValue(interval: string): number {
-        const match = TIME_UNIT_REGEXP.exec(interval);
-        let value: number;
-
-        if (match === null) {
-            return;
+    public static getIntervalAsMillis(count, unit) {
+        const unitAsMillis = this.unitMillis.get(unit);
+        if (!unitAsMillis) {
+            throw new TimeParseError(unit, "Incorrect interval unit");
         }
-
-        const [, count, unit] = match;
-
-        /**
-         * Amount of milliseconds per time-unit
-         */
-        const milliseconds = this.timeUnits.get(unit);
-
-        if (milliseconds === undefined) {
-            throw new Error(`Unsupported time units ${unit}`);
-        }
-
-        value = milliseconds * parseFloat(count);
-
-        if (!isFinite(value)) {
-            throw new Error(`Can't parse interval «${interval}»`);
-        }
-
-        return value;
+        return parseFloat(count) * unitAsMillis;
     }
+
+    public static parse(template: string) {
+        const specInterval = this.specificIntervals.get(template);
+        if (specInterval) {
+            return specInterval;
+        }
+        const parsedExpr = COUNT_UNIT_FORMAT.exec(template);
+        if (!parsedExpr) {
+            throw new TimeParseError(template, "Incorrect interval syntax");
+        }
+        const [, count, unit] = parsedExpr;
+        return this.getIntervalAsMillis(count, unit);
+    }
+
+    private static specificIntervals: Map<string, number> = new Map<string, number>([
+        ["auto", 5 * 60000], // summarize-period default value is 5 minute
+        ["all", +Infinity]
+    ]);
 }

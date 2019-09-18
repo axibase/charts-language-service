@@ -3,6 +3,7 @@ import { Section } from "../configTree/section";
 import { dateError } from "../messageUtil";
 import { Setting } from "../setting";
 import { createDiagnostic, getValueOfSetting } from "../util";
+import { IntervalParser } from "./intervalParser";
 import { TimeParseError } from "./timeParseError";
 import { TimeParser } from "./timeParser";
 
@@ -11,8 +12,8 @@ const timeParseCache: Map<Setting, Date> = new Map<Setting, Date>();
  * Parses value of time setting, adds diagnostic to `errors` if any error during parsing was thrown.
  *
  * @param timeSetting - Date setting, which value is need to be parsed
- * @param timeParser - Util class, containig methods for date parsing
- * @param errors - Array of diagnosics, to which information about error is added
+ * @param section - Section, for which "time-zone" setting is need to be found.
+ * @param errors - Array of diagnostics, to which information about error is added
  * @returns Value of `timeSetting`, parsed to Date.
  */
 export function parseTimeValue(timeSetting: Setting, section: Section, errors: Diagnostic[]): Date {
@@ -35,6 +36,35 @@ export function parseTimeValue(timeSetting: Setting, section: Section, errors: D
                 const diagnostic = createDiagnostic(timeSetting.textRange,
                     dateError(err.message, timeSetting.displayName));
                 errors.push(diagnostic);
+            } else {
+                throw err;
+            }
+        }
+    }
+    return parsedValue;
+}
+
+/**
+ * Parses value of interval setting, adds diagnostic to `errors` if any error during parsing was thrown.
+ *
+ * @param intervalSetting - Interval setting, which value is need to be parsed
+ * @param errors - Array of diagnostics, to which information about error is added
+ * @returns Value of `intervalSetting`, parsed to number.
+ */
+export function parseIntervalValue(intervalSetting: Setting/*, errors: Diagnostic[]*/): number {
+    let parsedValue;
+    if (intervalSetting != null) {
+        try {
+            parsedValue = IntervalParser.parse(intervalSetting.value);
+        } catch (err) {
+            if (err instanceof TimeParseError) {
+                // Commented for now, because syntax is checked in Setting.checkType.
+                // It may be convenient to use this method instead of code in case "interval".
+                /*
+                const diagnostic = createDiagnostic(intervalSetting.textRange,
+                    intervalError(err.message, intervalSetting.displayName));
+                errors.push(diagnostic);
+                */
             } else {
                 throw err;
             }
