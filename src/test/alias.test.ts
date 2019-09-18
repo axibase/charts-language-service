@@ -1,5 +1,4 @@
 import { deepStrictEqual } from "assert";
-import { unknownToken } from "../messageUtil";
 import { createDiagnostic, createRange } from "../util";
 import { Validator } from "../validator";
 
@@ -38,7 +37,7 @@ suite("Incorrect dealias tests", () => {
     const expected = [
       createDiagnostic(
         createRange(19, 2, 11),
-        unknownToken("s2"),
+        "s2 is unknown."
       )
     ];
     const actual = validator.lineByLine();
@@ -77,11 +76,11 @@ suite("Incorrect dealias tests", () => {
     const expected = [
       createDiagnostic(
         createRange(19, 2, 11),
-        unknownToken("s2"),
+        "s2 is unknown."
       ),
       createDiagnostic(
         createRange(19, 2, 15),
-        unknownToken("s3"),
+        "s3 is unknown."
       )
     ];
     const actual = validator.lineByLine();
@@ -132,7 +131,7 @@ suite("Incorrect dealias tests", () => {
     const expected = [
       createDiagnostic(
         createRange(19, 2, 15),
-        unknownToken("s3"),
+        "s3 is unknown."
       )
     ];
     const actual = validator.lineByLine();
@@ -196,7 +195,7 @@ suite("Incorrect dealias tests", () => {
     const expected = [
       createDiagnostic(
         createRange(19, 2, 15),
-        unknownToken("sc"),
+        "sc is unknown."
       )
     ];
     const actual = validator.lineByLine();
@@ -255,7 +254,7 @@ suite("Incorrect dealias tests", () => {
     const expected = [
       createDiagnostic(
         createRange(28, 5, 11),
-        unknownToken("value")
+        "value is unknown."
       )
     ];
     const actual = validator.lineByLine();
