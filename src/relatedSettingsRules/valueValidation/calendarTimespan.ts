@@ -24,7 +24,7 @@ const rule: Rule = {
         if (timespan.value === "all") {
             return createDiagnostic(
                 timespan.textRange,
-                `calendar requires a definitive timespan (all is not allowed)`,
+                `Timespan 'all' is not supported by the calendar widget`,
                 DiagnosticSeverity.Error
             );
         }
