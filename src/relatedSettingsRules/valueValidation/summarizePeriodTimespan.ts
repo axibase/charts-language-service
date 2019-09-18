@@ -38,7 +38,7 @@ const rule: Rule = {
         if (summarizePeriodDate.getTime() > timespanDate.getTime()) {
             return createDiagnostic(
                 summarizePeriod.textRange,
-                `For calendar summarize-period should not be greater than timespan`,
+                `The 'summarize-period' must be less than the selection interval.`,
                 DiagnosticSeverity.Warning
             );
         }
