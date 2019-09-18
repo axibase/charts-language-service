@@ -74,7 +74,7 @@ export const INTERVAL_REGEXP: RegExp = new RegExp(
 );
 
 // 1 hour, 2 week
-export const TIME_UNIT_REGEXP: RegExp = /([1-9]\d*)(?:\s*\*\s*|\s+)([_a-z]+)/i;
+export const TIME_UNIT_REGEXP: RegExp = /([1-9]\d*)(?:\s+)([_a-z]+)/i;
 
 // 1, 5.2, 0.3, .9, -8, -0.5, +1.4
 export const NUMBER_REGEXP: RegExp = /^(?:\-|\+)?(?:\.\d+|\d+(?:\.\d+)?)$/;
