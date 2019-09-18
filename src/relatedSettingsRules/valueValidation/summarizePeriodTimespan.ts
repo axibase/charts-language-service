@@ -1,7 +1,7 @@
 import { Diagnostic, DiagnosticSeverity } from "vscode-languageserver-types";
 import { Section } from "../../configTree/section";
 import { Setting } from "../../setting";
-import { parseTimeValue } from "../../time";
+import { IntervalParser } from "../../time/intervalParser";
 import { createDiagnostic } from "../../util";
 import { requiredCondition } from "../utils/condition";
 import { Rule } from "../utils/interfaces";
@@ -23,19 +23,14 @@ const rule: Rule = {
             return;
         }
 
-        /**
-         * Errors when parsing calendar time values
-         */
-        const errors: Diagnostic[] = [];
+        const summarizePeriodValue = IntervalParser.getValue(summarizePeriod.value);
+        const timespanValue = IntervalParser.getValue(timespan.value);
 
-        const summarizePeriodDate = parseTimeValue(summarizePeriod, section, errors);
-        const timespanDate = parseTimeValue(timespan, section, errors);
-
-        if (errors.length) {
-            return errors[0];
+        if (!summarizePeriodValue || !timespanValue) {
+            return;
         }
 
-        if (summarizePeriodDate.getTime() > timespanDate.getTime()) {
+        if (summarizePeriodValue > timespanValue) {
             return createDiagnostic(
                 summarizePeriod.textRange,
                 `The 'summarize-period' must be less than the selection interval.`,

@@ -7,7 +7,6 @@ import {
     shiftHour,
     shiftMinute
 } from "./utils";
-import { INTERVAL_REGEXP } from "../regExpressions";
 
 export class TimeParser {
     /**
@@ -175,12 +174,6 @@ export class TimeParser {
         const d = this.parseIsoLikeTemplate(v, now);
         if (d != null) {
             return d;
-        }
-        /**
-         * hack: allow to parse interval keywords alone, such as 1 hour
-         */
-        if (INTERVAL_REGEXP.exec(v)) {
-            v = `now + ${v}`;
         }
         // start-time = current_day + 9 hour + 50 minute
         const baseAndSpan = v.split(/([+\-])/);
