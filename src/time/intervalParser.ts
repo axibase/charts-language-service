@@ -24,7 +24,7 @@ export class IntervalParser {
         const [, count, unit] = match;
 
         /**
-         * How many milliseconds includes time unit
+         * Amount of milliseconds per time-unit
          */
         const milliseconds = this.timeUnits.get(unit);
 
