@@ -169,7 +169,7 @@ export class TimeParser {
      * @returns Date object, corresponding to `settingValue` template.
      */
     public parseDateTemplate(settingValue: string): Date {
-        let v: string = settingValue.trim();
+        const v: string = settingValue.trim();
         const now = Date.now();
         const d = this.parseIsoLikeTemplate(v, now);
         if (d != null) {
