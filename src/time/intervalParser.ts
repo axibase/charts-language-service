@@ -34,7 +34,7 @@ export class IntervalParser {
 
         value = milliseconds * parseFloat(count);
 
-        if (isFinite(value) === false) {
+        if (!isFinite(value)) {
             throw new Error(`Can't parse interval «${interval}»`);
         }
 
