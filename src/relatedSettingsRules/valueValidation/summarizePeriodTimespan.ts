@@ -23,8 +23,17 @@ const rule: Rule = {
             return;
         }
 
-        const summarizePeriodDate = parseTimeValue(summarizePeriod, section, []);
-        const timespanDate = parseTimeValue(timespan, section, []);
+        /**
+         * Errors when parsing calendar time values
+         */
+        const errors: Diagnostic[] = [];
+
+        const summarizePeriodDate = parseTimeValue(summarizePeriod, section, errors);
+        const timespanDate = parseTimeValue(timespan, section, errors);
+
+        if (errors.length) {
+            return errors[0];
+        }
 
         if (summarizePeriodDate.getTime() > timespanDate.getTime()) {
             return createDiagnostic(

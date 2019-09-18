@@ -18,7 +18,7 @@ const baseConfig = (timespan: string, summarizePeriod: string) => `[configuratio
       entity = nurswgvml006
       metric = cpu_busy`;
 
-suite("Calendar validation rules", () => {
+suite("Calendar type specfifc validation rules", () => {
     test("Incorrect: summarize-period is greater than timespan", () => {
         const config = baseConfig("1 hour", "1 day");
         const validator = new Validator(config);
@@ -28,6 +28,20 @@ suite("Calendar validation rules", () => {
                 createRange(4, 16, 9),
                 `For calendar summarize-period should not be greater than timespan`,
                 DiagnosticSeverity.Warning
+            )
+        ];
+        deepStrictEqual(actualDiagnostics, expectedDiagnostic, `Config: \n${config}`);
+    });
+
+    test("Incorrect: calendar has timespan 'all'", () => {
+        const config = baseConfig("all", "1 day");
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        const expectedDiagnostic = [
+            createDiagnostic(
+                createRange(4, 8, 8),
+                `calendar requires a definitive timespan (all is not allowed)`,
+                DiagnosticSeverity.Error
             )
         ];
         deepStrictEqual(actualDiagnostics, expectedDiagnostic, `Config: \n${config}`);
