@@ -36,7 +36,8 @@ const rule: Rule = {
         if (noTicks) {
             return createDiagnostic(
                 ticks.textRange,
-                `Palette ticks will not be displayed if the widget contains multiple series with individual ranges. Enable 'range-merge' or set common 'thresholds' to display ticks.`,
+                "Palette ticks will not be displayed if the widget contains multiple series with individual ranges. " +
+                "Enable 'range-merge' or set common 'thresholds' to display ticks.",
                 DiagnosticSeverity.Warning
             );
         }

@@ -35,7 +35,7 @@ suite("Calendar type specfifc validation rules", () => {
         const expectedDiagnostic = [
             createDiagnostic(
                 createRange(4, 16, 5),
-                `For calendar summarize-period should not be greater than timespan`,
+                `The 'summarize-period' must be less than the selection interval.`,
                 DiagnosticSeverity.Warning
             )
         ];
@@ -49,7 +49,7 @@ suite("Calendar type specfifc validation rules", () => {
         const expectedDiagnostic = [
             createDiagnostic(
                 createRange(4, 8, 4),
-                `calendar requires a definitive timespan (all is not allowed)`,
+                `Timespan 'all' is not supported by the calendar widget`,
                 DiagnosticSeverity.Error
             )
         ];
@@ -63,7 +63,8 @@ suite("Calendar type specfifc validation rules", () => {
         const expectedDiagnostic = [
             createDiagnostic(
                 createRange(4, 13, 8),
-                `For multiple series with no 'range-merge' and no 'thresholds' specified ticks won't show`,
+                "Palette ticks will not be displayed if the widget contains multiple series with individual ranges. " +
+                "Enable 'range-merge' or set common 'thresholds' to display ticks.",
                 DiagnosticSeverity.Warning
             )
         ];
