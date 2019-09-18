@@ -47,6 +47,35 @@ suite("Calendar type specfifc validation rules", () => {
         deepStrictEqual(actualDiagnostics, expectedDiagnostic, `Config: \n${config}`);
     });
 
+    test("Incorrect: no 'range-merge' or 'thresholds' specified", () => {
+        const config = `
+        [configuration]
+  metric = cpu_busy
+  entity = nurswgvml00*
+
+[group]
+
+  [widget]
+    type = calendar
+    title = palette-ticks = true
+    palette-ticks = true
+
+    [series]
+
+    [series]
+`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        const expectedDiagnostic = [
+            createDiagnostic(
+                createRange(4, 13, 10),
+                `For multiple series with no 'range-merge' and no 'thresholds' specified ticks won't show`,
+                DiagnosticSeverity.Warning
+            )
+        ];
+        deepStrictEqual(actualDiagnostics, expectedDiagnostic, `Config: \n${config}`);
+    });
+
     test("Correct: summarize-period is equal to timespan", () => {
         const config = baseConfig("1 hour", "1 hour");
         const validator = new Validator(config);

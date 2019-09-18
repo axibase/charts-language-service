@@ -3,6 +3,7 @@ import { noUselessSettingsForSeries, noUselessSettingsForWidget } from "./presen
 import simultaneousTimeSettings from "./presenceValidation/noUselessSettings/simultaneousTimeSettings";
 import requiredSettings from "./presenceValidation/requiredSettings";
 import { Rule } from "./utils/interfaces";
+import calendarPaletteTicks from "./valueValidation/calendarPaletteTicks";
 import calendarTimespan from "./valueValidation/calendarTimespan";
 import colorsThresholds from "./valueValidation/colorsThresholds";
 import forecastAutoCountAndEigentripleLimit from "./valueValidation/forecastAutoCountAndEigentripleLimit";
@@ -29,6 +30,7 @@ const rulesBySection: Map<string, Rule[]> = new Map<string, Rule[]>([
     ],
     [
         "widget", [
+            calendarPaletteTicks,
             calendarTimespan,
             noUselessSettingsForWidget,
             simultaneousTimeSettings,
