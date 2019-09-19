@@ -4,10 +4,10 @@ import { dateError } from "../messageUtil";
 import { Setting } from "../setting";
 import { createDiagnostic, getValueOfSetting } from "../util";
 import { IntervalParser } from "./intervalParser";
-import { TimeParseError } from "./timeParseError";
 import { TimeParser } from "./timeParser";
 
 const timeParseCache: Map<Setting, Date> = new Map<Setting, Date>();
+
 /**
  * Parses value of time setting, adds diagnostic to `errors` if any error during parsing was thrown.
  *
@@ -32,13 +32,9 @@ export function parseTimeValue(timeSetting: Setting, section: Section, errors: D
             parsedValue = timeParser.parseDateTemplate(timeSetting.value);
             timeParseCache.set(timeSetting, parsedValue);
         } catch (err) {
-            if (err instanceof TimeParseError) {
-                const diagnostic = createDiagnostic(timeSetting.textRange,
+            const diagnostic = createDiagnostic(timeSetting.textRange,
                     dateError(err.message, timeSetting.displayName));
-                errors.push(diagnostic);
-            } else {
-                throw err;
-            }
+            errors.push(diagnostic);
         }
     }
     return parsedValue;
@@ -57,17 +53,13 @@ export function parseIntervalValue(intervalSetting: Setting/*, errors: Diagnosti
         try {
             parsedValue = IntervalParser.parse(intervalSetting.value);
         } catch (err) {
-            if (err instanceof TimeParseError) {
-                // Commented for now, because syntax is checked in Setting.checkType.
-                // It may be convenient to use this method instead of code in case "interval".
-                /*
-                const diagnostic = createDiagnostic(intervalSetting.textRange,
-                    intervalError(err.message, intervalSetting.displayName));
-                errors.push(diagnostic);
-                */
-            } else {
-                throw err;
-            }
+            // Commented for now, because syntax is checked in Setting.checkType.
+            // It may be convenient to use this method instead of code in case "interval".
+            /*
+             const diagnostic = createDiagnostic(intervalSetting.textRange,
+             intervalError(err.message, intervalSetting.displayName));
+             errors.push(diagnostic);
+             */
         }
     }
     return parsedValue;

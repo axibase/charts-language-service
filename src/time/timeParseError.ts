@@ -1,5 +1,4 @@
 export class TimeParseError extends Error {
-    public wrongValue: string;
     public message: string;
 
     /**
@@ -10,7 +9,6 @@ export class TimeParseError extends Error {
     constructor(wrongValue: string, message: string) {
         super(message);
         this.message = message + ": " + wrongValue;
-        this.wrongValue = wrongValue;
         this.name = this.constructor.name;
         if (Error.captureStackTrace) {
             Error.captureStackTrace(this, this.constructor);
