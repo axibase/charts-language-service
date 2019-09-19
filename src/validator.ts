@@ -1129,7 +1129,7 @@ export class Validator {
 
         if (setting.multiple) {
             const incorrectItems = setting.value.split(",").some(
-                value => setting.checkType(range, value) !== undefined
+                value => setting.checkType(value) !== undefined
             );
             if (incorrectItems) {
                 let errorMessage: string;
@@ -1144,11 +1144,6 @@ export class Validator {
                     case "integer":
                         errorMessage = `All elements of ${setting.displayName} must be integers`;
                         break;
-                    case "boolean":
-                        errorMessage = `All elements of ${setting.displayName} must be boolean values`;
-                        break;
-                    default:
-                        errorMessage = `Some of ${setting.displayName}'s elements have wrong type`;
                 }
 
                 diagnostic = createDiagnostic(
@@ -1158,7 +1153,7 @@ export class Validator {
                 );
             }
         } else {
-            diagnostic = setting.checkType(range);
+            diagnostic = setting.checkType();
         }
         if (diagnostic != null) {
             this.result.push(diagnostic);
