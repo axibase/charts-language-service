@@ -3,8 +3,10 @@ import { LanguageFormattingOptions, NestedCodeFormatter } from "./nestedCodeForm
 import {
     BLOCK_COMMENT_END, BLOCK_COMMENT_START,
     BLOCK_SCRIPT_END, BLOCK_SCRIPT_START,
-    ONE_LINE_COMMENT, RELATIONS_REGEXP,
-    SPACES_AT_START, VAR_OPEN_BRACKET,
+    ELSE_ELSEIF_REGEX, ENDKEYWORDS_WITH_LF,
+    KEYWORDS_WITH_LF, ONE_LINE_COMMENT,
+    RELATIONS_REGEXP, SETTING_DECLARATION,
+    SPACES_AT_START, VAR_OPEN_BRACKET
 } from "./regExpressions";
 import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { TextRange } from "./textRange";
@@ -148,9 +150,7 @@ export class Formatter {
             } else if (isEmpty(line)) {
                 if (this.currentSection.name === "tags" && this.previousSection.name !== "widget") {
                     Object.assign(this.currentSection, this.previousSection);
-                    if (this.shouldInsertBlankLineAfterTags()) {
-                        this.insertBlankLineAfter();
-                    }
+                    this.insertBlankLineAfter();
                     this.decreaseIndent();
                 }
                 continue;
@@ -168,18 +168,64 @@ export class Formatter {
                 this.insideKeyword = false;
                 this.lastKeywordIndent = "";
             }
-            this.indentLine(this.checkSign(line));
+            this.insertBlankLineAfterKeywordEnd();
+            this.indentLine();
             if (TextRange.isCloseAble(line) && this.shouldBeClosed()) {
                 this.keywordsLevels.push(this.currentIndent.length / Formatter.BASE_INDENT_SIZE);
                 this.lastKeywordIndent = this.currentIndent;
                 this.increaseIndent();
                 this.insideKeyword = true;
+                /**
+                 * We don't need blank line before else|elseif
+                 */
+                if (!ELSE_ELSEIF_REGEX.test(line)) {
+                    this.insertBlankLineBefore();
+                }
             }
         }
 
-        this.handleEndLines();
+        return this.concatFormattedConfig();
+    }
 
-        return this.formattedText.join("\n");
+    /**
+     * Filters formatted text from consequent blank lines
+     * @returns formatted config text
+     */
+    private concatFormattedConfig(): string {
+        const filteredConfig: string[] = [];
+        let lastEmpty = true;
+        for (const line of this.formattedText) {
+            let isEmptyLine = isEmpty(line);
+            /**
+             * Skip empty lines at start and consequent blank lines
+             */
+            if (!isEmptyLine || !lastEmpty) {
+                filteredConfig.push(line);
+            }
+            lastEmpty = isEmptyLine;
+        }
+
+        /**
+         * Append specified number of blank lines to the end of the config
+         */
+        filteredConfig.length += this.blankLinesAtEnd;
+
+        return filteredConfig.join("\n");
+    }
+
+    /**
+     * Inserts blank line after keyword end if needed
+     */
+    private insertBlankLineAfterKeywordEnd(): void {
+        /**
+         * Check `previous formatted` line.
+         * If it is keyword end, blank line should inserted between it and current line
+         */
+        const previousFormattedLine = this.formattedText[this.formattedText.length - 1];
+
+        if (ENDKEYWORDS_WITH_LF.test(previousFormattedLine)) {
+            this.insertBlankLineAfter();
+        }
     }
 
     /**
@@ -188,15 +234,6 @@ export class Formatter {
      */
     private isCommentBlockStart(line: string): boolean {
         return line.indexOf("/*") > -1 && !ONE_LINE_COMMENT.test(line);
-    }
-
-    /**
-     * Determines if blank line after tags should be inserted
-     */
-    private shouldInsertBlankLineAfterTags(): boolean {
-        const nextLine = this.lines[this.currentLine + 1];
-        /** Next line is not empty OR undefined */
-        return nextLine && !this.isSectionDeclaration(nextLine);
     }
 
     /**
@@ -258,13 +295,6 @@ export class Formatter {
         );
 
         this.currentLanguageConfiguration = null;
-    }
-
-    /**
-     * Append specified number of blank lines to the end of the document
-     */
-    private handleEndLines(): void {
-        this.formattedText.push(...new Array(this.blankLinesAtEnd).fill(""));
     }
 
     /**
@@ -366,31 +396,37 @@ export class Formatter {
      * @param line to indent
      */
     private indentLine(line: string = this.getCurrentLine()): void {
-        this.formattedText.push(this.currentIndent + line.trim());
+        this.formattedText.push(this.currentIndent + this.checkSign(line).trim());
     }
 
     /**
      * Format multiline block comment
      */
     private handleCommentBlock(line: string): void {
-        const [, commentStart, setting] = line.match(BLOCK_COMMENT_START);
-
+        const [, settingBefore, commentStart, setting] = line.match(BLOCK_COMMENT_START);
+        if (!isEmpty(settingBefore)) {
+            this.indentLine(settingBefore);
+        }
         /** Write comment start symbol */
         this.indentLine(commentStart);
-        /** Push setting after comment start to line stream */
+        /** Push setting after comment to comment buffer */
         if (!isEmpty(setting)) {
-            this.lineStreamPush(setting);
+            this.pushCommentBuffer(setting);
         }
         line = this.nextLine();
         while (line !== undefined) {
             const commentEndMatch = line.match(BLOCK_COMMENT_END);
             if (commentEndMatch !== null) {
-                let [, configSetting, commentEnd] = commentEndMatch;
+                let [, configSetting, commentEnd, settingAfter] = commentEndMatch;
                 if (!isEmpty(configSetting)) {
                     this.pushCommentBuffer(configSetting);
                 }
                 this.dumpCommentBuffer();
-                this.lineStreamPush(commentEnd);
+                this.indentLine(commentEnd);
+
+                if (!isEmpty(settingAfter)) {
+                    this.indentLine(settingAfter);
+                }
                 return;
             } else {
                 this.pushCommentBuffer(line);
@@ -482,21 +518,17 @@ export class Formatter {
     }
 
     /**
-     * Insert line to the config
-     */
-    private lineStreamPush(line: string): void {
-        this.lines.splice(this.currentLine + 1, 0, line);
-    }
-
-    /**
-     * Inserts blank line before section except for configuration
+     * Inserts blank line before section
      */
     private insertLineBeforeSection(): void {
-        if (this.currentSection.name === "configuration") {
-            return;
-        }
+        const previousFormattedLine = this.formattedText[this.formattedText.length - 2];
 
-        this.insertBlankLineBefore();
+        /**
+         * Don't insert blank line before first section inside keyword unless it is preceded by setting
+         */
+        if (SETTING_DECLARATION.test(previousFormattedLine) || !KEYWORDS_WITH_LF.test(previousFormattedLine)) {
+            this.insertBlankLineBefore();
+        }
     }
 
     /**

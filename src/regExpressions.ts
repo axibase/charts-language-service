@@ -1,4 +1,4 @@
-import { BOOLEAN_KEYWORDS, INTERVAL_UNITS, RELATIONS } from "./constants";
+import { BOOLEAN_KEYWORDS, CONTROL_KEYWORDS, INTERVAL_UNITS, RELATIONS } from "./constants";
 
 /** Regular expressions for CSV syntax checking */
 
@@ -105,6 +105,15 @@ export const SECTION_DECLARATION: RegExp = /(^\s*\[)(\w+)\]\s*$/;
 // [configuration
 export const UNCLOSED_SECTION_DECLARATION: RegExp = /(^\s*\[)(\w+)\s*$/;
 
+// start of block comment - /*
+export const BLOCK_COMMENT_START: RegExp = /^(.*)(\/\*+)(.*)/;
+
+// end of block comment - */
+export const BLOCK_COMMENT_END: RegExp = /(.*)(\*\/)(.*)$/;
+
+// block comment - /* some-text */
+export const ONE_LINE_COMMENT: RegExp = /\/\*([\s\S]*?)(?=\*\/)/;
+
 // number of spaces until first non-space character -  "   hello" // 3
 export const SPACES_AT_START = /[^ ]/;
 
@@ -112,6 +121,19 @@ export const SPACES_AT_START = /[^ ]/;
 
 export const IF_CONDITION_REGEX = /^[\s]*if\s*(.*)/;
 
+// if|csv|script|sql|for|list|var|expr - keywords separated with line feed
+export const KEYWORDS_WITH_LF: RegExp = new RegExp(`\\b(${CONTROL_KEYWORDS.join("|")})\\b`);
+
+// else|elseif - do not need line feed before these keywords
+export const ELSE_ELSEIF_REGEX: RegExp = /\b(else|elseif)\b/;
+
+// endif|endcsv|endscript|endsql|endfor|endlist|endvar|endexpr - endkeywords separated with line feed
+export const ENDKEYWORDS_WITH_LF: RegExp = new RegExp(
+    `\\b(${CONTROL_KEYWORDS.map(word => "end" + word).join("|")})\\b`
+);
+
+// width-units = 6.2
+export const SETTING_DECLARATION: RegExp = /(^\s*)([a-z].*?[a-z])\s*=\s*(.*?)\s*$/;
 // var test = [ <- open bracket
 //
 // OR
