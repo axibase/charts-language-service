@@ -38,7 +38,7 @@ export const BLOCK_SQL_END = /^\s*endsql\s*$/;
 /** Regular expressions to match script */
 
 // script = console.log()
-export const ONE_LINE_SCRIPT = /^\s*script\s*=.*$/m;
+export const ONE_LINE_SCRIPT = /^\s*script\s*=\s*(.*)/;
 
 // script alert("Hello, world!")
 export const BLOCK_SCRIPT_START_WITHOUT_LF = /(^\s*)script\s*\S/;
@@ -99,6 +99,9 @@ export const ONE_LINE_COMMENT: RegExp = /\/\*([\s\S]*?)(?=\*\/)/;
 
 // number of spaces until first non-space character -  "   hello" // 3
 export const SPACES_AT_START: RegExp = /[^ ]/;
+
+// matches 1+ consequent spaces not surrounded by quotes
+export const UNQUOTED_CONSEQUENT_SPACES: RegExp = /(\s{2,})+(?=([^"]*"[^"]*")*[^"]*$)/;
 
 // extract if condition — if a == 2 // condition:  a == 2
 export const IF_CONDITION_REGEX: RegExp = /^[\s]*if\s*(.*)/;

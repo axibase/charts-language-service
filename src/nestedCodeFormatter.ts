@@ -8,6 +8,9 @@ export interface LanguageFormatter {
 export interface LanguageFormattingOptions {
     base?: number;
     style?: string;
+    adjustMultilineComment?: boolean;
+    semicolons?: boolean;
+    newline?: string;
 }
 
 export class NestedCodeFormatter {
