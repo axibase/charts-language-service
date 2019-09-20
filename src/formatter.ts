@@ -7,7 +7,7 @@ import {
     KEYWORDS_WITH_LF, ONE_LINE_COMMENT,
     ONE_LINE_SCRIPT, RELATIONS_REGEXP,
     SETTING_DECLARATION, SPACES_AT_START,
-    UNQUOTED_CONSEQUENT_SPACES,VAR_OPEN_BRACKET
+    UNQUOTED_CONSEQUENT_SPACES, VAR_OPEN_BRACKET
 } from "./regExpressions";
 import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { TextRange } from "./textRange";
@@ -317,14 +317,14 @@ export class Formatter {
 
         const buffer = [];
         if (isBlock) {
-            // It's inline code, like 'script = '
+            // Get content between code tags
             line = this.nextLine();
             while (line !== undefined && !endRegex.test(line)) {
                 buffer.push(line);
                 line = this.nextLine();
             }
         } else {
-            // Get content between code tags
+            // It's inline code, like 'script = '
             line = this.getCurrentLine();
             const match = endRegex.exec(line);
             const [, scriptContents] = match;
@@ -334,8 +334,8 @@ export class Formatter {
         if (!buffer.length) {
             return;
         }
-        const unformattedCode = buffer.join("\n");
 
+        const unformattedCode = buffer.join("\n");
         const formattedCode = NestedCodeFormatter.forLanguage(languageId).format(
             unformattedCode, getOptions(this.currentIndent, this.options.tabSize)
         );
