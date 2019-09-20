@@ -101,7 +101,7 @@ export const ONE_LINE_COMMENT: RegExp = /\/\*([\s\S]*?)(?=\*\/)/;
 export const SPACES_AT_START: RegExp = /[^ ]/;
 
 // matches 1+ consequent spaces not surrounded by quotes
-export const UNQUOTED_CONSEQUENT_SPACES: RegExp = /(\s{2,})+(?=([^"]*"[^"]*")*[^"]*$)/;
+export const UNQUOTED_CONSEQUENT_SPACES: RegExp = /((['"])(?:\\.|[^\2])*?\2)|(\s\s+)/;
 
 // extract if condition — if a == 2 // condition:  a == 2
 export const IF_CONDITION_REGEX: RegExp = /^[\s]*if\s*(.*)/;
