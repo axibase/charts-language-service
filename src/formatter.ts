@@ -272,12 +272,26 @@ export class Formatter {
          * In case of block code fragment we need to indent opening ang closing tags
          */
         if (isBlock) {
-            this.indentLine();
+            this.handleBlockCode();
+        } else {
+            this.handleInlineCode();
         }
+    }
+
+    /**
+     * Handles inline code declaration, such as 'script ='
+     */
+    private handleInlineCode(): void {
         this.formatCode();
-        if (isBlock) {
-            this.indentLine();
-        }
+    }
+
+    /**
+     * Handle code frarment between tags
+     */
+    private handleBlockCode(): void {
+        this.indentLine();
+        this.formatCode();
+        this.indentLine();
     }
 
     /**
