@@ -269,7 +269,7 @@ export class Formatter {
     private handleCodeFragment(): void {
         const { isBlock } = this.currentLanguageConfiguration;
         /**
-         * In case of block code fragment we need to indent opening ang closing tags
+         * In case of block code fragment we need to indent opening and closing tags
          */
         if (isBlock) {
             this.indentLine();
