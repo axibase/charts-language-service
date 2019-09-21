@@ -73,6 +73,9 @@ export const INTERVAL_REGEXP: RegExp = new RegExp(
     `^(?:(?:[-+]?(?:(?:\\d+|(?:\\d+)?\\.\\d+)|@\\{.+\\})[ \\t]*(?:${INTERVAL_UNITS.join("|")}))|all)$`,
 );
 
+// 0.5 hour, 2 week
+export const COUNT_UNIT_FORMAT = /(\d+(?:\.\d+)?)\s+(\w+)/;
+
 // 1, 5.2, 0.3, .9, -8, -0.5, +1.4
 export const NUMBER_REGEXP: RegExp = /^(?:\-|\+)?(?:\.\d+|\d+(?:\.\d+)?)$/;
 

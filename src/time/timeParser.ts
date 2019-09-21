@@ -1,3 +1,4 @@
+import { IntervalParser } from "./intervalParser";
 import { TimeParseError } from "./timeParseError";
 import {
     DateFunction,
@@ -23,33 +24,6 @@ export class TimeParser {
         }],
         ["date", () => {
             return new Date();
-        }],
-        ["sec", () => {
-            return 1000;
-        }],
-        ["second", () => {
-            return 1000;
-        }],
-        ["min", () => {
-            return 60000;
-        }],
-        ["minute", () => {
-            return 60000;
-        }],
-        ["hour", () => {
-            return 3600000;
-        }],
-        ["day", () => {
-            return 86400000;
-        }],
-        ["week", () => {
-            return 604800000;
-        }],
-        ["month", () => {
-            return 2592000000;
-        }],
-        ["year", () => {
-            return 31536000000;
         }],
         ["current_minute", (d: Date) => {
             return getCurrentMinute(d, this.isUTC);
@@ -212,43 +186,11 @@ export class TimeParser {
         while (m) {
             let count;
             let unit;
-            let currentSign = m[1] === "-" ? -sign : sign;
+            const currentSign = m[1] === "-" ? -sign : sign;
             count = currentSign * +m[2];
             unit = m[3].toLowerCase();
-
-            switch (unit) {
-                case "year":
-                    baseTime.setFullYear(baseTime.getFullYear() + count);
-                    break;
-                case "quarter":
-                    baseTime.setMonth(baseTime.getMonth() + 3 * count);
-                    break;
-                case "month":
-                    baseTime.setMonth(baseTime.getMonth() + count);
-                    break;
-                case "week":
-                    baseTime.setTime(baseTime.getTime() + count * 604800000);
-                    break;
-                case "day":
-                    baseTime.setTime(baseTime.getTime() + count * 86400000);
-                    break;
-                case "hour":
-                    baseTime.setTime(baseTime.getTime() + count * 3600000);
-                    break;
-                case "min": /* alias to 'minute' */
-                case "minute":
-                    baseTime.setTime(baseTime.getTime() + count * 60000);
-                    break;
-                case "sec": /* alias to 'second' */
-                case "second":
-                    baseTime.setTime(baseTime.getTime() + count * 1000);
-                    break;
-                case "millisecond":
-                    baseTime.setTime(baseTime.getTime() + count);
-                    break;
-                default:
-                    throw new TimeParseError(unit, "Incorrect interval unit");
-            }
+            const intervalAsMillis = IntervalParser.getIntervalAsMillis(count, unit);
+            baseTime.setTime(baseTime.getTime() + intervalAsMillis);
             m = PARSE_SPAN_SYNTAX.exec(timespan);
         }
 
