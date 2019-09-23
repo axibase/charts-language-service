@@ -413,18 +413,6 @@ starttime = 2018
     deepStrictEqual(actual, expected);
   });
 
-  // TODO: will be affected when inline-scripts formatting PR is merged
-  test.skip("Does not affect equals signs in setting value", () => {
-    const text = `[configuration]
-  script = var hello= value()
-
-`;
-    const expected = text;
-    const formatter = new Formatter(FORMATTING_OPTIONS);
-    const actual = formatter.format(text);
-    deepStrictEqual(actual, expected);
-  });
-
   test("Incorrect [column] after endfor", () => {
     const text = `[configuration]
   entity = a
