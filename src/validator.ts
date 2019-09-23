@@ -1128,7 +1128,36 @@ export class Validator {
             return;
         }
         const range: Range = this.createRange(this.match[1].length, this.match[2].length);
-        const diagnostic: Diagnostic | undefined = setting.checkType(range);
+        let diagnostic: Diagnostic | undefined;
+
+        if (setting.multiple) {
+            const incorrectItems = setting.value.split(",").some(
+                value => setting.checkType(value) !== undefined
+            );
+            if (incorrectItems) {
+                let errorMessage: string;
+
+                switch (setting.type) {
+                    case "string":
+                        errorMessage = `${setting.displayName} can not contain empty elements`;
+                        break;
+                    case "number":
+                        errorMessage = `All elements of ${setting.displayName} must be real (floating-point) numbers`;
+                        break;
+                    case "integer":
+                        errorMessage = `All elements of ${setting.displayName} must be integers`;
+                        break;
+                }
+
+                diagnostic = createDiagnostic(
+                    range,
+                    errorMessage,
+                    DiagnosticSeverity.Error,
+                );
+            }
+        } else {
+            diagnostic = setting.checkType();
+        }
         if (diagnostic != null) {
             this.result.push(diagnostic);
         }

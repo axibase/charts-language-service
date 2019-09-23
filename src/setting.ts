@@ -45,82 +45,83 @@ export class Setting extends DefaultSetting {
   /**
    * Checks the type of the setting and creates a corresponding diagnostic
    * @param range where the error should be displayed
+   * @param value setting value to check [optional]
    */
-  public checkType(range: Range): Diagnostic | undefined {
+  public checkType(value: string = this.value): Diagnostic | undefined {
     let result: Diagnostic | undefined;
     // allows ${} and @{} expressions
-    if (CALCULATED_REGEXP.test(this.value)) {
+    if (CALCULATED_REGEXP.test(value)) {
       return result;
     }
     switch (this.type) {
       case "string": {
-        if (!/\S/.test(this.value)) {
-          result = createDiagnostic(range, `${this.displayName} can not be empty`);
+        if (!/\S/.test(value)) {
+          result = createDiagnostic(this.textRange, `${this.displayName} can not be empty`);
           break;
         }
         if (this.enum.length > 0) {
-          if (this.value.split(/\s*,\s*/).some(s => this.enum.indexOf(s) < 0)) {
+          if (value.split(/\s*,\s*/).some(s => this.enum.indexOf(s) < 0)) {
             const enumList: string = this.enum.sort().join("\n * ");
-            result = createDiagnostic(range,
+            result = createDiagnostic(this.textRange,
               `${this.displayName} must contain only the following:\n * ${enumList}`);
           }
         }
         break;
       }
       case "number": {
-        const persent = /(\d*)%/.exec(this.value);
-        if (this.name === "arrowlength" && persent) {
+        const percent = /(\d*)%/.exec(value);
+        if (this.name === "arrowlength" && percent) {
           this.maxValue = typeof this.maxValue === "object" ? this.maxValue.value * 100 : this.maxValue * 100;
           this.minValue = typeof this.minValue === "object" ? this.minValue.value * 100 : this.minValue * 100;
-          this.value = persent[1];
+          this.value = percent[1];
         }
         result = this.checkNumber(NUMBER_REGEXP,
           `${this.displayName} should be a real (floating-point) number.`,
-          range);
+          this.textRange);
 
         break;
       }
       case "integer": {
         result = this.checkNumber(INTEGER_REGEXP,
           `${this.displayName} should be an integer number.`,
-          range);
+          this.textRange);
         break;
       }
       case "boolean": {
-        if (!BOOLEAN_REGEXP.test(this.value)) {
+        if (!BOOLEAN_REGEXP.test(value)) {
           result = createDiagnostic(
-            range,
+            this.textRange,
             `${this.displayName} should be a boolean value. For example, ${this.example}`,
           );
         }
         break;
       }
       case "enum": {
-        const index: number = this.findIndexInEnum(this.value);
+        const index: number = this.findIndexInEnum(value);
         // Empty enum means that the setting is not allowed
         if (this.enum.length === 0) {
-          result = createDiagnostic(range, illegalSetting(this.displayName));
+          result = createDiagnostic(this.textRange, illegalSetting(this.displayName));
         } else if (index < 0) {
-          if (/percentile/.test(this.value) && /statistic/.test(this.name)) {
-            result = this.checkPercentile(range);
+          if (/percentile/.test(value) && /statistic/.test(this.name)) {
+            result = this.checkPercentile(this.textRange);
             break;
           }
           const enumList: string = this.enum.sort().
             join("\n * ").
             replace(/percentile\\.+/, "percentile(n)");
-          result = createDiagnostic(range,
+          result = createDiagnostic(this.textRange,
             `${this.displayName} must be one of:\n * ${enumList}`);
         }
         break;
       }
       case "interval": {
-        if (!INTERVAL_REGEXP.test(this.value)) {
+        if (!INTERVAL_REGEXP.test(value)) {
           const message =
             `.\nFor example, ${this.example}. Supported units:\n * ${INTERVAL_UNITS.join(
               "\n * ")}`;
-          if (this.name === "updateinterval" && /^\d+$/.test(this.value)) {
+          if (this.name === "updateinterval" && /^\d+$/.test(value)) {
             result = createDiagnostic(
-              range,
+              this.textRange,
               `Specifying the interval in seconds is deprecated.\nUse \`count unit\` format${message}`,
               DiagnosticSeverity.Warning,
             );
@@ -130,14 +131,14 @@ export class Setting extends DefaultSetting {
              * (for example, period, summarize-period, group-period supports "auto")
              */
             if (this.enum.length > 0) {
-              if (this.findIndexInEnum(this.value) < 0) {
-                result = createDiagnostic(range,
+              if (this.findIndexInEnum(value) < 0) {
+                result = createDiagnostic(this.textRange,
                   `Use ${this.enum.sort().
                     join(
                       ", ")} or \`count unit\` format${message}`);
               }
             } else {
-              result = createDiagnostic(range,
+              result = createDiagnostic(this.textRange,
                 `${this.displayName} should be set as \`count unit\`${message}`);
             }
           }
@@ -150,9 +151,9 @@ export class Setting extends DefaultSetting {
       }
       case "object": {
         try {
-          JSON.parse(this.value);
+          JSON.parse(value);
         } catch (err) {
-          result = createDiagnostic(range,
+          result = createDiagnostic(this.textRange,
             `Invalid object specified: ${err.message}`);
         }
         break;

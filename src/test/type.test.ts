@@ -780,4 +780,25 @@ suite("string[] type tests", () => {
     const actualDiagnostics = validator.lineByLine();
     assert.deepStrictEqual(actualDiagnostics, []);
   });
+
+  test("Incorrect setting of string[] type, some items are empty", () => {
+    const config = `[configuration]
+          [group]
+          [widget]
+              type = chart
+              metric = a
+              [column]
+                  [series]
+                  entity = b
+                  evaluate-expression = c LIKE 'cpu*'
+                  metrics = c,d, , e`;
+    const validator = new Validator(config);
+    const actualDiagnostics = validator.lineByLine();
+    const expectedDiagnostic = createDiagnostic(
+      createRange(18, 7, 9),
+      "metrics can not contain empty elements",
+      DiagnosticSeverity.Error
+    );
+    assert.deepStrictEqual(actualDiagnostics, [expectedDiagnostic]);
+  });
 });
