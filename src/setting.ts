@@ -67,11 +67,15 @@ export class Setting extends DefaultSetting {
           }
           break;
         }
-        if (this.minValue !== undefined) {
-          if (parseFloat(value) < this.minValue) {
-            result = createDiagnostic(this.textRange,
-              `${this.displayName} must be greater or equal to ${this.minValue}`);
-          }
+
+        if (this.minValue !== undefined && +value < this.minValue) {
+          result = createDiagnostic(this.textRange,
+            `${this.displayName} must be no less than ${this.minValue}`);
+        }
+
+        if (this.maxValue !== undefined && +value > this.maxValue) {
+          result = createDiagnostic(this.textRange,
+            `${this.displayName} must be no greater than ${this.maxValue}`);
         }
         break;
       }

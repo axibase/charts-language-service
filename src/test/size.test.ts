@@ -21,7 +21,7 @@ suite("Size setting tests", () => {
         const expectedDiagnostic = [
             createDiagnostic(
                 createRange(4, 4, 5),
-                `size must be greater or equal to 0`,
+                `size must be no less than 0`,
                 DiagnosticSeverity.Error
             )
         ];
