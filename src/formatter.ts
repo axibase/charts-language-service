@@ -1,5 +1,6 @@
+import { FormatOptions } from "escodegen";
 import { FormattingOptions } from "vscode-languageserver-types";
-import { LanguageFormattingOptions, NestedCodeFormatter } from "./nestedCodeFormatter";
+import { NestedCodeFormatter } from "./nestedCodeFormatter";
 import {
     BLOCK_COMMENT_END, BLOCK_COMMENT_START,
     BLOCK_SCRIPT_END, BLOCK_SCRIPT_START,
@@ -40,7 +41,7 @@ interface LanguageConfiguration {
     languageId: string;
     endRegex: RegExp;
     isBlock: boolean;
-    getOptions(indent: string, tabSize: number): LanguageFormattingOptions;
+    getOptions(indent: string, tabSize: number): FormatOptions;
 }
 
 /**
@@ -49,11 +50,13 @@ interface LanguageConfiguration {
 const NestedLanguages = new Map<RegExp, LanguageConfiguration>([
     [BLOCK_SCRIPT_START, {
         endRegex: BLOCK_SCRIPT_END,
-        getOptions: (indent: string, tabSize: number) => {
+        getOptions: (indent: string, tabSize: number): FormatOptions => {
             return {
-                adjustMultilineComment: true,
-                base: (indent.length / tabSize) + 1,
-                style: " ".repeat(tabSize)
+                indent: {
+                    adjustMultilineComment: true,
+                    base: (indent.length / tabSize) + 1,
+                    style: " ".repeat(tabSize)
+                }
             };
         },
         isBlock: true,
@@ -61,12 +64,14 @@ const NestedLanguages = new Map<RegExp, LanguageConfiguration>([
     }],
     [ONE_LINE_SCRIPT, {
         endRegex: ONE_LINE_SCRIPT,
-        getOptions: (indent: string, tabSize: number) => {
+        getOptions: (indent: string, tabSize: number): FormatOptions => {
             return {
-                base: (indent.length / tabSize),
+                indent: {
+                    base: (indent.length / tabSize),
+                    style: " ".repeat(tabSize),
+                },
                 newline: "",
                 semicolons: false,
-                style: " ".repeat(tabSize),
             };
         },
         isBlock: false,
