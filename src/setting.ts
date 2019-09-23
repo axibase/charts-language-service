@@ -65,6 +65,13 @@ export class Setting extends DefaultSetting {
             result = createDiagnostic(this.textRange,
               `${this.displayName} must contain only the following:\n * ${enumList}`);
           }
+          break;
+        }
+        if (this.minValue !== undefined) {
+          if (parseFloat(value) < this.minValue) {
+            result = createDiagnostic(this.textRange,
+              `${this.displayName} must be greater or equal to ${this.minValue}`);
+          }
         }
         break;
       }

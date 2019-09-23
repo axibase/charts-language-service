@@ -14,38 +14,22 @@ const baseConfig = (setting: string, condition: string = "") => `[configuration]
       metric = cpu_busy`;
 
 suite("Size setting tests", () => {
-    test("Incorrect: size set as number and has negative value", () => {
+    test("Incorrect: negative value", () => {
         const config = baseConfig("size = -3");
         const validator = new Validator(config);
         const actualDiagnostics = validator.lineByLine();
         const expectedDiagnostic = [
             createDiagnostic(
                 createRange(4, 4, 5),
-                `'size' must must have non-negative value`,
+                `size must be greater or equal to 0`,
                 DiagnosticSeverity.Error
             )
         ];
         deepStrictEqual(actualDiagnostics, expectedDiagnostic, `Config: \n${config}`);
     });
 
-    test("Correct: size set as number and has positive value", () => {
+    test("Correct: positive value", () => {
         const config = baseConfig("size = 2");
-        const validator = new Validator(config);
-        const actualDiagnostics = validator.lineByLine();
-        const expectedDiagnostic = [];
-        deepStrictEqual(actualDiagnostics, expectedDiagnostic, `Config: \n${config}`);
-    });
-
-    test("Correct: size set as value, no warning", () => {
-        const config = baseConfig("size = value");
-        const validator = new Validator(config);
-        const actualDiagnostics = validator.lineByLine();
-        const expectedDiagnostic = [];
-        deepStrictEqual(actualDiagnostics, expectedDiagnostic, `Config: \n${config}`);
-    });
-
-    test("Correct: size set as alias, no warning", () => {
-        const config = baseConfig("size = value('007')", "alias = 007");
         const validator = new Validator(config);
         const actualDiagnostics = validator.lineByLine();
         const expectedDiagnostic = [];

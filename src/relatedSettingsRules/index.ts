@@ -11,7 +11,6 @@ import forecastSsaGroupAutoUnion from "./valueValidation/forecastSsaGroupAutoUni
 import forecastSsaGroupManualGroups from "./valueValidation/forecastSsaGroupManualGroups";
 import forecastStartTime from "./valueValidation/forecastStartTime";
 import paletteTicks from "./valueValidation/paletteTicks";
-import size from "./valueValidation/size";
 import startEndTime from "./valueValidation/startEndTime";
 import summarizePeriodTimespan from "./valueValidation/summarizePeriodTimespan";
 
@@ -26,8 +25,7 @@ const rulesBySection: Map<string, Rule[]> = new Map<string, Rule[]>([
             forecastStartTime,
             metricsAndEvaluateExpr,
             noUselessSettingsForSeries,
-            requiredSettings,
-            size
+            requiredSettings
         ]
     ],
     [
