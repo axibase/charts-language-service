@@ -7,7 +7,6 @@ const rule: Rule = {
     name: "Size (set as number) value validation",
     check(section: Section): Diagnostic | void {
         const size = section.getSettingFromTree("size");
-        // TODO: add validation for 'size = value('alias')' and 'size = value'
         if (size === undefined || !isFinite(parseFloat(size.value))) {
             return;
         }
