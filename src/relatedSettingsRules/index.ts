@@ -3,7 +3,6 @@ import { noUselessSettingsForSeries, noUselessSettingsForWidget } from "./presen
 import simultaneousTimeSettings from "./presenceValidation/noUselessSettings/simultaneousTimeSettings";
 import requiredSettings from "./presenceValidation/requiredSettings";
 import { Rule } from "./utils/interfaces";
-import calendarPaletteTicks from "./valueValidation/calendarPaletteTicks";
 import calendarTimespan from "./valueValidation/calendarTimespan";
 import colorsThresholds from "./valueValidation/colorsThresholds";
 import forecastAutoCountAndEigentripleLimit from "./valueValidation/forecastAutoCountAndEigentripleLimit";
@@ -11,6 +10,8 @@ import forecastEndTime from "./valueValidation/forecastEndTime";
 import forecastSsaGroupAutoUnion from "./valueValidation/forecastSsaGroupAutoUnion";
 import forecastSsaGroupManualGroups from "./valueValidation/forecastSsaGroupManualGroups";
 import forecastStartTime from "./valueValidation/forecastStartTime";
+import paletteTicks from "./valueValidation/paletteTicks";
+import size from "./valueValidation/size";
 import startEndTime from "./valueValidation/startEndTime";
 import summarizePeriodTimespan from "./valueValidation/summarizePeriodTimespan";
 
@@ -25,14 +26,15 @@ const rulesBySection: Map<string, Rule[]> = new Map<string, Rule[]>([
             forecastStartTime,
             metricsAndEvaluateExpr,
             noUselessSettingsForSeries,
-            requiredSettings
+            requiredSettings,
+            size
         ]
     ],
     [
         "widget", [
-            calendarPaletteTicks,
             calendarTimespan,
             noUselessSettingsForWidget,
+            paletteTicks,
             simultaneousTimeSettings,
             startEndTime,
             summarizePeriodTimespan

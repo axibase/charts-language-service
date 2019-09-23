@@ -30,6 +30,16 @@ const checks: Map<string, Condition[]> = new Map<string, Condition[]>([
         ]
     ],
     [
+        "size-name", [
+            isNotUselessIf("display-total", ["true"])
+        ]
+    ],
+    [
+        "format-size", [
+            isNotUselessIf("display-total", ["true"])
+        ]
+    ],
+    [
         "color-range", [
             isNotUselessIf("type", ["calendar", "treemap", "gauge"]),
             isNotUselessIf("mode", ["half", "default"])]
