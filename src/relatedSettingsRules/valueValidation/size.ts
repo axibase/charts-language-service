@@ -1,6 +1,5 @@
 import { Diagnostic, DiagnosticSeverity } from "vscode-languageserver-types";
 import { Section } from "../../configTree/section";
-import { parseTimeValue } from "../../time";
 import { createDiagnostic } from "../../util";
 import { Rule } from "../utils/interfaces";
 
