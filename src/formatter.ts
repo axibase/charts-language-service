@@ -19,7 +19,7 @@ interface Section {
 }
 
 /** Document formatting options */
-export const FORMATTING_OPTIONS: FormattingOptions = {
+export const DEFAULT_FORMATTING_OPTIONS: FormattingOptions = {
     insertSpaces: true,
     tabSize: 2
 };

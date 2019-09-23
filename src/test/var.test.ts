@@ -1,6 +1,5 @@
 import { deepStrictEqual } from "assert";
-import { Position, Range } from "vscode-languageserver-types";
-import { Formatter, FORMATTING_OPTIONS } from "../formatter";
+import { DEFAULT_FORMATTING_OPTIONS, Formatter } from "../formatter";
 import { createDiagnostic, createRange } from "../util";
 import { Validator } from "../validator";
 
@@ -162,7 +161,7 @@ suite("Var formatting tests", () => {
 endvar
 
 `;
-        const formatter = new Formatter(FORMATTING_OPTIONS);
+        const formatter = new Formatter(DEFAULT_FORMATTING_OPTIONS);
         const actual = formatter.format(text);
         deepStrictEqual(actual, expected);
     });
@@ -184,7 +183,7 @@ endvar
 endvar
 
 `;
-        const formatter = new Formatter(FORMATTING_OPTIONS);
+        const formatter = new Formatter(DEFAULT_FORMATTING_OPTIONS);
         const actual = formatter.format(text);
         deepStrictEqual(actual, expected);
     });
@@ -199,7 +198,7 @@ endvar
 
 `;
         const expected = text;
-        const formatter = new Formatter(FORMATTING_OPTIONS);
+        const formatter = new Formatter(DEFAULT_FORMATTING_OPTIONS);
         const actual = formatter.format(text);
         deepStrictEqual(actual, expected);
     });
@@ -214,7 +213,7 @@ endvar
 
 `;
         const expected = text;
-        const formatter = new Formatter(FORMATTING_OPTIONS);
+        const formatter = new Formatter(DEFAULT_FORMATTING_OPTIONS);
         const actual = formatter.format(text);
         deepStrictEqual(actual, expected);
     });
@@ -229,7 +228,7 @@ endvar
 
 `;
         const expected = text;
-        const formatter = new Formatter(FORMATTING_OPTIONS);
+        const formatter = new Formatter(DEFAULT_FORMATTING_OPTIONS);
         const actual = formatter.format(text);
         deepStrictEqual(actual, expected);
     });
@@ -243,7 +242,7 @@ endvar
 
 `;
         const expected = text;
-        const formatter = new Formatter(FORMATTING_OPTIONS);
+        const formatter = new Formatter(DEFAULT_FORMATTING_OPTIONS);
         const actual = formatter.format(text);
         deepStrictEqual(actual, expected);
     });
@@ -263,7 +262,7 @@ endvar
 endvar
 
 `;
-        const formatter = new Formatter(FORMATTING_OPTIONS);
+        const formatter = new Formatter(DEFAULT_FORMATTING_OPTIONS);
         const actual = formatter.format(text);
         deepStrictEqual(actual, expected);
     });

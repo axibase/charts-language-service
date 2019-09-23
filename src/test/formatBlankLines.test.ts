@@ -1,5 +1,5 @@
 import { deepStrictEqual } from "assert";
-import { Formatter, FORMATTING_OPTIONS } from "../formatter";
+import { DEFAULT_FORMATTING_OPTIONS, Formatter } from "../formatter";
 
 suite("Blank lines formatting", () => {
   test("Delete extra blank lines between sections", () => {
@@ -16,7 +16,7 @@ suite("Blank lines formatting", () => {
 [group]
 
 `;
-    const formatter = new Formatter(FORMATTING_OPTIONS);
+    const formatter = new Formatter(DEFAULT_FORMATTING_OPTIONS);
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
@@ -31,7 +31,7 @@ suite("Blank lines formatting", () => {
 [group]
 
 `;
-    const formatter = new Formatter(FORMATTING_OPTIONS);
+    const formatter = new Formatter(DEFAULT_FORMATTING_OPTIONS);
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
@@ -44,7 +44,7 @@ suite("Blank lines formatting", () => {
 
 `;
     const expected = text;
-    const formatter = new Formatter(FORMATTING_OPTIONS);
+    const formatter = new Formatter(DEFAULT_FORMATTING_OPTIONS);
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
@@ -64,7 +64,7 @@ suite("Blank lines formatting", () => {
 [group]
 
 `;
-    const formatter = new Formatter(FORMATTING_OPTIONS);
+    const formatter = new Formatter(DEFAULT_FORMATTING_OPTIONS);
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
@@ -82,7 +82,7 @@ suite("Blank lines formatting", () => {
 [group]
 
 `;
-    const formatter = new Formatter(FORMATTING_OPTIONS);
+    const formatter = new Formatter(DEFAULT_FORMATTING_OPTIONS);
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
