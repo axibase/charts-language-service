@@ -68,14 +68,13 @@ export class Setting extends DefaultSetting {
           break;
         }
 
-        if (this.minValue !== undefined && +value < this.minValue) {
-          result = createDiagnostic(this.textRange,
-            `${this.displayName} must be no less than ${this.minValue}`);
-        }
-
-        if (this.maxValue !== undefined && +value > this.maxValue) {
-          result = createDiagnostic(this.textRange,
-            `${this.displayName} must be no greater than ${this.maxValue}`);
+        if (
+          typeof this.minValue === "number" && isFinite(this.minValue) ||
+          typeof this.maxValue === "number" && isFinite(this.maxValue)
+        ) {
+          result = this.checkNumber(NUMBER_REGEXP,
+            `${this.displayName} should be a real (floating-point) number.`,
+            this.textRange);
         }
         break;
       }
