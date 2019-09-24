@@ -1,10 +1,12 @@
+import { deepStrictEqual } from "assert";
 import { Diagnostic, DiagnosticSeverity, Position, Range } from "vscode-languageserver-types";
 import {
-    deprecatedTagSection,
+    deprecatedTagSectionDefault,
     settingNameInTags,
     tagNameWithWhitespaces,
 } from "../messageUtil";
-import { createDiagnostic } from "../util";
+import { createDiagnostic, createRange } from "../util";
+import { Validator } from "../validator";
 import { Test } from "./test";
 
 const errorMessage: (setting: string) => string = (setting: string): string =>
@@ -62,21 +64,6 @@ suite("Warn about setting interpreted as a tag", () => {
 
 });
 
-suite("Warn about deprecated [tag] section", () => {
-    const expectedDiagnostic: Diagnostic = createDiagnostic(
-        Range.create(Position.create(0, 1),
-            Position.create(0, 4)),
-        deprecatedTagSection, DiagnosticSeverity.Warning,
-    );
-    [
-        new Test("Deprecated [tag]",
-            `[tag]
-                    name = a
-                    value = b
-            `, [expectedDiagnostic]),
-    ].forEach((test: Test) => test.validationTest());
-});
-
 suite("Warn about tag keys with whitespaces that not wrapped in double quotes", () => {
     const expectedDiagnostic: Diagnostic =
         createDiagnostic(Range.create(Position.create(1, 2),
@@ -109,7 +96,113 @@ value = correct`,
             [createDiagnostic(
                 Range.create(Position.create(0, 1),
                     Position.create(0, 4)),
-                deprecatedTagSection, DiagnosticSeverity.Warning,
+                deprecatedTagSectionDefault, DiagnosticSeverity.Warning,
             )]),
     ].forEach((test: Test) => test.validationTest());
+});
+
+const baseConfig = (settings: string) => `[configuration]
+[group]
+  [widget]
+    type = chart
+    [series]
+      entity = a
+      metric = b
+      ${settings}`;
+
+suite("Warn about deprecated [tag] section", () => {
+    test("Single [tag] section, both name and value specified", () => {
+        const config = baseConfig(`[tag]
+        name = hello
+        value = fc1`);
+        const validator = new Validator(config);
+        const actualDiagnostic: Diagnostic[] = validator.lineByLine();
+        const expectedDiagnostic: Diagnostic[] = [
+            createDiagnostic(
+                createRange(7, 3, 7),
+                "Replace [tag] sections with [tags].\n\n" +
+                "[tag]\n  name = hello\n  value = fc1\n\n[tags]\n  hello = fc1",
+                DiagnosticSeverity.Warning
+            )
+        ];
+        deepStrictEqual(actualDiagnostic, expectedDiagnostic, `Config: \n${config}`);
+    });
+
+    test("Single [tag] section, name contains spaces", () => {
+        const config = baseConfig(`[tag]
+        name = hello world
+        value = fc1`);
+        const validator = new Validator(config);
+        const actualDiagnostic: Diagnostic[] = validator.lineByLine();
+        const expectedDiagnostic: Diagnostic[] = [
+            createDiagnostic(
+                createRange(7, 3, 7),
+                "Replace [tag] sections with [tags].\n\n" +
+                "[tag]\n  name = hello world\n  value = fc1\n\n[tags]\n  \"hello world\" = fc1",
+                DiagnosticSeverity.Warning
+            )
+        ];
+        deepStrictEqual(actualDiagnostic, expectedDiagnostic, `Config: \n${config}`);
+    });
+
+    test("Single [tag] section, only name specified", () => {
+        const config = baseConfig(`[tag]
+        name = hello world`);
+        const validator = new Validator(config);
+        const actualDiagnostic: Diagnostic[] = validator.lineByLine();
+        const expectedDiagnostic: Diagnostic[] = [
+            createDiagnostic(
+                createRange(7, 3, 7),
+                deprecatedTagSectionDefault,
+                DiagnosticSeverity.Warning
+            )
+        ];
+        deepStrictEqual(actualDiagnostic, expectedDiagnostic, `Config: \n${config}`);
+    });
+
+    test("Single [tag] section containing blank lines", () => {
+        const config = baseConfig(`[tag]
+
+        name = hello world
+
+        value = fc1`);
+        const validator = new Validator(config);
+        const actualDiagnostic: Diagnostic[] = validator.lineByLine();
+        const expectedDiagnostic: Diagnostic[] = [
+            createDiagnostic(
+                createRange(7, 3, 7),
+                "Replace [tag] sections with [tags].\n\n" +
+                "[tag]\n  name = hello world\n  value = fc1\n\n[tags]\n  \"hello world\" = fc1",
+                DiagnosticSeverity.Warning
+            )
+        ];
+        deepStrictEqual(actualDiagnostic, expectedDiagnostic, `Config: \n${config}`);
+    });
+
+    test("Multiple [tag] sections, both name and value specified", () => {
+        const config = baseConfig(`[tag]
+        name = hello
+        value = fc1
+
+      [tag]
+        name = world
+        value = fc1`);
+        const validator = new Validator(config);
+        const actualDiagnostic: Diagnostic[] = validator.lineByLine();
+        const expectedDiagnostic: Diagnostic[] = [
+            createDiagnostic(
+                createRange(7, 3, 7),
+                "Replace [tag] sections with [tags].\n\n" +
+                "[tag]\n  name = hello\n  value = fc1\n\n[tags]\n  hello = fc1",
+                DiagnosticSeverity.Warning
+            ),
+            createDiagnostic(
+                createRange(7, 3, 11),
+                "Replace [tag] sections with [tags].\n\n" +
+                "[tag]\n  name = world\n  value = fc1\n\n[tags]\n  world = fc1",
+                DiagnosticSeverity.Warning
+            )
+        ];
+        deepStrictEqual(actualDiagnostic, expectedDiagnostic, `Config: \n${config}`);
+    });
 });
