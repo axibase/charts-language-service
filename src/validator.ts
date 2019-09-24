@@ -595,7 +595,7 @@ export class Validator {
     /**
      * Adds all de-aliases from the line to the corresponding array
      */
-    private findDeAliases(): void {
+    private findDeAliases(setting: Setting): void {
         const line: string = this.config.getCurrentLine();
         const regexp: RegExp = /value\((['"])(\S+?)\1\)/g;
         const deAliasPosition: number = 2;
@@ -610,9 +610,14 @@ export class Validator {
                 // extract "lpar" from value('${lpar}PX')
                 deAlias = freemarkerExpr[deAliasPosition];
             }
-            this.deAliases.push(new TextRange(deAlias, this.createRange(
-                line.indexOf(deAlias, index + 1), deAlias.length)
-            ));
+            /**
+             * Check dealiases only in script settings
+             */
+            if (setting.script) {
+                this.deAliases.push(new TextRange(deAlias, this.createRange(
+                    line.indexOf(deAlias, index + 1), deAlias.length)
+                ));
+            }
             this.match = regexp.exec(line);
         }
     }
@@ -1008,7 +1013,7 @@ export class Validator {
                 this.match = /(^\s*alias\s*=\s*)(\S+)\s*$/m.exec(line);
                 this.addToStringArray(this.aliases);
             }
-            this.findDeAliases();
+            this.findDeAliases(setting);
         }
     }
 

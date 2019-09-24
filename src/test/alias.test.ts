@@ -260,4 +260,15 @@ suite("Incorrect dealias tests", () => {
     const actual = validator.lineByLine();
     deepStrictEqual(actual, expected, `Config: \n${config}`);
   });
+
+  test("No alias check in non-script setting", () => {
+    const config = baseConfig(`[series]
+    entity = @{server}
+    metric = cpu_busy
+    title = size = value('alias')`);
+    const validator = new Validator(config);
+    const expected = [];
+    const actual = validator.lineByLine();
+    deepStrictEqual(actual, expected, `Config: \n${config}`);
+  });
 });
