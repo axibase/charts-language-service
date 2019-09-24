@@ -20,7 +20,7 @@ interface Section {
 }
 
 /** Document formatting options */
-export const DEFAULT_FORMATTING_OPTIONS: FormattingOptions = {
+const DEFAULT_FORMATTING_OPTIONS: FormattingOptions = {
     insertSpaces: true,
     tabSize: 2
 };
@@ -155,7 +155,7 @@ export class Formatter {
         minIndent: Infinity
     };
 
-    public constructor(formattingOptions: FormattingOptions) {
+    public constructor(formattingOptions: FormattingOptions = DEFAULT_FORMATTING_OPTIONS) {
         this.options = formattingOptions;
     }
 

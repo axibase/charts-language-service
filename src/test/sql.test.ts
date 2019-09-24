@@ -1,5 +1,5 @@
 import assert = require("assert");
-import { DEFAULT_FORMATTING_OPTIONS, Formatter } from "../formatter";
+import { Formatter } from "../formatter";
 import { createDiagnostic, createRange } from "../util";
 import { Validator } from "../validator";
 
@@ -91,7 +91,7 @@ suite("Formatter: SQL indents tests", () => {
 
 `;
         const expected = config;
-        const formatter = new Formatter(DEFAULT_FORMATTING_OPTIONS);
+        const formatter = new Formatter();
         const actual = formatter.format(config);
         assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
     });

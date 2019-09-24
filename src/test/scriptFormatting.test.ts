@@ -1,5 +1,5 @@
 import { deepStrictEqual } from "assert";
-import { DEFAULT_FORMATTING_OPTIONS, Formatter } from "../formatter";
+import { Formatter } from "../formatter";
 
 suite("JavaScript block code formatting", () => {
   test("Unformatted code inside script tag alone", () => {
@@ -17,7 +17,7 @@ endscript
 endscript
 
 `;
-    const formatter = new Formatter(DEFAULT_FORMATTING_OPTIONS);
+    const formatter = new Formatter();
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
@@ -35,7 +35,7 @@ endscript
 endscript
 
 `;
-    const formatter = new Formatter(DEFAULT_FORMATTING_OPTIONS);
+    const formatter = new Formatter();
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
@@ -57,7 +57,7 @@ endscript
   endscript
 
 `;
-    const formatter = new Formatter(DEFAULT_FORMATTING_OPTIONS);
+    const formatter = new Formatter();
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
@@ -79,7 +79,7 @@ endscript
   endscript
 
 `;
-    const formatter = new Formatter(DEFAULT_FORMATTING_OPTIONS);
+    const formatter = new Formatter();
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
@@ -96,7 +96,7 @@ endscript
 
 `;
     const expected = text;
-    const formatter = new Formatter(DEFAULT_FORMATTING_OPTIONS);
+    const formatter = new Formatter();
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
@@ -111,7 +111,7 @@ endscript
 
 `;
     const expected = text;
-    const formatter = new Formatter(DEFAULT_FORMATTING_OPTIONS);
+    const formatter = new Formatter();
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
@@ -133,7 +133,7 @@ endscript
 endscript
 
 `;
-    const formatter = new Formatter(DEFAULT_FORMATTING_OPTIONS);
+    const formatter = new Formatter();
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
@@ -151,7 +151,7 @@ endscript
 
 `;
     const expected = text;
-    const formatter = new Formatter(DEFAULT_FORMATTING_OPTIONS);
+    const formatter = new Formatter();
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
@@ -179,7 +179,7 @@ endscript
 endscript
 
 `;
-    const formatter = new Formatter(DEFAULT_FORMATTING_OPTIONS);
+    const formatter = new Formatter();
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
@@ -201,7 +201,7 @@ endscript
 endscript
 
 `;
-    const formatter = new Formatter(DEFAULT_FORMATTING_OPTIONS);
+    const formatter = new Formatter();
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
@@ -216,7 +216,7 @@ endscript
 
 `;
     const expected = text;
-    const formatter = new Formatter(DEFAULT_FORMATTING_OPTIONS);
+    const formatter = new Formatter();
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
@@ -238,7 +238,7 @@ endscript
 endscript
 
 `;
-    const formatter = new Formatter(DEFAULT_FORMATTING_OPTIONS);
+    const formatter = new Formatter();
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
@@ -260,7 +260,7 @@ endscript
 endscript
 
 `;
-    const formatter = new Formatter(DEFAULT_FORMATTING_OPTIONS);
+    const formatter = new Formatter();
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
@@ -272,7 +272,7 @@ suite("JavaScript inline code formatting", () => {
     const expected = `script = var hello = value()
 
 `;
-    const formatter = new Formatter(DEFAULT_FORMATTING_OPTIONS);
+    const formatter = new Formatter();
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
@@ -292,7 +292,7 @@ suite("JavaScript inline code formatting", () => {
     script = var hello = value()
 
 `;
-    const formatter = new Formatter(DEFAULT_FORMATTING_OPTIONS);
+    const formatter = new Formatter();
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
@@ -303,7 +303,7 @@ suite("JavaScript inline code formatting", () => {
 
 `;
     const expected = text;
-    const formatter = new Formatter(DEFAULT_FORMATTING_OPTIONS);
+    const formatter = new Formatter();
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
@@ -315,7 +315,7 @@ suite("JavaScript inline code formatting", () => {
     const expected = `script = var hello = value()
 
 `;
-    const formatter = new Formatter(DEFAULT_FORMATTING_OPTIONS);
+    const formatter = new Formatter();
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
@@ -327,7 +327,7 @@ suite("JavaScript inline code formatting", () => {
     const expected = `script = var hello = value()
 
 `;
-    const formatter = new Formatter(DEFAULT_FORMATTING_OPTIONS);
+    const formatter = new Formatter();
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
@@ -339,7 +339,7 @@ suite("JavaScript inline code formatting", () => {
   script = alert('Key: ' + key + ' value: ' + menu[key])
 
 `;
-    const formatter = new Formatter(DEFAULT_FORMATTING_OPTIONS);
+    const formatter = new Formatter();
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
@@ -350,7 +350,7 @@ suite("JavaScript inline code formatting", () => {
 
 `;
     const expected = text;
-    const formatter = new Formatter(DEFAULT_FORMATTING_OPTIONS);
+    const formatter = new Formatter();
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
@@ -364,7 +364,7 @@ suite("JavaScript inline code formatting", () => {
 script = console.log(result)
 
 `;
-    const formatter = new Formatter(DEFAULT_FORMATTING_OPTIONS);
+    const formatter = new Formatter();
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
@@ -378,7 +378,7 @@ script = console.log(result)
 script = console.log(result)
 
 `;
-    const formatter = new Formatter(DEFAULT_FORMATTING_OPTIONS);
+    const formatter = new Formatter();
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
