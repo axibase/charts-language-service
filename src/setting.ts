@@ -68,10 +68,7 @@ export class Setting extends DefaultSetting {
           break;
         }
 
-        if (
-          typeof this.minValue === "number" && isFinite(this.minValue) ||
-          typeof this.maxValue === "number" && isFinite(this.maxValue)
-        ) {
+        if (this.minValue !== -Infinity || this.maxValue !== Infinity) {
           result = this.checkNumber(NUMBER_REGEXP,
             `${this.displayName} should be a real (floating-point) number.`,
             this.textRange);
