@@ -1099,7 +1099,8 @@ export class Validator {
          * Otherwise return generic one
          */
         if (tagName && tagValue) {
-            return `Replace [tag] sections with [tags].
+            return `[tag] section is deprecated and will be removed in future releases.
+Use [tags] section instead.
 
 [tag]
   name = ${tagName}

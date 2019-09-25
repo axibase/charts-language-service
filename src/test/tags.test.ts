@@ -120,7 +120,7 @@ suite("Warn about deprecated [tag] section", () => {
         const expectedDiagnostic: Diagnostic[] = [
             createDiagnostic(
                 createRange(7, 3, 7),
-                "Replace [tag] sections with [tags].\n\n" +
+                "[tag] section is deprecated and will be removed in future releases.\nUse [tags] section instead.\n\n" +
                 "[tag]\n  name = hello\n  value = fc1\n\n[tags]\n  hello = fc1",
                 DiagnosticSeverity.Warning
             )
@@ -137,7 +137,8 @@ suite("Warn about deprecated [tag] section", () => {
         const expectedDiagnostic: Diagnostic[] = [
             createDiagnostic(
                 createRange(7, 3, 7),
-                "Replace [tag] sections with [tags].\n\n" +
+                "[tag] section is deprecated and will be removed in future releases.\n" +
+                "Use [tags] section instead.\n\n" +
                 "[tag]\n  name = hello world\n  value = fc1\n\n[tags]\n  \"hello world\" = fc1",
                 DiagnosticSeverity.Warning
             )
@@ -171,7 +172,8 @@ suite("Warn about deprecated [tag] section", () => {
         const expectedDiagnostic: Diagnostic[] = [
             createDiagnostic(
                 createRange(7, 3, 7),
-                "Replace [tag] sections with [tags].\n\n" +
+                "[tag] section is deprecated and will be removed in future releases.\n" +
+                "Use [tags] section instead.\n\n" +
                 "[tag]\n  name = hello world\n  value = fc1\n\n[tags]\n  \"hello world\" = fc1",
                 DiagnosticSeverity.Warning
             )
@@ -192,14 +194,14 @@ suite("Warn about deprecated [tag] section", () => {
         const expectedDiagnostic: Diagnostic[] = [
             createDiagnostic(
                 createRange(7, 3, 7),
-                "Replace [tag] sections with [tags].\n\n" +
-                "[tag]\n  name = hello\n  value = fc1\n\n[tags]\n  hello = fc1",
+                "[tag] section is deprecated and will be removed in future releases.\n" +
+                "Use [tags] section instead.\n\n[tag]\n  name = hello\n  value = fc1\n\n[tags]\n  hello = fc1",
                 DiagnosticSeverity.Warning
             ),
             createDiagnostic(
                 createRange(7, 3, 11),
-                "Replace [tag] sections with [tags].\n\n" +
-                "[tag]\n  name = world\n  value = fc1\n\n[tags]\n  world = fc1",
+                "[tag] section is deprecated and will be removed in future releases.\n" +
+                "Use [tags] section instead.\n\n[tag]\n  name = world\n  value = fc1\n\n[tags]\n  world = fc1",
                 DiagnosticSeverity.Warning
             )
         ];

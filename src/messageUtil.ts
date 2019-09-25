@@ -8,8 +8,9 @@ type MessageFactoryMethod = (found?: string, msg?: any) => string;
  * @returns message with or without a suggestion
  */
 export const unknownToken: MessageFactoryMethod = (found: string): string => `${found} is unknown.`;
-export const deprecatedTagSectionDefault: string = `[tag] section is deprecated and will be removed in future releases.`
-+ `Use [tags] section instead.
+export const deprecatedTagSectionDefault: string = `[tag] section is deprecated and will be removed in future releases.
+Use [tags] section instead.
+
 Enclose the tag name in double quotes in case it contains special characters.
 
 [tag]
