@@ -101,7 +101,7 @@ export const BLOCK_COMMENT_END: RegExp = /(.*)(\*\/)(.*)$/;
 export const ONE_LINE_COMMENT: RegExp = /\/\*([\s\S]*?)(?=\*\/)/;
 
 // number of spaces until first non-space character -  "   hello" // 3
-export const SPACES_AT_START: RegExp = /[^ ]/;
+export const SPACES_AT_START: RegExp = /[^\s+]/;
 
 // matches 1+ consequent spaces not surrounded by quotes
 export const UNQUOTED_CONSEQUENT_SPACES: RegExp = /((['"])(?:\\.|[^\2])*?\2)|(\s\s+)/;
