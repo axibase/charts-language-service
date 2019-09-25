@@ -5420,6 +5420,12 @@
             }
         },
         {
+            "displayName": "on-title-click",
+            "section": "widget",
+            "type": "string",
+            "example": "widget.reload()"
+        },
+        {
             "displayName": "options",
             "multiLine": true,
             "section": "dropdown",
