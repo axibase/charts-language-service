@@ -2298,6 +2298,44 @@
             ]
         },
         {
+            "displayName": "forecast-baseline-count",
+            "type": "integer",
+            "example": "3",
+            "minValue": 0,
+            "section": "series",
+            "widget": "chart",
+            "excludes": [
+                "forecast-baseline-period"
+            ]
+        },
+        {
+            "displayName": "forecast-baseline-function",
+            "type": "enum",
+            "example": "avg",
+            "section": "series",
+            "widget": "chart",
+            "enum": [
+                "count",
+                "min",
+                "max",
+                "sum",
+                "avg",
+                "percentile\\((\\d{1,2}(\\.\\d)?|100)\\)",
+                "median",
+                "standard_deviation"
+            ]
+        },
+        {
+            "displayName": "forecast-baseline-period",
+            "type": "interval",
+            "example": "1 week",
+            "section": "series",
+            "widget": "chart",
+            "excludes": [
+                "forecast-baseline-count"
+            ]
+        },
+        {
             "displayName": "forecast-horizon-interval",
             "type": "interval",
             "example": "3 day",
