@@ -5423,7 +5423,25 @@
             "displayName": "on-title-click",
             "section": "widget",
             "type": "string",
-            "example": "widget.reload()"
+            "example": "widget.reload()",
+            "defaultValue": "next()",
+            "script": {
+                "returnValue": "void",
+                "fields": [
+                    {
+                        "name": "widget",
+                        "type": "object"
+                    },
+                    {
+                        "name": "config",
+                        "type": "object"
+                    },
+                    {
+                        "name": "next",
+                        "type": "function"
+                    }
+                ]
+            }
         },
         {
             "displayName": "options",
