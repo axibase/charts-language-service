@@ -1,5 +1,5 @@
 import { deepStrictEqual } from "assert";
-import { Formatter, FORMATTING_OPTIONS } from "../formatter";
+import { Formatter } from "../formatter";
 
 suite("Сomments formatting tests", () => {
   test("Multiline comment alone", () => {
@@ -11,7 +11,7 @@ suite("Сomments formatting tests", () => {
 
 `;
     const expected = text;
-    const formatter = new Formatter(FORMATTING_OPTIONS);
+    const formatter = new Formatter();
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
@@ -27,7 +27,7 @@ suite("Сomments formatting tests", () => {
   */
 
 `;
-    const formatter = new Formatter(FORMATTING_OPTIONS);
+    const formatter = new Formatter();
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
@@ -37,7 +37,7 @@ suite("Сomments formatting tests", () => {
 
 `;
     const expected = text;
-    const formatter = new Formatter(FORMATTING_OPTIONS);
+    const formatter = new Formatter();
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
@@ -53,7 +53,7 @@ suite("Сomments formatting tests", () => {
   */
 
 `;
-    const formatter = new Formatter(FORMATTING_OPTIONS);
+    const formatter = new Formatter();
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
@@ -75,7 +75,7 @@ suite("Сomments formatting tests", () => {
 */
 
 `;
-    const formatter = new Formatter(FORMATTING_OPTIONS);
+    const formatter = new Formatter();
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
@@ -94,7 +94,7 @@ markers = false`;
 markers = false
 
 `;
-    const formatter = new Formatter(FORMATTING_OPTIONS);
+    const formatter = new Formatter();
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
@@ -113,7 +113,7 @@ markers = false
 markers = false
 
 `;
-    const formatter = new Formatter(FORMATTING_OPTIONS);
+    const formatter = new Formatter();
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
@@ -131,7 +131,7 @@ endtime = 2019
 markers = false
 
 `;
-    const formatter = new Formatter(FORMATTING_OPTIONS);
+    const formatter = new Formatter();
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
@@ -156,7 +156,7 @@ height-units = 4
 */
 
 `;
-    const formatter = new Formatter(FORMATTING_OPTIONS);
+    const formatter = new Formatter();
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
