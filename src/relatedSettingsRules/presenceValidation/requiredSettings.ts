@@ -125,6 +125,13 @@ const checks: Map<string, Requirement> = new Map<string, Requirement>([
                 requiredCondition("type", ["console"])
             ],
             requiredSetting: "collapsible"
+        }],
+    [
+        "forecast-baseline-function", {
+            conditions: [
+                requiredCondition("type", ["chart"])
+            ],
+            requiredSetting: ["forecast-baseline-count", "forecast-baseline-period"]
         }]
 ]);
 
