@@ -1,6 +1,6 @@
 import assert = require("assert");
 import { DiagnosticSeverity, Position, Range } from "vscode-languageserver-types";
-import { createDiagnostic } from "../util";
+import { createDiagnostic, createRange } from "../util";
 import { Validator } from "../validator";
 
 const config = `[configuration]
@@ -343,5 +343,36 @@ forecast-horizon-start-time = now - 2*day`;
         let validator = new Validator(conf);
         let diags = validator.lineByLine();
         assert.deepStrictEqual(diags, [], `Config: \n${conf}`);
+    });
+
+    test("Incorrect: both forecast-baseline-count and forecast-baseline-period (exclusive) are declared", () => {
+        const conf = `${config}
+forecast-baseline-function = avg
+forecast-baseline-count = 2
+forecast-baseline-period = 1 hour`;
+        let validator = new Validator(conf);
+        let diags = validator.lineByLine();
+        let expected = [
+            createDiagnostic(
+                createRange(0, 24, 9),
+                "forecast-baseline-period can not be specified simultaneously with forecast-baseline-count"
+            )
+        ];
+        assert.deepStrictEqual(diags, expected, `Config: \n${conf}`);
+    });
+
+    test("Incorrect: both forecast-baseline-count and forecast-baseline-period are missing", () => {
+        const conf = `${config}
+forecast-baseline-function = avg`;
+        let validator = new Validator(conf);
+        let diags = validator.lineByLine();
+        let expected = [
+            createDiagnostic(
+                createRange(1, 6, 6),
+                "forecast-baseline-function has effect only with one of the following:\n" +
+                " * forecast-baseline-count\n * forecast-baseline-period"
+            )
+        ];
+        assert.deepStrictEqual(diags, expected, `Config: \n${conf}`);
     });
 });
