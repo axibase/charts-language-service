@@ -13,20 +13,6 @@ const baseConfig = (timespan: string, summarizePeriod: string) => `[configuratio
       entity = nurswgvml006
       metric = cpu_busy`;
 
-const paletteTicksConfig = (
-    rangeMerge: string = "", thresholds: string = ""
-) => `[configuration]
-entity = nurswgvml006
-metric = cpu_busy
-[group]
-  [widget]
-    type = calendar
-    ${rangeMerge}
-    ${thresholds}
-    palette-ticks = true
-    [series]
-    [series]`;
-
 suite("Calendar type specfifc validation rules", () => {
     test("Incorrect: summarize-period is greater than timespan", () => {
         const config = baseConfig("1 hour", "1 day");
@@ -53,53 +39,6 @@ suite("Calendar type specfifc validation rules", () => {
                 DiagnosticSeverity.Error
             )
         ];
-        deepStrictEqual(actualDiagnostics, expectedDiagnostic, `Config: \n${config}`);
-    });
-
-    test("Don't show palette-ticks: no 'range-merge' or 'thresholds' specified", () => {
-        const config = paletteTicksConfig();
-        const validator = new Validator(config);
-        const actualDiagnostics = validator.lineByLine();
-        const expectedDiagnostic = [
-            createDiagnostic(
-                createRange(4, 13, 8),
-                "Palette ticks will not be displayed if the widget contains multiple series with individual ranges. " +
-                "Enable 'range-merge' or set common 'thresholds' to display ticks.",
-                DiagnosticSeverity.Warning
-            )
-        ];
-        deepStrictEqual(actualDiagnostics, expectedDiagnostic, `Config: \n${config}`);
-    });
-
-    test("Show palette-ticks: 'range-merge' specified, but 'thresholds' is not", () => {
-        const config = paletteTicksConfig("range-merge = true");
-        const validator = new Validator(config);
-        const actualDiagnostics = validator.lineByLine();
-        const expectedDiagnostic = [];
-        deepStrictEqual(actualDiagnostics, expectedDiagnostic, `Config: \n${config}`);
-    });
-
-    test("Show palette-ticks: 'thresholds' specified, but 'range-merge' is not", () => {
-        const config = paletteTicksConfig("", "thresholds = 0, 50, 90, 100");
-        const validator = new Validator(config);
-        const actualDiagnostics = validator.lineByLine();
-        const expectedDiagnostic = [];
-        deepStrictEqual(actualDiagnostics, expectedDiagnostic, `Config: \n${config}`);
-    });
-
-    test("Show palette-ticks: 'thresholds' specified, 'range-merge' is false", () => {
-        const config = paletteTicksConfig("range-merge = false", "thresholds = 0, 50, 90, 100");
-        const validator = new Validator(config);
-        const actualDiagnostics = validator.lineByLine();
-        const expectedDiagnostic = [];
-        deepStrictEqual(actualDiagnostics, expectedDiagnostic, `Config: \n${config}`);
-    });
-
-    test("Correct: both 'thresholds' and 'range-merge' specified", () => {
-        const config = paletteTicksConfig("range-merge = true", "thresholds = 0, 50, 90, 100");
-        const validator = new Validator(config);
-        const actualDiagnostics = validator.lineByLine();
-        const expectedDiagnostic = [];
         deepStrictEqual(actualDiagnostics, expectedDiagnostic, `Config: \n${config}`);
     });
 

@@ -30,6 +30,10 @@ const checks: Map<string, Requirement> = new Map<string, Requirement>([
             requiredSetting: "thresholds"
         }],
     [
+        "gradient-count", {
+            requiredSetting: "thresholds"
+        }],
+    [
         "forecast-horizon-start-time", {
             /**
              * If "forecast-horizon-start-time" is specified:
