@@ -1,6 +1,6 @@
 import assert = require("assert");
 import { DiagnosticSeverity, Position, Range } from "vscode-languageserver-types";
-import { createDiagnostic, createRange } from "../util";
+import { createDiagnostic } from "../util";
 import { Validator } from "../validator";
 
 const config = `[configuration]
