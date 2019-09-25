@@ -160,4 +160,24 @@ height-units = 4
     const actual = formatter.format(text);
     deepStrictEqual(actual, expected);
   });
+
+  test("Multiline comment indents don't become bigger on reformatting", () => {
+    const text = `[configuration]
+  type = chart
+  title = Click on me
+  /*
+    Open dialog widget only on confirm.
+  */
+
+`;
+    const expected = text;
+    const formatter = new Formatter();
+    /**
+     * We intentionally run formatter twice to make sure indents aren't increased
+     */
+    const actual = formatter.format(
+      formatter.format(text)
+    );
+    deepStrictEqual(actual, expected);
+  });
 });
