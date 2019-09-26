@@ -27,6 +27,18 @@ suite("[column] section tests", () => {
         assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
     });
 
+    /**
+     * Here is a temporary warning supression. Now we cannot refer setting to parent section.
+     * Probably, this will be changed, when syntax tree is build.
+     */
+    test("Correct: no warning for 'columns' after [column]", () => {
+        const config = baseConfig(`columns = quantity, trade_num, order_num`);
+        const validator = new Validator(config);
+        const actual = validator.lineByLine();
+        const expected = [];
+        assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
+    });
+
     test("[column] is not interpreted as [tags]", () => {
         const config = `[configuration]
       [group]
