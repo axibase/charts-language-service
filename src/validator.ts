@@ -937,6 +937,12 @@ export class Validator {
         if (setting.section == null || this.currentSection == null) {
             return true;
         }
+        /**
+         * Temporary workaround: 'columns' defined after [column] shouldn't raise a warning
+         */
+        if (setting.displayName === "columns" && this.currentSection.text === "column") {
+            return true;
+        }
         const currDepth: number = ResourcesProviderBase.sectionDepthMap[this.currentSection.text];
         if (setting.name === "mode") {
             if (this.currentWidget == null) {
