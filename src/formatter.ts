@@ -1,12 +1,14 @@
+import { FormatOptions } from "escodegen";
 import { FormattingOptions } from "vscode-languageserver-types";
-import { LanguageFormattingOptions, NestedCodeFormatter } from "./nestedCodeFormatter";
+import { NestedCodeFormatter } from "./nestedCodeFormatter";
 import {
     BLOCK_COMMENT_END, BLOCK_COMMENT_START,
     BLOCK_SCRIPT_END, BLOCK_SCRIPT_START,
     ELSE_ELSEIF_REGEX, ENDKEYWORDS_WITH_LF,
     KEYWORDS_WITH_LF, ONE_LINE_COMMENT,
-    RELATIONS_REGEXP, SETTING_DECLARATION,
-    SPACES_AT_START, VAR_OPEN_BRACKET
+    ONE_LINE_SCRIPT, RELATIONS_REGEXP,
+    SETTING_DECLARATION, SPACES_AT_START,
+    UNQUOTED_CONSEQUENT_SPACES, VAR_OPEN_BRACKET
 } from "./regExpressions";
 import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { TextRange } from "./textRange";
@@ -18,7 +20,7 @@ interface Section {
 }
 
 /** Document formatting options */
-export const FORMATTING_OPTIONS: FormattingOptions = {
+const DEFAULT_FORMATTING_OPTIONS: FormattingOptions = {
     insertSpaces: true,
     tabSize: 2
 };
@@ -32,12 +34,14 @@ interface CommentData {
  * Language formatting configuration
  * languageId - language id
  * endRegex - regex specifying that language code block finished
+ * isBlock - we are processing code block, like script|endscript
  * getOptions - function computing language formatting options based on current indent
  */
 interface LanguageConfiguration {
     languageId: string;
     endRegex: RegExp;
-    getOptions(indent: string, tabSize: number): LanguageFormattingOptions;
+    isBlock: boolean;
+    getOptions(indent: string, tabSize: number): FormatOptions;
 }
 
 /**
@@ -46,13 +50,31 @@ interface LanguageConfiguration {
 const NestedLanguages = new Map<RegExp, LanguageConfiguration>([
     [BLOCK_SCRIPT_START, {
         endRegex: BLOCK_SCRIPT_END,
-        getOptions: (indent: string, tabSize: number) => {
+        getOptions: (indent: string, tabSize: number): FormatOptions => {
             return {
-                adjustMultilineComment: true,
-                base: (indent.length / tabSize) + 1,
-                style: " ".repeat(tabSize)
+                indent: {
+                    adjustMultilineComment: true,
+                    base: (indent.length / tabSize) + 1,
+                    style: " ".repeat(tabSize)
+                }
             };
         },
+        isBlock: true,
+        languageId: "js",
+    }],
+    [ONE_LINE_SCRIPT, {
+        endRegex: ONE_LINE_SCRIPT,
+        getOptions: (indent: string, tabSize: number): FormatOptions => {
+            return {
+                indent: {
+                    base: (indent.length / tabSize),
+                    style: " ".repeat(tabSize),
+                },
+                newline: "",
+                semicolons: false,
+            };
+        },
+        isBlock: false,
         languageId: "js",
     }]
 ]);
@@ -133,7 +155,7 @@ export class Formatter {
         minIndent: Infinity
     };
 
-    public constructor(formattingOptions: FormattingOptions) {
+    public constructor(formattingOptions: FormattingOptions = DEFAULT_FORMATTING_OPTIONS) {
         this.options = formattingOptions;
     }
 
@@ -157,8 +179,8 @@ export class Formatter {
             } else if (this.isSectionDeclaration(line)) {
                 this.handleSectionDeclaration();
                 continue;
-            } else if (this.isCodeBlock(line)) {
-                this.handleCodeBlock();
+            } else if (this.isCodeFragment(line)) {
+                this.handleCodeFragment();
                 continue;
             }
 
@@ -247,18 +269,28 @@ export class Formatter {
     }
 
     /**
-     * Apply formatting rules for code block
+     * Apply formatting rules for code fragment depending on its type: block or inline
      */
-    private handleCodeBlock(): void {
-        this.indentLine();
+    private handleCodeFragment(): void {
+        const { isBlock } = this.currentLanguageConfiguration;
+        /**
+         * In case of block code fragment we need to indent opening and closing tags
+         */
+        if (isBlock) {
+            this.indentLine();
+        }
+
         this.formatCode();
-        this.indentLine();
+
+        if (isBlock) {
+            this.indentLine();
+        }
     }
 
     /**
-     * Determines by regex is line a start of code block
+     * Determines by regex is line a start of code fragment
      */
-    private isCodeBlock(line: string): boolean {
+    private isCodeFragment(line: string): boolean {
         for (let [regex, configuration] of NestedLanguages.entries()) {
             if (regex.test(line)) {
                 this.currentLanguageConfiguration = configuration;
@@ -273,25 +305,37 @@ export class Formatter {
      * Format code of currently recognized language
      */
     private formatCode(): void {
-        let line = this.nextLine();
-        const { endRegex, languageId, getOptions } = this.currentLanguageConfiguration;
+        let line: string;
+        const { endRegex, isBlock, languageId, getOptions } = this.currentLanguageConfiguration;
 
-        // Get content between script tags
         const buffer = [];
-        while (line !== undefined && !endRegex.test(line)) {
-            buffer.push(line);
+        if (isBlock) {
+            // Get content between code tags
             line = this.nextLine();
+            while (line !== undefined && !endRegex.test(line)) {
+                buffer.push(line);
+                line = this.nextLine();
+            }
+        } else {
+            // It's inline code, like 'script = '
+            line = this.getCurrentLine();
+            const match = endRegex.exec(line);
+            const [, scriptContents] = match;
+            buffer.push(scriptContents);
         }
 
         if (!buffer.length) {
             return;
         }
+
         const unformattedCode = buffer.join("\n");
+        const formattedCode = NestedCodeFormatter.forLanguage(languageId).format(
+            unformattedCode, getOptions(this.currentIndent, this.options.tabSize)
+        );
 
         this.formattedText.push(
-            NestedCodeFormatter.forLanguage(languageId).format(
-                unformattedCode, getOptions(this.currentIndent, this.options.tabSize)
-            )
+            isBlock ? formattedCode :
+                `${this.currentIndent}script = ${formattedCode.replace(UNQUOTED_CONSEQUENT_SPACES, " ").trim()}`
         );
 
         this.currentLanguageConfiguration = null;

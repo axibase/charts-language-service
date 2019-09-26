@@ -1,6 +1,6 @@
 import { deepStrictEqual } from "assert";
 import { DiagnosticSeverity, Position, Range } from "vscode-languageserver-types";
-import { createDiagnostic } from "../util";
+import { createDiagnostic, createRange } from "../util";
 import { Validator } from "../validator";
 import { Test } from "./test";
 
@@ -267,10 +267,10 @@ suite("Required: [series] declared inside if", () => {
 [series]
           entity = a
     endif`, [
-      createDiagnostic(
-        Range.create(5, 1, 5, "series]".length),
-        "metric is required",
-      )]).validationTest();
+    createDiagnostic(
+      Range.create(5, 1, 5, "series]".length),
+      "metric is required",
+    )]).validationTest();
 
   new Test("Incorrect: no metric, [tags] at EOF - expected one error",
     `[configuration]
@@ -283,10 +283,10 @@ suite("Required: [series] declared inside if", () => {
         [tags]
           a = b
     endif`, [
-      createDiagnostic(
-        Range.create(5, 1, 5, "series]".length),
-        "metric is required",
-      )]).validationTest();
+    createDiagnostic(
+      Range.create(5, 1, 5, "series]".length),
+      "metric is required",
+    )]).validationTest();
 
   new Test("Incorrect: no metric, [tags] - expected one error",
     `[configuration]
@@ -300,10 +300,10 @@ suite("Required: [series] declared inside if", () => {
           a = b
     endif
     `, [
-      createDiagnostic(
-        Range.create(5, 1, 5, "series]".length),
-        "metric is required",
-      )]).validationTest();
+    createDiagnostic(
+      Range.create(5, 1, 5, "series]".length),
+      "metric is required",
+    )]).validationTest();
 });
 
 suite("Required: No metric is required if change-field value contains \"metric\"", () => {
@@ -324,18 +324,18 @@ suite("Required: No duplicate errors with [tags]", () => {
     [tags]
       host = *
       `, [
-      createDiagnostic(
-        Range.create(0, 1, 0, "widget]".length),
-        "type is required",
-      )]).validationTest();
+    createDiagnostic(
+      Range.create(0, 1, 0, "widget]".length),
+      "type is required",
+    )]).validationTest();
 
   new Test("[tags] in [widget] without type",
     `[widget]
     [tags]
-      host = *`,  [createDiagnostic(
-        Range.create(0, 1, 0, "widget]".length),
-        "type is required",
-      )]).validationTest();
+      host = *`, [createDiagnostic(
+      Range.create(0, 1, 0, "widget]".length),
+      "type is required",
+    )]).validationTest();
 });
 
 suite("UDF settings tests", () => {
@@ -391,5 +391,39 @@ suite("UDF settings tests", () => {
     const validator = new Validator(config);
     const actualDiagnostics = validator.lineByLine();
     deepStrictEqual(actualDiagnostics, []);
+  });
+});
+
+const treemapConfig = (setting: string, condition: string = "") => `[configuration]
+[group]
+[widget]
+    type = treemap
+    ${condition}
+    ${setting}
+    [series]
+      metric = a
+      entity = b`;
+
+suite("Treemap required settings tests", () => {
+  test("Incorrect: 'gradient-count' is specified, but required 'thresholds' is missing", () => {
+    const config = treemapConfig("gradient-count = 2");
+    const validator = new Validator(config);
+    const actualDiagnostics = validator.lineByLine();
+    const expectedDiagnostic = [
+      createDiagnostic(
+        createRange(5, 6, 6),
+        "thresholds is required if gradient-count is specified",
+        DiagnosticSeverity.Error,
+      )
+    ];
+    deepStrictEqual(actualDiagnostics, expectedDiagnostic);
+  });
+
+  test("Correct: both 'gradient-count' and 'thresholds' are specified", () => {
+    const config = treemapConfig("gradient-count = 2", "thresholds = 0, 10, 25");
+    const validator = new Validator(config);
+    const actualDiagnostics = validator.lineByLine();
+    const expectedDiagnostic = [];
+    deepStrictEqual(actualDiagnostics, expectedDiagnostic);
   });
 });

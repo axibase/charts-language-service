@@ -6,11 +6,11 @@ import { requiredCondition } from "../utils/condition";
 import { Rule } from "../utils/interfaces";
 
 const rule: Rule = {
-    name: "calendar pallete-ticks display condition",
+    name: "Pallete-ticks display condition",
     check(section: Section): Diagnostic | void {
 
         if (!section.matchesConditions([
-            requiredCondition("type", ["calendar"])
+            requiredCondition("type", ["calendar", "treemap"])
         ])) {
             return;
         }
@@ -22,7 +22,7 @@ const rule: Rule = {
         }
 
         /**
-         * Calendar has > 2 series
+         * Widget has > 2 series
          */
         const multipleSeries: boolean = section.children.filter(
             child => child.name === "series"

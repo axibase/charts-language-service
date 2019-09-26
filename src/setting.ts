@@ -65,6 +65,13 @@ export class Setting extends DefaultSetting {
             result = createDiagnostic(this.textRange,
               `${this.displayName} must contain only the following:\n * ${enumList}`);
           }
+          break;
+        }
+
+        if (this.minValue !== -Infinity || this.maxValue !== Infinity) {
+          result = this.checkNumber(NUMBER_REGEXP,
+            `${this.displayName} should be a real (floating-point) number.`,
+            this.textRange);
         }
         break;
       }

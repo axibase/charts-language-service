@@ -1,14 +1,20 @@
+import { FormatOptions } from "escodegen";
 import { JSFormatter } from "./jsFormatter";
 
 export interface LanguageFormatter {
     language: string;
-    format(text: string, options: LanguageFormattingOptions): string;
+    format(text: string, options: FormatOptions): string;
 }
 
-export interface LanguageFormattingOptions {
-    base?: number;
-    style?: string;
-}
+export const DEFAULT_CODE_FORMATTING_OPTIONS: FormatOptions = {
+    indent: {
+        adjustMultilineComment: false,
+        base: 0,
+        style: "    "
+    },
+    newline: "\n",
+    semicolons: true,
+};
 
 export class NestedCodeFormatter {
 

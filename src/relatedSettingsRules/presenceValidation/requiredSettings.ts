@@ -30,6 +30,10 @@ const checks: Map<string, Requirement> = new Map<string, Requirement>([
             requiredSetting: "thresholds"
         }],
     [
+        "gradient-count", {
+            requiredSetting: "thresholds"
+        }],
+    [
         "forecast-horizon-start-time", {
             /**
              * If "forecast-horizon-start-time" is specified:
@@ -125,6 +129,13 @@ const checks: Map<string, Requirement> = new Map<string, Requirement>([
                 requiredCondition("type", ["console"])
             ],
             requiredSetting: "collapsible"
+        }],
+    [
+        "forecast-baseline-function", {
+            conditions: [
+                requiredCondition("type", ["chart"])
+            ],
+            requiredSetting: ["forecast-baseline-count", "forecast-baseline-period"]
         }]
 ]);
 
