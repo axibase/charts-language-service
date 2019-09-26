@@ -6,7 +6,7 @@ import { DefaultSetting } from "./defaultSetting";
 import { KeywordHandler } from "./keywordHandler";
 import { LanguageService } from "./languageService";
 import {
-    deprecatedTagSectionDefault,
+    deprecatedTagSection,
     getCsvErrorMessage,
     illegalSetting,
     noMatching,
@@ -21,10 +21,7 @@ import {
     CSV_INLINE_HEADER_PATTERN,
     CSV_KEYWORD_PATTERN,
     CSV_NEXT_LINE_HEADER_PATTERN,
-    SECTION_DECLARATION,
     SECTIONS_EXCEPTIONS_REGEXP,
-    SETTING_DECLARATION,
-    STRING_CONTAINING_SPACES,
     TAG_REGEXP,
     VAR_CLOSE_BRACKET,
     VAR_OPEN_BRACKET,
@@ -34,7 +31,6 @@ import { SectionStack } from "./sectionStack";
 import { Setting } from "./setting";
 import { TextRange } from "./textRange";
 import {
-    addQuotesToString,
     countCsvColumns,
     createDiagnostic,
     createRange,
@@ -564,7 +560,7 @@ export class Validator {
     private eachLine(): void {
         this.checkFreemarker();
         const line: string = this.config.getCurrentLine();
-        this.match = SECTION_DECLARATION.exec(line);
+        this.match = /(^[\t ]*\[)(\w+)\][\t ]*/.exec(line);
         if ( // Section declaration, for example, [widget]
             this.match !== null ||
             /**
@@ -941,6 +937,12 @@ export class Validator {
         if (setting.section == null || this.currentSection == null) {
             return true;
         }
+        /**
+         * Temporary workaround: 'columns' defined after [column] shouldn't raise a warning
+         */
+        if (setting.displayName === "columns" && this.currentSection.text === "column") {
+            return true;
+        }
         const currDepth: number = ResourcesProviderBase.sectionDepthMap[this.currentSection.text];
         if (setting.name === "mode") {
             if (this.currentWidget == null) {
@@ -1034,7 +1036,7 @@ export class Validator {
                 const start: number = line.indexOf(settingName);
                 const range: Range = this.createRange(start, settingName.length);
                 if (this.currentSection.text === "tags") {
-                    if (STRING_CONTAINING_SPACES.test(settingName)) {
+                    if (!/^["].+["]$/.test(settingName)) {
                         this.result.push(createDiagnostic(
                             range, tagNameWithWhitespaces(settingName), DiagnosticSeverity.Warning,
                         ));
@@ -1060,57 +1062,8 @@ export class Validator {
         const range: Range = this.createRange(indent, word.length);
 
         if (word === "tag") {
-
-            this.result.push(createDiagnostic(range, this.deprecatedTagSectionMessage(), DiagnosticSeverity.Warning));
+            this.result.push(createDiagnostic(range, deprecatedTagSection, DiagnosticSeverity.Warning));
         }
-    }
-
-    /**
-     * Composes warning about deprecated [tag] section using declared settings names
-     */
-    private deprecatedTagSectionMessage(): string {
-        let currentLineNumber = this.config.currentLineNumber;
-        let line = this.config.getLine(++currentLineNumber);
-        let tagName: string;
-        let tagValue: string;
-
-        while (line !== null && !SECTION_DECLARATION.test(line)) {
-            /**
-             * Checking all lines before next section declaration
-             * We are interested only in settings, blank lines are ignored
-             */
-            const match = SETTING_DECLARATION.exec(line);
-
-            if (match !== null) {
-                const [, , settingName, settingValue] = match;
-
-                if (settingName === "name") {
-                    tagName = settingValue;
-                } else if (settingName === "value") {
-                    tagValue = settingValue;
-                }
-            }
-
-            line = this.config.getLine(++currentLineNumber);
-        }
-
-        /**
-         * If both 'name' and 'value' settings are found, compose custom warning
-         * Otherwise return generic one
-         */
-        if (tagName && tagValue) {
-            return `[tag] section is deprecated and will be removed in future releases.
-Use [tags] section instead.
-
-[tag]
-  name = ${tagName}
-  value = ${tagValue}
-
-[tags]
-  ${addQuotesToString(tagName)} = ${tagValue}`;
-        }
-
-        return deprecatedTagSectionDefault;
     }
 
     /**

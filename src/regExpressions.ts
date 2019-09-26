@@ -38,7 +38,7 @@ export const BLOCK_SQL_END = /^\s*endsql\s*$/;
 /** Regular expressions to match script */
 
 // script = console.log()
-export const ONE_LINE_SCRIPT = /^\s*script\s*=.*$/m;
+export const ONE_LINE_SCRIPT = /^\s*script\s*=\s*(.*)/;
 
 // script alert("Hello, world!")
 export const BLOCK_SCRIPT_START_WITHOUT_LF = /(^\s*)script\s*\S/;
@@ -101,7 +101,10 @@ export const BLOCK_COMMENT_END: RegExp = /(.*)(\*\/)(.*)$/;
 export const ONE_LINE_COMMENT: RegExp = /\/\*([\s\S]*?)(?=\*\/)/;
 
 // number of spaces until first non-space character -  "   hello" // 3
-export const SPACES_AT_START: RegExp = /[^ ]/;
+export const SPACES_AT_START: RegExp = /[^\s+]/;
+
+// matches 1+ consequent spaces not surrounded by quotes
+export const UNQUOTED_CONSEQUENT_SPACES: RegExp = /((['"])(?:\\.|[^\2])*?\2)|(\s\s+)/;
 
 // extract if condition — if a == 2 // condition:  a == 2
 export const IF_CONDITION_REGEX: RegExp = /^[\s]*if\s*(.*)/;
@@ -119,10 +122,6 @@ export const ENDKEYWORDS_WITH_LF: RegExp = new RegExp(
 
 // width-units = 6.2
 export const SETTING_DECLARATION: RegExp = /(^\s*)([a-z].*?[a-z])\s*=\s*(.*?)\s*$/;
-
-// [widget], [configuration]
-export const SECTION_DECLARATION: RegExp = /(^[\t ]*\[)(\w+)\][\t ]*/;
-
 // var test = [ <- open bracket
 //
 // OR
@@ -135,6 +134,3 @@ export const VAR_OPEN_BRACKET: RegExp = /(=)?\s*[\[\{\(](|.*,)\s*$/;
 //     ...
 // ]  <- close bracket
 export const VAR_CLOSE_BRACKET: RegExp = /\s*[\]\}\)]\s*/;
-
-// "hello world", "hello world test"
-export const STRING_CONTAINING_SPACES: RegExp = /\w+(\s+\w+)+/;

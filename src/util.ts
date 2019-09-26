@@ -1,8 +1,7 @@
 import { Diagnostic, DiagnosticSeverity, Position, Range } from "vscode-languageserver-types";
 import { Section } from "./configTree/section";
-import { LanguageService } from "./languageService";
-import { STRING_CONTAINING_SPACES } from "./regExpressions";
 import { Setting } from "./setting";
+import { LanguageService } from "./languageService";
 
 const DIAGNOSTIC_SOURCE: string = "Axibase Charts";
 
@@ -221,12 +220,4 @@ export function getValueOfSetting(settingName: string, section: Section): string
     }
 
     return value;
-}
-
-/**
- * If word contains spaces surround it with quotation marks, otherwise return unchanged
- * @param word - string potentially containing spaces
- */
-export function addQuotesToString(word: string): string {
-    return STRING_CONTAINING_SPACES.test(word) ? `"${word}"` : word;
 }
