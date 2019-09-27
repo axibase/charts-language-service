@@ -552,10 +552,7 @@
             "widget": "chart",
             "defaultValue": false,
             "example": true,
-            "excludes": [
-                "min-range-force",
-                "max-range-force"
-            ]
+            "excludes": ["min-range-force", "max-range-force"]
         },
         {
             "displayName": "axis",
@@ -4103,9 +4100,7 @@
             "type": "number",
             "example": 100,
             "section": "widget",
-            "excludes": [
-                "auto-scale"
-            ]
+            "excludes": ["auto-scale"]
         },
         {
             "displayName": "max-range-right",
@@ -4234,9 +4229,7 @@
             "section": "widget",
             "type": "number",
             "example": 0,
-            "excludes": [
-                "auto-scale"
-            ]
+            "excludes": ["auto-scale"]
         },
         {
             "displayName": "min-range-right",
