@@ -86,14 +86,7 @@ const checks: Map<string, Requirement> = new Map<string, Requirement>([
             conditions: [
                 requiredCondition("type", ["pie", "text"])
             ],
-            requiredSetting: "icon-alert-expression"
-        }],
-    [
-        "icon-alert-expression", {
-            conditions: [
-                requiredCondition("type", ["pie"])
-            ],
-            requiredSetting: "icon"
+            requiredSetting: "alert-expression"
         }],
     [
         "icon-color", {
@@ -115,6 +108,13 @@ const checks: Map<string, Requirement> = new Map<string, Requirement>([
                 requiredCondition("type", ["text"])
             ],
             requiredSetting: "icon"
+        }],
+    [
+        "icon-alert-style", {
+            conditions: [
+                requiredCondition("type", ["text"])
+            ],
+            requiredSetting: "icon-color"
         }],
     [
         "caption-style", {
