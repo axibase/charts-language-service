@@ -427,3 +427,51 @@ suite("Treemap required settings tests", () => {
     deepStrictEqual(actualDiagnostics, expectedDiagnostic);
   });
 });
+
+const textWidgetConfig = (setting: string, condition: string = "") => `[configuration]
+[group]
+[widget]
+    type = text
+    metric = a
+    entity = b
+    [series]
+      icon = 'server_black_04.svg'
+      ${condition}
+      ${setting}`;
+
+suite("Text widget required settings tests", () => {
+  test("Correct: all 'icon-alert-style', 'alert-expression' and 'icon-color' are specified", () => {
+    const config = textWidgetConfig("icon-alert-style = fill: red;", `alert-expression = value > 60
+    icon-color = black`);
+    const validator = new Validator(config);
+    const actualDiagnostics = validator.lineByLine();
+    const expectedDiagnostic = [];
+    deepStrictEqual(actualDiagnostics, expectedDiagnostic);
+  });
+
+  test("Incorrect: only 'icon-alert-style' and 'alert-expression' are specified", () => {
+    const config = textWidgetConfig("icon-alert-style = fill: red;", `alert-expression = value > 60`);
+    const validator = new Validator(config);
+    const actualDiagnostics = validator.lineByLine();
+    const expectedDiagnostic = [
+      createDiagnostic(
+        createRange(5, 6, 6),
+        "icon-alert-style requires all of the following settings:\n * alert-expression\n * icon-color"
+      )
+    ];
+    deepStrictEqual(actualDiagnostics, expectedDiagnostic);
+  });
+
+  test("Incorrect: only 'icon-alert-style' is specified", () => {
+    const config = textWidgetConfig("icon-alert-style = fill: red;", `alert-expression = value > 60`);
+    const validator = new Validator(config);
+    const actualDiagnostics = validator.lineByLine();
+    const expectedDiagnostic = [
+      createDiagnostic(
+        createRange(5, 6, 6),
+        "icon-alert-style requires all of the following settings:\n * alert-expression\n * icon-color"
+      )
+    ];
+    deepStrictEqual(actualDiagnostics, expectedDiagnostic);
+  });
+});
