@@ -4,7 +4,7 @@ import { createDiagnostic } from "../util";
 import { Validator } from "../validator";
 
 suite("Warn about deprecated setting", () => {
-    test("Shows warning message for deprecated setting in relevant widget type", () => {
+    test.skip("Shows warning message for deprecated setting in relevant widget type", () => {
         const config = `[configuration]
             [group]
             [widget]
