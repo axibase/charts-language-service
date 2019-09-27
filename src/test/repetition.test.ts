@@ -278,6 +278,7 @@ script = document.head.appendChild(stylesheet);`,
   alert-expression=true
   caption=path/img.svg
   icon=null
+  icon-alert-expression=true
   alert-row-style = color:red
   alert-row-style = color:red
   alert-style = color:red
