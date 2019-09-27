@@ -1,6 +1,6 @@
 import { Diagnostic } from "vscode-languageserver-types";
 import { Section } from "../../configTree/section";
-import { noRequiredSetting, noRequiredSettings } from "../../messageUtil";
+import { noRequiredSetting, noRequiredSettings, notAllRequiredSettings } from "../../messageUtil";
 import { Setting } from "../../setting";
 import { createDiagnostic } from "../../util";
 import { requiredCondition } from "../utils/condition";
@@ -121,6 +121,7 @@ const checks: Map<string, Requirement> = new Map<string, Requirement>([
             conditions: [
                 requiredCondition("type", ["text"])
             ],
+            requireAll: true,
             requiredSetting: ["alert-expression", "icon-color"]
         }],
     [
@@ -159,16 +160,24 @@ const rule: Rule = {
                 return;
             }
             const reqNames = requirement.requiredSetting;
+            const requireAll = requirement.requireAll;
             let required: Setting;
             let msg: string;
             if (Array.isArray(reqNames)) {
-                for (const displayName of reqNames) {
-                    required = section.getSettingFromTree(displayName);
-                    if (required) {
+                for (let i = 0; i < reqNames.length; i++) {
+                    required = section.getSettingFromTree(reqNames[i]);
+
+                    /**
+                     * If only one of settings is required or it is last required setting
+                     */
+                    if (required && (!requireAll || i === reqNames.length - 1)) {
                         break;
                     }
                 }
-                msg = noRequiredSettings(dependent, reqNames);
+
+                msg = requireAll ?
+                    notAllRequiredSettings(dependent, reqNames) : noRequiredSettings(dependent, reqNames);
+
             } else {
                 required = section.getSettingFromTree(reqNames);
                 msg = noRequiredSetting(dependent, reqNames);

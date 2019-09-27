@@ -15,4 +15,5 @@ export interface Rule {
 export interface Requirement {
     conditions?: Condition[];
     requiredSetting: string | string[];
+    requireAll?: boolean;
 }

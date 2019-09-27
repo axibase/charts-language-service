@@ -53,6 +53,10 @@ export const noRequiredSettings: MessageFactoryMethod = (dependent: string, requ
   `${dependent} has effect only with one of the following:
  * ${required.join("\n * ")}`;
 
+export const notAllRequiredSettings: MessageFactoryMethod = (dependent: string, required: string[]): string =>
+  `${dependent} requires all of the following settings:
+ * ${required.join("\n * ")}`;
+
 export const noMatching: MessageFactoryMethod = (dependent: string, required: string): string =>
   `${dependent} has no matching ${required}`;
 
