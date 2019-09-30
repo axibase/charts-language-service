@@ -1,6 +1,6 @@
 import { Diagnostic } from "vscode-languageserver-types";
 import { Section } from "../../configTree/section";
-import { noRequiredSetting, noRequiredSettings, notAllRequiredSettings } from "../../messageUtil";
+import { noRequiredSetting, noRequiredSettings } from "../../messageUtil";
 import { Setting } from "../../setting";
 import { createDiagnostic } from "../../util";
 import { requiredCondition } from "../utils/condition";
@@ -82,13 +82,6 @@ const checks: Map<string, Requirement> = new Map<string, Requirement>([
             requiredSetting: "alert-expression"
         }],
     [
-        "icon-alert-style", {
-            conditions: [
-                requiredCondition("type", ["pie"])
-            ],
-            requiredSetting: "icon-alert-expression"
-        }],
-    [
         "icon-alert-expression", {
             conditions: [
                 requiredCondition("type", ["pie"])
@@ -115,13 +108,6 @@ const checks: Map<string, Requirement> = new Map<string, Requirement>([
                 requiredCondition("type", ["text"])
             ],
             requiredSetting: "icon"
-        }],
-    [
-        "icon-alert-style", {
-            conditions: [
-                requiredCondition("type", ["text"])
-            ],
-            requiredSetting: ["alert-expression", "icon-color"]
         }],
     [
         "caption-style", {
@@ -168,7 +154,6 @@ const rule: Rule = {
                         break;
                     }
                 }
-
                 msg = noRequiredSettings(dependent, reqNames);
             } else {
                 required = section.getSettingFromTree(reqNames);
