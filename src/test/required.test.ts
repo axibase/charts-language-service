@@ -455,7 +455,7 @@ suite("Text widget required settings tests", () => {
     const actualDiagnostics = validator.lineByLine();
     const expectedDiagnostic = [
       createDiagnostic(
-        createRange(5, 6, 6),
+        createRange(6, 16, 9),
         "icon-alert-style requires all of the following settings:\n * alert-expression\n * icon-color"
       )
     ];
@@ -468,7 +468,7 @@ suite("Text widget required settings tests", () => {
     const actualDiagnostics = validator.lineByLine();
     const expectedDiagnostic = [
       createDiagnostic(
-        createRange(5, 6, 6),
+        createRange(6, 16, 9),
         "icon-alert-style requires all of the following settings:\n * alert-expression\n * icon-color"
       )
     ];

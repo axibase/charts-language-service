@@ -121,7 +121,6 @@ const checks: Map<string, Requirement> = new Map<string, Requirement>([
             conditions: [
                 requiredCondition("type", ["text"])
             ],
-            requireAll: true,
             requiredSetting: ["alert-expression", "icon-color"]
         }],
     [
@@ -160,24 +159,17 @@ const rule: Rule = {
                 return;
             }
             const reqNames = requirement.requiredSetting;
-            const requireAll = requirement.requireAll;
             let required: Setting;
             let msg: string;
             if (Array.isArray(reqNames)) {
-                for (let i = 0; i < reqNames.length; i++) {
-                    required = section.getSettingFromTree(reqNames[i]);
-
-                    /**
-                     * If only one of settings is required or it is last required setting
-                     */
-                    if (required && (!requireAll || i === reqNames.length - 1)) {
+                for (const displayName of reqNames) {
+                    required = section.getSettingFromTree(displayName);
+                    if (required) {
                         break;
                     }
                 }
 
-                msg = requireAll ?
-                    notAllRequiredSettings(dependent, reqNames) : noRequiredSettings(dependent, reqNames);
-
+                msg = noRequiredSettings(dependent, reqNames);
             } else {
                 required = section.getSettingFromTree(reqNames);
                 msg = noRequiredSetting(dependent, reqNames);
