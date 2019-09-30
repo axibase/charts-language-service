@@ -35,4 +35,13 @@ suite("Size setting tests", () => {
         const expectedDiagnostic = [];
         deepStrictEqual(actualDiagnostics, expectedDiagnostic, `Config: \n${config}`);
     });
+
+    test("Correct: alias value", () => {
+        const config = baseConfig(`alias = 007
+        size = value('007') `);
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        const expectedDiagnostic = [];
+        deepStrictEqual(actualDiagnostics, expectedDiagnostic, `Config: \n${config}`);
+    });
 });
