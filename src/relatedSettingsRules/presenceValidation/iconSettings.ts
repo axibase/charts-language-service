@@ -46,7 +46,7 @@ const checkPieWidgetRequirements = (section: Section, setting: Setting): Diagnos
     if (iconAlertExpression === undefined) {
         return createDiagnostic(
             setting.textRange,
-            noRequiredSetting("icon-alert-style", iconAlertExpression.displayName)
+            noRequiredSetting("icon-alert-style", "icon-alert-expression")
         );
     }
 };
