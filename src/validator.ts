@@ -1001,13 +1001,11 @@ export class Validator {
             }
         }
 
-        if (typeof setting.widget === "string" && this.currentWidget) {
-            if (setting.widget !== this.currentWidget) {
-                this.result.push(createDiagnostic(
-                    setting.textRange,
-                    `${setting.displayName} is not allowed in ${this.currentWidget}`, DiagnosticSeverity.Error,
-                ));
-            }
+        if (typeof setting.widget === "string" && this.currentWidget && setting.widget !== this.currentWidget) {
+            this.result.push(createDiagnostic(
+                setting.textRange,
+                `${setting.displayName} is not allowed in ${this.currentWidget}`, DiagnosticSeverity.Error,
+            ));
         }
 
         if (setting.multiple) {
