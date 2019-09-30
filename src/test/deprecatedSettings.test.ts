@@ -4,6 +4,10 @@ import { createDiagnostic } from "../util";
 import { Validator } from "../validator";
 
 suite("Warn about deprecated setting", () => {
+    /**
+     * Setting 'stack' is not allowed in 'chart'.
+     * Earlier there was no warning for settings in wrong widget type
+     */
     test.skip("Shows warning message for deprecated setting in relevant widget type", () => {
         const config = `[configuration]
             [group]
