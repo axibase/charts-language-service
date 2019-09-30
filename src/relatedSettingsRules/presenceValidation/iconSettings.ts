@@ -1,6 +1,5 @@
 import { Diagnostic } from "vscode-languageserver-types";
 import { Section } from "../../configTree/section";
-import { noRequiredSetting, notAllRequiredSettings } from "../../messageUtil";
 import { Setting } from "../../setting";
 import { createDiagnostic } from "../../util";
 import { requiredCondition } from "../utils/condition";
@@ -35,7 +34,8 @@ const checkTextWidgetRequirements = (section: Section, setting: Setting): Diagno
     if (!allSettingsArePresent) {
         return createDiagnostic(
             setting.textRange,
-            notAllRequiredSettings("icon-alert-style", settings)
+            `${setting.displayName} requires all of the following settings:
+ * ${settings.join("\n * ")}`
         );
     }
 };
@@ -46,7 +46,7 @@ const checkPieWidgetRequirements = (section: Section, setting: Setting): Diagnos
     if (iconAlertExpression === undefined) {
         return createDiagnostic(
             setting.textRange,
-            noRequiredSetting("icon-alert-style", "icon-alert-expression")
+            "icon-alert-expression is required if icon-alert-style is specified"
         );
     }
 };
