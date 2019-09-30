@@ -44,8 +44,7 @@ const checkTextWidgetRequirements = (section: Section, setting: Setting): Diagno
         diagnostic.push(
             createDiagnostic(
                 setting.textRange,
-                noRequiredSetting(setting.displayName, "alert-expression"),
-                DiagnosticSeverity.Error
+                noRequiredSetting(setting.displayName, "alert-expression")
             )
         );
     }
