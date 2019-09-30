@@ -60,7 +60,7 @@ const checkPieWidgetRequirements = (section: Section, setting: Setting): Diagnos
         return [
             createDiagnostic(
                 setting.textRange,
-                "icon-alert-expression is required if icon-alert-style is specified"
+                noRequiredSetting(setting.displayName, "icon-alert-expression")
             )
         ];
     }
