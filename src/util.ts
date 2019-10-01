@@ -2,6 +2,7 @@ import { Diagnostic, DiagnosticSeverity, Position, Range } from "vscode-language
 import { Section } from "./configTree/section";
 import { Setting } from "./setting";
 import { LanguageService } from "./languageService";
+import { DefaultSetting } from "./defaultSetting";
 
 const DIAGNOSTIC_SOURCE: string = "Axibase Charts";
 
@@ -202,17 +203,30 @@ export function createRange(start: number, length: number, lineNumber: number) {
  *
  * @param settingName - Display name of setting, which value is requested
  * @param section - Start section, from which setting must be searched
+ * @param recursive - Whether to search entire tree or just check current section
  * @returns Value of Setting with name `settingName`.
  */
-export function getValueOfSetting(settingName: string, section: Section): string | number | boolean {
+export function getValueOfSetting(
+    settingName: string, section: Section, recursive: boolean = true
+): string | number | boolean {
     let value: string | number | boolean;
-    let setting = section.getSettingFromTree(settingName);
+    let setting = recursive ? section.getSettingFromTree(settingName) : section.getSetting(
+        DefaultSetting.clearSetting(settingName)
+    );
     if (setting === undefined) {
         /**
          * Setting is not declared, thus looking for default value.
          */
         setting = getSetting(settingName);
         if (setting !== undefined) {
+            /**
+             * Apply section-dependent defaultValue overrides
+             */
+            const widget: Setting = section.getSetting("type");
+            setting = setting.applyScope({
+                section: section.name,
+                widget: widget ? widget.value : "",
+            }) as Setting;
             value = setting.defaultValue;
         }
     } else {
