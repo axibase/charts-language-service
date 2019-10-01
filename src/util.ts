@@ -222,7 +222,7 @@ export function getValueOfSetting(
             /**
              * Apply section-dependent defaultValue overrides
              */
-            const widget: Setting = section.getSetting("type");
+            const widget: Setting = section.getSettingFromTree("type");
             setting = setting.applyScope({
                 section: section.name,
                 widget: widget ? widget.value : "",
