@@ -42,7 +42,7 @@ suite("Widgets per row tests", () => {
     });
 
     test("Incorrect: height-units exceed limit", () => {
-        const config = baseConfig("height-units = 30", "height-units = 2");
+        const config = baseConfig("height-units = 32", "height-units = 2");
         const validator = new Validator(config);
         const actualDiagnostic = validator.lineByLine();
         const expectedDiagnostic = [
@@ -63,7 +63,7 @@ suite("Widgets per row tests", () => {
     });
 
     test("Incorrect: height and width units exceed limit", () => {
-        const config = baseConfig(`height-units = 30
+        const config = baseConfig(`height-units = 32
     width-units = 30`,
 `width-units = 30
     height-units = 30
