@@ -1362,6 +1362,10 @@ Fatal: `7`.
   
 Control alert behavior. Highlight a single column or entire row.  
   
+## showgrid  
+  
+Show grid displaying how many widgets can be in group.  
+  
 ## showtagnames  
   
 Display all entity tags.  

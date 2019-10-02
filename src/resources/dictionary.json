@@ -6786,6 +6786,13 @@
             ]
         },
         {
+            "displayName": "show-grid",
+            "type": "boolean",
+            "example": false,
+            "section": "configuration",
+            "defaultValue": true
+        },
+        {
             "displayName": "show-tag-names",
             "type": "boolean",
             "example": true,
