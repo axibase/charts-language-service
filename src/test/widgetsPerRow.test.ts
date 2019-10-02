@@ -1,4 +1,5 @@
 import { deepStrictEqual } from "assert";
+import { DiagnosticSeverity } from "vscode-languageserver-types";
 import { createDiagnostic, createRange } from "../util";
 import { Validator } from "../validator";
 
@@ -35,7 +36,8 @@ suite("Widgets per row tests", () => {
         const expectedDiagnostic = [
             createDiagnostic(
                 createRange(1, 5, 3),
-                "Widgets' width-units doesn't fit group capacity"
+                "Widgets overflow [group] horizontally. Decrease number of widgets per row",
+                DiagnosticSeverity.Warning
             )
         ];
         deepStrictEqual(actualDiagnostic, expectedDiagnostic, `Config: \n${config}`);
@@ -48,7 +50,8 @@ suite("Widgets per row tests", () => {
         const expectedDiagnostic = [
             createDiagnostic(
                 createRange(1, 5, 3),
-                "Widgets' height-units doesn't fit group capacity"
+                "Widgets overflow [group] vertically. Decrease widget's height-units",
+                DiagnosticSeverity.Warning
             )
         ];
         deepStrictEqual(actualDiagnostic, expectedDiagnostic, `Config: \n${config}`);
@@ -73,7 +76,8 @@ suite("Widgets per row tests", () => {
         const expectedDiagnostic = [
             createDiagnostic(
                 createRange(1, 5, 3),
-                "Widgets' width-units and height-units don't fit group capacity"
+                "Widgets overflow [group]\nDecrease widget's height-units and number of widgets per row",
+                DiagnosticSeverity.Warning
             )
         ];
         deepStrictEqual(actualDiagnostic, expectedDiagnostic, `Config: \n${config}`);

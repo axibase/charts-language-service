@@ -1,10 +1,10 @@
-import { Diagnostic } from "vscode-languageserver-types";
+import { Diagnostic, DiagnosticSeverity } from "vscode-languageserver-types";
 import { Section } from "../../configTree/section";
 import { createDiagnostic, getValueOfSetting } from "../../util";
 import { Rule } from "../utils/interfaces";
 
 const rule: Rule = {
-    name: "check that amount of widgets per row fits group capacity",
+    name: "check that widgets per row don't overflow [group]",
     check(section: Section): Diagnostic | void {
         let errorMessage: string;
         /**
@@ -17,7 +17,7 @@ const rule: Rule = {
         }, 0);
 
         if (widgetsWidth > groupWidth) {
-            errorMessage = `Widgets' width-units doesn't fit group capacity`;
+            errorMessage = `Widgets overflow [group] horizontally. Decrease number of widgets per row`;
         }
 
         /**
@@ -31,16 +31,18 @@ const rule: Rule = {
 
         if (widgetsExceedHeight) {
             if (errorMessage) {
-                errorMessage = `Widgets' width-units and height-units don't fit group capacity`;
+                errorMessage = `Widgets overflow [group]\n`
+                    + `Decrease widget's height-units and number of widgets per row`;
             } else {
-                errorMessage = `Widgets' height-units doesn't fit group capacity`;
+                errorMessage = `Widgets overflow [group] vertically. Decrease widget's height-units`;
             }
         }
 
         if (errorMessage) {
             return createDiagnostic(
                 section.range.range,
-                errorMessage
+                errorMessage,
+                DiagnosticSeverity.Warning
             );
         }
     }
