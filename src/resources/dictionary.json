@@ -7288,7 +7288,7 @@
         },
         {
             "displayName": "stack",
-            "widget": "bar",
+            "widget": ["chart", "bar"],
             "type": "boolean",
             "section": "widget",
             "example": false,
