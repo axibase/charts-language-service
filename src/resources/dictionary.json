@@ -3083,12 +3083,10 @@
             "minValue": 0,
             "example": 2,
             "section": "widget",
+            "defaultValue": 1,
             "override": {
                 "[section == 'configuration']": {
                     "defaultValue": 4
-                },
-                "[section == 'widget']": {
-                    "defaultValue": 1
                 }
             }
         },
@@ -8896,12 +8894,10 @@
             "example": 2,
             "minValue": 0,
             "section": "widget",
+            "defaultValue": 1,
             "override": {
                 "[section == 'configuration']": {
                     "defaultValue": 6
-                },
-                "[section == 'widget']": {
-                    "defaultValue": 1
                 }
             }
         },
