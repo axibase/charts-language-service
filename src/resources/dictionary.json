@@ -2990,9 +2990,9 @@
         {
             "displayName": "grid-display",
             "type": "boolean",
-            "example": false,
+            "example": true,
             "section": "configuration",
-            "defaultValue": true
+            "defaultValue": false
         },
         {
             "displayName": "group",
