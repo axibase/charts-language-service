@@ -1,8 +1,7 @@
 import { Diagnostic, DiagnosticSeverity, Position, Range } from "vscode-languageserver-types";
 import { Section } from "./configTree/section";
-import { Setting } from "./setting";
 import { LanguageService } from "./languageService";
-import { DefaultSetting } from "./defaultSetting";
+import { Setting } from "./setting";
 
 const DIAGNOSTIC_SOURCE: string = "Axibase Charts";
 
@@ -211,7 +210,7 @@ export function getValueOfSetting(
 ): string | number | boolean {
     let value: string | number | boolean;
     let setting = recursive ? section.getSettingFromTree(settingName) : section.getSetting(
-        DefaultSetting.clearSetting(settingName)
+        Setting.clearSetting(settingName)
     );
     if (setting === undefined) {
         /**
