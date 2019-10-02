@@ -2988,6 +2988,13 @@
             "widget": "gauge"
         },
         {
+            "displayName": "grid-display",
+            "type": "boolean",
+            "example": false,
+            "section": "configuration",
+            "defaultValue": true
+        },
+        {
             "displayName": "group",
             "section": "widget",
             "widget": "bar",
@@ -6784,13 +6791,6 @@
                 "row",
                 "column"
             ]
-        },
-        {
-            "displayName": "show-grid",
-            "type": "boolean",
-            "example": false,
-            "section": "configuration",
-            "defaultValue": true
         },
         {
             "displayName": "show-tag-names",
