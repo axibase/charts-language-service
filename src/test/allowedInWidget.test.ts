@@ -20,7 +20,7 @@ suite("Text widget tests", () => {
         const expectedDiagnostic = [
             createDiagnostic(
                 createRange(6, 21, 8),
-                "icon-alert-expression is not allowed in text"
+                "icon-alert-expression is not allowed in text widget"
             )
         ];
         deepStrictEqual(actualDiagnostics, expectedDiagnostic);

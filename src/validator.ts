@@ -1014,7 +1014,7 @@ export class Validator {
         if (this.notAllowedInWidget(setting)) {
             this.result.push(createDiagnostic(
                 setting.textRange,
-                `${setting.displayName} is not allowed in ${this.currentWidget}`, DiagnosticSeverity.Error,
+                `${setting.displayName} is not allowed in ${this.currentWidget} widget`, DiagnosticSeverity.Error,
             ));
         }
 
