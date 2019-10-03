@@ -14,6 +14,7 @@ import forecastStartTime from "./valueValidation/forecastStartTime";
 import paletteTicks from "./valueValidation/paletteTicks";
 import startEndTime from "./valueValidation/startEndTime";
 import summarizePeriodTimespan from "./valueValidation/summarizePeriodTimespan";
+import widgetsPerRow from "./valueValidation/widgetsPerRow";
 
 const rulesBySection: Map<string, Rule[]> = new Map<string, Rule[]>([
     [
@@ -38,6 +39,11 @@ const rulesBySection: Map<string, Rule[]> = new Map<string, Rule[]>([
             simultaneousTimeSettings,
             startEndTime,
             summarizePeriodTimespan
+        ]
+    ],
+    [
+        "group", [
+            widgetsPerRow
         ]
     ]
 ]);
