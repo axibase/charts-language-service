@@ -3289,7 +3289,7 @@
             "displayName": "icon-position",
             "type": "enum",
             "example": "bottom",
-            "section": "widget",
+            "section": "series",
             "widget": "text",
             "enum": [
                 "bottom",
@@ -7288,7 +7288,7 @@
         },
         {
             "displayName": "stack",
-            "widget": "bar",
+            "widget": ["chart", "bar"],
             "type": "boolean",
             "section": "widget",
             "example": false,

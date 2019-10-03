@@ -82,13 +82,6 @@ const checks: Map<string, Requirement> = new Map<string, Requirement>([
             requiredSetting: "alert-expression"
         }],
     [
-        "icon-alert-style", {
-            conditions: [
-                requiredCondition("type", ["pie", "text"])
-            ],
-            requiredSetting: "icon-alert-expression"
-        }],
-    [
         "icon-alert-expression", {
             conditions: [
                 requiredCondition("type", ["pie"])

@@ -427,3 +427,48 @@ suite("Treemap required settings tests", () => {
     deepStrictEqual(actualDiagnostics, expectedDiagnostic);
   });
 });
+
+const textWidgetConfig = (setting: string, condition: string = "") => `[configuration]
+[group]
+[widget]
+    type = text
+    metric = a
+    entity = b
+    [series]
+      icon = 'server_black_04.svg'
+      ${condition}
+      ${setting}`;
+
+suite("Text widget required settings tests", () => {
+  test("Incorrect: icon-color is missing", () => {
+    const config = textWidgetConfig("icon-alert-style = fill: red;", `alert-expression = value > 60`);
+    const validator = new Validator(config);
+    const actualDiagnostics = validator.lineByLine();
+    const expectedDiagnostic = [
+      createDiagnostic(
+        createRange(5, 6, 6),
+        "Set icon-color to apply the same color to series icons when alert is off.",
+        DiagnosticSeverity.Warning
+      )
+    ];
+    deepStrictEqual(actualDiagnostics, expectedDiagnostic);
+  });
+
+  test("Incorrect: 'alert-expression' and 'icon-color' are missing", () => {
+    const config = textWidgetConfig("icon-alert-style = fill: red;");
+    const validator = new Validator(config);
+    const actualDiagnostics = validator.lineByLine();
+    const expectedDiagnostic = [
+      createDiagnostic(
+        createRange(5, 6, 6),
+        "Set icon-color to apply the same color to series icons when alert is off.",
+        DiagnosticSeverity.Warning
+      ),
+      createDiagnostic(
+        createRange(6, 16, 9),
+        "alert-expression is required if icon-alert-style is specified"
+      )
+    ];
+    deepStrictEqual(actualDiagnostics, expectedDiagnostic);
+  });
+});

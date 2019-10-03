@@ -930,6 +930,16 @@ export class Validator {
     }
 
     /**
+     * Checks if setting is allowed in current widget type
+     * @param setting
+     */
+    private notAllowedInWidget(setting: Setting): boolean {
+        return typeof setting.widget === "string"
+            && this.currentWidget
+            && setting.widget !== this.currentWidget;
+    }
+
+    /**
      * Return true if the setting is allowed to be defined in the current section.
      * @param setting The setting to be checked.
      */
@@ -999,6 +1009,13 @@ export class Validator {
             if (reqs && reqs.sections) {
                 this.sectionStack.setSectionRequirements("widget", reqs.sections);
             }
+        }
+
+        if (this.notAllowedInWidget(setting)) {
+            this.result.push(createDiagnostic(
+                setting.textRange,
+                `${setting.displayName} is not allowed in ${this.currentWidget} widget`, DiagnosticSeverity.Error,
+            ));
         }
 
         if (setting.multiple) {
