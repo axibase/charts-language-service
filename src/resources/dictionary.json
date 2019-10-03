@@ -3376,7 +3376,7 @@
             "enum": [
                 "LINEAR",
                 "AUTO",
-                "PREVIOS"
+                "PREVIOUS"
             ]
         },
         {
@@ -8385,11 +8385,11 @@
         {
             "displayName": "transformation-order",
             "type": "string",
-            "defaultValue": "none",
+            "defaultValue": "evaluate",
             "section": "series",
             "example": "aggregate, interpolate",
             "enum": [
-                "none",
+                "evaluate",
                 "interpolate",
                 "group",
                 "rate",
