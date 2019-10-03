@@ -685,7 +685,7 @@ Specify the number of gradient colors between each color in Color Range.
 ## gradientintensity  
   
 Color intensity of the first and the last sector in each range.  
-    
+  
 ## griddisplay  
   
 Show grid displaying how many widgets can be in group.  
