@@ -8390,6 +8390,7 @@
             "example": "aggregate, interpolate",
             "enum": [
                 "none",
+                "evaluate",
                 "interpolate",
                 "group",
                 "rate",
