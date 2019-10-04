@@ -8385,11 +8385,11 @@
         {
             "displayName": "transformation-order",
             "type": "string",
-            "defaultValue": "evaluate",
+            "defaultValue": "none",
             "section": "series",
             "example": "aggregate, interpolate",
             "enum": [
-                "evaluate",
+                "none",
                 "interpolate",
                 "group",
                 "rate",
