@@ -820,6 +820,12 @@
             "section": "widget"
         },
         {
+            "displayName": "column-order",
+            "section": "column",
+            "type": "string",
+            "example": "first"
+        },
+        {
             "displayName": "columns",
             "type": "string",
             "example": "pid, command",
@@ -5589,9 +5595,9 @@
         },
         {
             "displayName": "position",
-            "section": "column",
+            "section": "widget",
             "type": "string",
-            "example": "first"
+            "example": "1-1, 2-2"
         },
         {
             "displayName": "primary-key",

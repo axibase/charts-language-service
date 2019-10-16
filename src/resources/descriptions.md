@@ -224,6 +224,10 @@ Redefine default palette.
 Table, Console, Property, Text, and Page widgets do not support this setting.  
 Default palette is defined by the array `window.defaultColors`.  
   
+## columnorder  
+  
+Position of the column relative to other columns in the table.  
+  
 ## contextheight  
   
 Define the height of the context graph. Used to adjust the displayed timespan.  
@@ -1221,7 +1225,7 @@ Define the location of the final value pointer.
   
 ## position  
   
-Position of the column relative to other columns in the table.  
+Specifies cells on the grid where widget will be located.  
   
 ## primarykey  
   
