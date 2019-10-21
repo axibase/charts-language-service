@@ -134,3 +134,6 @@ export const VAR_OPEN_BRACKET: RegExp = /(=)?\s*[\[\{\(](|.*,)\s*$/;
 //     ...
 // ]  <- close bracket
 export const VAR_CLOSE_BRACKET: RegExp = /\s*[\]\}\)]\s*/;
+
+// sort = value ASC, sort = value DESCENDING, etc
+export const SORT_REGEX: RegExp = /^(\w+)(?:\s+)?((?:asc|desc)(?:ending)?)?$/;

@@ -12,6 +12,7 @@ import forecastSsaGroupAutoUnion from "./valueValidation/forecastSsaGroupAutoUni
 import forecastSsaGroupManualGroups from "./valueValidation/forecastSsaGroupManualGroups";
 import forecastStartTime from "./valueValidation/forecastStartTime";
 import paletteTicks from "./valueValidation/paletteTicks";
+import sort from "./valueValidation/sort";
 import startEndTime from "./valueValidation/startEndTime";
 import summarizePeriodTimespan from "./valueValidation/summarizePeriodTimespan";
 import widgetsPerRow from "./valueValidation/widgetsPerRow";
@@ -38,6 +39,7 @@ const rulesBySection: Map<string, Rule[]> = new Map<string, Rule[]>([
             paletteTicks,
             simultaneousTimeSettings,
             startEndTime,
+            sort,
             summarizePeriodTimespan
         ]
     ],
