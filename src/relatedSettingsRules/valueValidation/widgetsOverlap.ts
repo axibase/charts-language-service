@@ -84,8 +84,6 @@ const rule: Rule = {
             }
         });
 
-        // console.log("Filled grid", grid);
-
         if (errors.length) {
             return createDiagnostic(
                 section.range.range,
