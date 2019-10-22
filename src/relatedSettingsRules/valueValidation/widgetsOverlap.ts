@@ -34,11 +34,6 @@ const rule: Rule = {
             if (position) {
                 try {
                     let { x1, x2, y1, y2 } = parsePosition(position.toString());
-                    /**
-                     * We have 1-based rows & cells
-                     */
-                    x2 *= width;
-                    y2 *= height;
 
                     outer: for (let i = x1 - 1; i < x2; i++) {
                         for (let j = y1 - 1; j < y2; j++) {
