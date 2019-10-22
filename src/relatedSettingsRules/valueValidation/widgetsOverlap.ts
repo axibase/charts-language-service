@@ -33,7 +33,7 @@ const rule: Rule = {
 
             if (position) {
                 try {
-                    let { x1, x2, y1, y2 } = parsePosition(position.toString());
+                    const { x1, x2, y1, y2 } = parsePosition(position.toString());
 
                     outer: for (let i = x1 - 1; i < x2; i++) {
                         for (let j = y1 - 1; j < y2; j++) {
