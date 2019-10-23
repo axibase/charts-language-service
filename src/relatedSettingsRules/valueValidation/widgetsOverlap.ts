@@ -14,13 +14,13 @@ interface Coordinates {
 const rule: Rule = {
     name: "check that widgets per row don't overflow [group]",
     check(section: Section): Diagnostic | void {
-        const groupWidth = +getValueOfSetting("width-units", section.parent, false);
-        const groupHeight = +getValueOfSetting("height-units", section.parent, false);
+        const groupWidth = +getValueOfSetting("width-units", section.parent);
+        const groupHeight = +getValueOfSetting("height-units", section.parent);
 
         const grid = [];
         const errors: string[] = [];
 
-        let lastRelativeWidgetPosX = 1;
+        let lastWidgetPosition = 0;
 
         for (let i = 0; i < groupWidth; i++) {
             grid[i] = new Array(groupHeight).fill(0);
@@ -44,13 +44,6 @@ const rule: Rule = {
                                 break outer;
                             }
 
-                            if (grid[i][j]) {
-                                errors.push(
-                                    `Widget with position '${position}' overlaps other widget at ${i + 1}-${j + 1}`
-                                );
-                                break outer;
-                            }
-
                             grid[i][j] = 1;
                         }
                     }
@@ -58,11 +51,11 @@ const rule: Rule = {
                     errors.push(e.message);
                 }
             } else {
-                const x1 = lastRelativeWidgetPosX + 1;
+                const x1 = lastWidgetPosition + 1;
                 const y1 = 1;
                 const x2 = x1 + width;
                 const y2 = y1 + height;
-                lastRelativeWidgetPosX = x2;
+                lastWidgetPosition = x2;
 
                 for (let i = x1 - 1; i < x2; i++) {
                     for (let j = y1 - 1; j < y2; j++) {
@@ -71,6 +64,10 @@ const rule: Rule = {
                              * Relative positioned widgets grid overflow is validated separately in widgetsPerRow
                              */
                             continue;
+                        } else if (grid[i][j]) {
+                            errors.push(
+                                `Widgets overlap at ${i + 1}-${j + 1}`
+                            );
                         } else {
                             grid[i][j] = 1;
                         }

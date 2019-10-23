@@ -4,8 +4,6 @@ import { createDiagnostic, createRange } from "../util";
 import { Validator } from "../validator";
 
 const baseConfig = (setting: string) => `[configuration]
-width-units = 10
-height-units = 10
 [group]
   [widget]
     type = chart
@@ -21,7 +19,7 @@ suite("Widgets position tests", () => {
         const actualDiagnostic = validator.lineByLine();
         const expectedDiagnostic = [
             createDiagnostic(
-                createRange(1, 5, 3),
+                createRange(1, 5, 1),
                 "Can't parse widget's position. '0' doesn't seem to match {number}-{number} schema",
                 DiagnosticSeverity.Warning
             )
@@ -43,8 +41,8 @@ suite("Widgets position tests", () => {
         const actualDiagnostic = validator.lineByLine();
         const expectedDiagnostic = [
             createDiagnostic(
-                createRange(1, 5, 3),
-                "Widget position '10-10, 11-11' overflows grid 10x10",
+                createRange(1, 5, 1),
+                "Widget position '10-10, 11-11' overflows grid 6x4",
                 DiagnosticSeverity.Warning
             )
         ];
@@ -57,7 +55,7 @@ suite("Widgets position tests", () => {
         const actualDiagnostic = validator.lineByLine();
         const expectedDiagnostic = [
             createDiagnostic(
-                createRange(2, 11, 7),
+                createRange(2, 11, 5),
                 "width-units has no effect is position is specified",
                 DiagnosticSeverity.Warning
             )
@@ -65,13 +63,8 @@ suite("Widgets position tests", () => {
         deepStrictEqual(actualDiagnostic, expectedDiagnostic, `Config: \n${config}`);
     });
 
-    /**
-     * Skip for now because not sure how absolute and relative widgets should be positioned
-     */
-    test.skip("Absolute and relative widgets overlap each other", () => {
+    test("Absolute and relative widgets overlap each other", () => {
         const config = `[configuration]
-        width-units = 10
-        height-units = 10
     [group]
       [widget]
           type = chart
@@ -89,8 +82,8 @@ suite("Widgets position tests", () => {
         const actualDiagnostic = validator.lineByLine();
         const expectedDiagnostic = [
             createDiagnostic(
-                createRange(1, 5, 3),
-                "Widget position '10-10, 11-11' overflows grid 10x10",
+                createRange(5, 5, 1),
+                "Widgets overlap at 1-1",
                 DiagnosticSeverity.Warning
             )
         ];
