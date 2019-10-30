@@ -1,7 +1,7 @@
 import { Diagnostic, DiagnosticSeverity } from "vscode-languageserver-types";
 import { Section } from "../../../configTree/section";
 import { Setting } from "../../../setting";
-import { createDiagnostic, getValueOfSetting } from "../../../util";
+import { createDiagnostic } from "../../../util";
 import { Rule } from "../../utils/interfaces";
 
 const rule: Rule = {

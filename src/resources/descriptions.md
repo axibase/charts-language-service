@@ -1221,7 +1221,7 @@ Define the location of the final value pointer.
   
 ## position  
   
-Position of the column relative to other columns in the table.  
+Defines cells on the grid where widget will be located.  
   
 ## primarykey  
   
