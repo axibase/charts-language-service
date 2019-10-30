@@ -56,7 +56,7 @@ suite("Widgets position tests", () => {
         const expectedDiagnostic = [
             createDiagnostic(
                 createRange(2, 11, 5),
-                "width-units has no effect is position is specified",
+                "width-units has no effect if position is specified",
                 DiagnosticSeverity.Warning
             )
         ];
