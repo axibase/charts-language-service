@@ -5,7 +5,7 @@ import { createDiagnostic, getValueOfSetting } from "../../../util";
 import { Rule } from "../../utils/interfaces";
 
 const rule: Rule = {
-    name: "Width-units and height-units have effect only if position is not set",
+    name: "Width-units and height-units have no effect if position is set",
     check(section: Section): Diagnostic[] | void {
         const position = section.getSetting("position");
 

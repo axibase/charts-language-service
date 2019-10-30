@@ -14,34 +14,57 @@ interface Coordinates {
 const rule: Rule = {
     name: "check that widgets per row don't overflow [group]",
     check(section: Section): Diagnostic[] | void {
-        const groupWidth = +getValueOfSetting("width-units", section.parent);
-        const groupHeight = +getValueOfSetting("height-units", section.parent);
+        /**
+         * Get grid dimensions out of width- and height-units defined in configuration
+         * Or use default dimensions
+         */
+        const gridWidth = +getValueOfSetting("width-units", section.parent);
+        const gridHeight = +getValueOfSetting("height-units", section.parent);
 
         const grid = [];
         const errors: Diagnostic[] = [];
 
+        /**
+         * Used to calcaulate X coordinate of last relative widget (position not specified)
+         */
         let lastWidgetPosition = 0;
 
-        for (let i = 0; i < groupWidth; i++) {
-            grid[i] = new Array(groupHeight).fill(0);
+        /**
+         * Create model grid to detect widgets intersection
+         */
+        for (let i = 0; i < gridWidth; i++) {
+            grid[i] = new Array(gridHeight).fill(0);
         }
 
         section.children.forEach(widget => {
             const position = getValueOfSetting("position", widget, false);
+            /**
+             * Get own widget's height and width units if specified
+             * Otherwise pick default value
+             */
             const width = +getValueOfSetting("width-units", widget, false);
             const height = +getValueOfSetting("height-units", widget, false);
 
+            /**
+             * Position is specified try to parse it, check for syntax correctness
+             */
             if (position) {
                 try {
                     const { x1, x2, y1, y2 } = parsePosition(position.toString());
 
+                    /**
+                     * Position is 1-based, while array is 0-based
+                     */
                     outer: for (let i = x1 - 1; i < x2; i++) {
                         for (let j = y1 - 1; j < y2; j++) {
+                            /**
+                             * We are out of grid defined in configuration
+                             */
                             if (grid[i] === undefined || grid[i][j] === undefined) {
                                 errors.push(
                                     createDiagnostic(
                                         widget.range.range,
-                                        `Widget position '${position}' overflows grid ${groupWidth}x${groupHeight}`,
+                                        `Widget position '${position}' overflows grid ${gridWidth}x${gridHeight}`,
                                         DiagnosticSeverity.Warning
                                     )
                                 );
@@ -52,6 +75,9 @@ const rule: Rule = {
                         }
                     }
                 } catch (e) {
+                    /**
+                     * Process 'position' setting parse errors
+                     */
                     errors.push(
                         createDiagnostic(
                             widget.getSettingFromTree("position").textRange,
@@ -60,6 +86,9 @@ const rule: Rule = {
                     );
                 }
             } else {
+                /**
+                 * Position is not specified — we met a relatively positioned widget
+                 */
                 const x1 = lastWidgetPosition + 1;
                 const y1 = 1;
                 const x2 = x1 + width;
@@ -74,6 +103,9 @@ const rule: Rule = {
                              */
                             continue;
                         } else if (grid[i][j]) {
+                            /**
+                             * There is already widget at the position
+                             */
                             errors.push(
                                 createDiagnostic(
                                     widget.parent.range.range,
@@ -95,6 +127,10 @@ const rule: Rule = {
     }
 };
 
+/**
+ * Widget position parsing helper function
+ * @param line — position setting
+ */
 function parsePosition(line: string): Coordinates | null {
     let fullForm: string = line;
     /**
