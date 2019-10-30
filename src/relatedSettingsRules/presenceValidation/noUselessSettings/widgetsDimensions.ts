@@ -20,7 +20,7 @@ const rule: Rule = {
                 diagnostic.push(
                     createDiagnostic(
                         setting.textRange,
-                        `${setting.displayName} has no effect if position is specified`,
+                        `\`width-units\` has no effect if \`position\` is specified`,
                         DiagnosticSeverity.Warning
                     )
                 );

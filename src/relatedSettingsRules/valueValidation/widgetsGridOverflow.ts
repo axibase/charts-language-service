@@ -52,7 +52,8 @@ const rule: Rule = {
                             if (grid[i] === undefined || grid[i][j] === undefined) {
                                 errors.push(createDiagnostic(
                                     position.textRange,
-                                    `Widget's position '${position.value}' overflows grid ${gridHeight}x${gridWidth}`,
+                                    `Widget \`position\` '${position.value}' overflows grid` +
+                                    ` ${gridHeight} times ${gridWidth}`,
                                     DiagnosticSeverity.Warning
                                 ));
                                 break outer;
@@ -107,7 +108,7 @@ function parsePosition(setting: Setting): Coordinates | null {
             y2: +end[0],
         };
     } catch (error) {
-        throw new Error(`Can't parse widget's position.`
+        throw new Error(`Can't parse widget's \`position\`.`
             + ` Correct setting syntax is, for example: '${setting.example}'`);
     }
 }
