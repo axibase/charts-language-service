@@ -42,7 +42,7 @@ suite("Widgets position tests", () => {
         const expectedDiagnostic = [
             createDiagnostic(
                 createRange(4, 8, 4),
-                "Widget's position '10-10, 11-11' overflows grid 6x4",
+                "Widget's position '10-10, 11-11' overflows grid 4x6",
                 DiagnosticSeverity.Warning
             )
         ];

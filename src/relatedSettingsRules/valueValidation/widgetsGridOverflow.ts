@@ -52,7 +52,7 @@ const rule: Rule = {
                             if (grid[i] === undefined || grid[i][j] === undefined) {
                                 errors.push(createDiagnostic(
                                     position.textRange,
-                                    `Widget's position '${position.value}' overflows grid ${gridWidth}x${gridHeight}`,
+                                    `Widget's position '${position.value}' overflows grid ${gridHeight}x${gridWidth}`,
                                     DiagnosticSeverity.Warning
                                 ));
                                 break outer;
