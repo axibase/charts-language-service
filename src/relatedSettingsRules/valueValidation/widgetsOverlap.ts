@@ -13,12 +13,12 @@ interface Coordinates {
 
 const rule: Rule = {
     name: "check that widgets per row don't overflow [group]",
-    check(section: Section): Diagnostic | void {
+    check(section: Section): Diagnostic[] | void {
         const groupWidth = +getValueOfSetting("width-units", section.parent);
         const groupHeight = +getValueOfSetting("height-units", section.parent);
 
         const grid = [];
-        const errors: string[] = [];
+        const errors: Diagnostic[] = [];
 
         let lastWidgetPosition = 0;
 
@@ -39,7 +39,11 @@ const rule: Rule = {
                         for (let j = y1 - 1; j < y2; j++) {
                             if (grid[i] === undefined || grid[i][j] === undefined) {
                                 errors.push(
-                                    `Widget position '${position}' overflows grid ${groupWidth}x${groupHeight}`
+                                    createDiagnostic(
+                                        widget.range.range,
+                                        `Widget position '${position}' overflows grid ${groupWidth}x${groupHeight}`,
+                                        DiagnosticSeverity.Warning
+                                    )
                                 );
                                 break outer;
                             }
@@ -48,7 +52,12 @@ const rule: Rule = {
                         }
                     }
                 } catch (e) {
-                    errors.push(e.message);
+                    errors.push(
+                        createDiagnostic(
+                            widget.getSettingFromTree("position").textRange,
+                            e.message
+                        )
+                    );
                 }
             } else {
                 const x1 = lastWidgetPosition + 1;
@@ -66,7 +75,11 @@ const rule: Rule = {
                             continue;
                         } else if (grid[i][j]) {
                             errors.push(
-                                `Widgets overlap at ${i + 1}-${j + 1}`
+                                createDiagnostic(
+                                    widget.parent.range.range,
+                                    `Widgets overlap at ${i + 1}-${j + 1}`,
+                                    DiagnosticSeverity.Warning
+                                )
                             );
                         } else {
                             grid[i][j] = 1;
@@ -77,11 +90,7 @@ const rule: Rule = {
         });
 
         if (errors.length) {
-            return createDiagnostic(
-                section.range.range,
-                errors[0],
-                DiagnosticSeverity.Warning
-            );
+            return errors;
         }
     }
 };
@@ -109,7 +118,7 @@ function parsePosition(line: string): Coordinates | null {
         };
     } catch (error) {
         throw new Error(`Can't parse widget's position.`
-            + ` '${line}' doesn't seem to match {number}-{number} schema`);
+            + ` Position should be, for example: '1-1, 2-2' or '1-1' (= '1-1, 1-1' short form)`);
     }
 }
 

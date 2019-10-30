@@ -19,9 +19,10 @@ suite("Widgets position tests", () => {
         const actualDiagnostic = validator.lineByLine();
         const expectedDiagnostic = [
             createDiagnostic(
-                createRange(1, 5, 1),
-                "Can't parse widget's position. '0' doesn't seem to match {number}-{number} schema",
-                DiagnosticSeverity.Warning
+                createRange(4, 8, 4),
+                "Can't parse widget's position." +
+                " Position should be, for example: '1-1, 2-2' or '1-1' (= '1-1, 1-1' short form)",
+                DiagnosticSeverity.Error
             )
         ];
         deepStrictEqual(actualDiagnostic, expectedDiagnostic, `Config: \n${config}`);
@@ -41,7 +42,7 @@ suite("Widgets position tests", () => {
         const actualDiagnostic = validator.lineByLine();
         const expectedDiagnostic = [
             createDiagnostic(
-                createRange(1, 5, 1),
+                createRange(3, 6, 2),
                 "Widget position '10-10, 11-11' overflows grid 6x4",
                 DiagnosticSeverity.Warning
             )
