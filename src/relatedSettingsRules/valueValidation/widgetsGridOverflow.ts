@@ -44,7 +44,7 @@ const rule: Rule = {
                     /**
                      * Position is 1-based, while array is 0-based
                      */
-                    outer: for (let i = x1 - 1; i < x2; i++) {
+                    for (let i = x1 - 1; i < x2; i++) {
                         for (let j = y1 - 1; j < y2; j++) {
                             /**
                              * We are out of grid defined in configuration
@@ -56,7 +56,6 @@ const rule: Rule = {
                                     ` ${gridHeight} times ${gridWidth}`,
                                     DiagnosticSeverity.Warning
                                 ));
-                                break outer;
                             }
 
                             grid[i][j] = 1;
