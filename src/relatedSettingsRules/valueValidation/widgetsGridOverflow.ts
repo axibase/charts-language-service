@@ -63,15 +63,16 @@ function parsePosition(setting: Setting): Coordinates | null {
  * @param widget - widget section to check
  */
 function detectGridOverflow(widget: Section): Diagnostic | void {
-    /**
-     * Get grid dimensions out of width- and height-units defined in configuration
-     * Or use default dimensions
-     */
-    const gridWidth = +getValueOfSetting("width-units", widget.parent.parent);
-    const gridHeight = +getValueOfSetting("height-units", widget.parent.parent);
     const position = widget.getSettingFromTree("position");
 
     if (position) {
+        /**
+         * Get grid dimensions out of width- and height-units defined in configuration
+         * Or use default dimensions
+         */
+        const gridWidth = +getValueOfSetting("width-units", widget.parent.parent);
+        const gridHeight = +getValueOfSetting("height-units", widget.parent.parent);
+
         try {
             const { x1, x2, y1, y2 } = parsePosition(position);
             if (x1 < 1 || x2 > gridWidth || y1 < 1 || y2 > gridHeight) {
