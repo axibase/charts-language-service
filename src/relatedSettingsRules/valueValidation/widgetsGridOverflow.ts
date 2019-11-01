@@ -33,11 +33,16 @@ const rule: Rule = {
  */
 function parsePosition(setting: Setting): Coordinates | null {
     let fullForm: string = setting.value;
+    const errorMessage: string = `Can't parse widget's ${setting.displayName}.`
+        + ` Correct setting syntax is, for example: '${setting.example}'`;
+
     /**
      * Process case for 'position = 1-1' shorthand and turn it into 'position = 1-1, 1-1'
      */
     if (setting.value.indexOf(",") < 0) {
         fullForm += "," + setting.value;
+    } else if (setting.value.split(",").length > 2) {
+        throw new Error(errorMessage);
     }
 
     const match = POSITION_REGEX.exec(fullForm);
@@ -53,8 +58,7 @@ function parsePosition(setting: Setting): Coordinates | null {
             y2: +end[0],
         };
     } catch (error) {
-        throw new Error(`Can't parse widget's ${setting.displayName}.`
-            + ` Correct setting syntax is, for example: '${setting.example}'`);
+        throw new Error(errorMessage);
     }
 }
 

@@ -44,6 +44,19 @@ suite("Widgets position tests", () => {
         deepStrictEqual(actualDiagnostic, expectedDiagnostic, `Config: \n${config}`);
     });
 
+    test("Incorrect widgets position (3 values)", () => {
+        const config = baseConfig("position = 1-1, 2-2, 3-3");
+        const validator = new Validator(config);
+        const actualDiagnostic = validator.lineByLine();
+        const expectedDiagnostic = [
+            createDiagnostic(
+                createRange(4, 8, 5),
+                "Can't parse widget's position. Correct setting syntax is, for example: '1-1, 2-2'"
+            )
+        ];
+        deepStrictEqual(actualDiagnostic, expectedDiagnostic, `Config: \n${config}`);
+    });
+
     test("Incorrect zero widgets position", () => {
         const config = baseConfig("position = 0-0");
         const validator = new Validator(config);
