@@ -20,7 +20,7 @@ suite("Widgets position tests", () => {
         const expectedDiagnostic = [
             createDiagnostic(
                 createRange(4, 8, 4),
-                "Can't parse widget's `position`. Correct setting syntax is, for example: '1-1, 2-2'",
+                "Can't parse widget's position. Correct setting syntax is, for example: '1-1, 2-2'",
                 DiagnosticSeverity.Error
             )
         ];
@@ -42,7 +42,7 @@ suite("Widgets position tests", () => {
         const expectedDiagnostic = [
             createDiagnostic(
                 createRange(4, 8, 4),
-                "Widget \`position\` '10-10, 11-11' overflows grid 4 times 6",
+                "Widget position '10-10, 11-11' overflows grid 4 times 6",
                 DiagnosticSeverity.Warning
             )
         ];
@@ -56,7 +56,7 @@ suite("Widgets position tests", () => {
         const expectedDiagnostic = [
             createDiagnostic(
                 createRange(2, 11, 5),
-                "`width-units` has no effect if `position` is specified",
+                "'width-units' has no effect if 'position' is specified",
                 DiagnosticSeverity.Warning
             )
         ];

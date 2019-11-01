@@ -44,7 +44,7 @@ const rule: Rule = {
                     /**
                      * Position is 1-based, while array is 0-based
                      */
-                    outer: for (let i = x1 - 1; i < x2; i++) {
+                    for (let i = x1 - 1; i < x2; i++) {
                         for (let j = y1 - 1; j < y2; j++) {
                             /**
                              * We are out of grid defined in configuration
@@ -52,11 +52,10 @@ const rule: Rule = {
                             if (grid[i] === undefined || grid[i][j] === undefined) {
                                 errors.push(createDiagnostic(
                                     position.textRange,
-                                    `Widget \`position\` '${position.value}' overflows grid` +
+                                    `Widget ${position.displayName} '${position.value}' overflows grid` +
                                     ` ${gridHeight} times ${gridWidth}`,
                                     DiagnosticSeverity.Warning
                                 ));
-                                break outer;
                             }
 
                             grid[i][j] = 1;
@@ -84,7 +83,7 @@ const rule: Rule = {
 
 /**
  * Widget position parsing helper function
- * @param line — position setting
+ * @param setting {Setting} - position setting
  */
 function parsePosition(setting: Setting): Coordinates | null {
     let fullForm: string = setting.value;
@@ -108,7 +107,7 @@ function parsePosition(setting: Setting): Coordinates | null {
             y2: +end[0],
         };
     } catch (error) {
-        throw new Error(`Can't parse widget's \`position\`.`
+        throw new Error(`Can't parse widget's ${setting.displayName}.`
             + ` Correct setting syntax is, for example: '${setting.example}'`);
     }
 }
