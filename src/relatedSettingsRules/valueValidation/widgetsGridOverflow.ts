@@ -15,15 +15,70 @@ interface Coordinates {
 const rule: Rule = {
     name: "check that widgets per row don't overflow [group]",
     check(section: Section): Diagnostic[] | void {
-        return section.children.reduce((total, widget) => {
-            const diagnostic = detectGridOverflow(widget);
+        /**
+         * Get grid dimensions out of width- and height-units defined in configuration
+         * Or use default dimensions
+         */
+        const gridWidth = +getValueOfSetting("width-units", section.parent);
+        const gridHeight = +getValueOfSetting("height-units", section.parent);
 
-            if (diagnostic) {
-                total.push(diagnostic);
+        /**
+         * Create model grid to detect widgets intersection
+         */
+        const grid = [];
+        for (let i = 0; i < gridWidth; i++) {
+            grid[i] = new Array(gridHeight).fill(0);
+        }
+
+        const errors: Diagnostic[] = [];
+        section.children.forEach(widget => {
+            const position = widget.getSettingFromTree("position");
+
+            /**
+             * Position is specified try to parse it, check for syntax correctness
+             */
+            if (position) {
+                try {
+                    const { x1, x2, y1, y2 } = parsePosition(position);
+
+                    /**
+                     * Position is 1-based, while array is 0-based
+                     */
+                    outer: for (let i = x1 - 1; i < x2; i++) {
+                        for (let j = y1 - 1; j < y2; j++) {
+                            /**
+                             * We are out of grid defined in configuration
+                             */
+                            if (grid[i] === undefined || grid[i][j] === undefined) {
+                                errors.push(createDiagnostic(
+                                    position.textRange,
+                                    `Widget \`position\` '${position.value}' overflows grid` +
+                                    ` ${gridHeight} times ${gridWidth}`,
+                                    DiagnosticSeverity.Warning
+                                ));
+                                break outer;
+                            }
+
+                            grid[i][j] = 1;
+                        }
+                    }
+                } catch (e) {
+                    /**
+                     * Process 'position' setting parse errors
+                     */
+                    errors.push(
+                        createDiagnostic(
+                            position.textRange,
+                            e.message
+                        )
+                    );
+                }
             }
+        });
 
-            return total;
-        }, []);
+        if (errors.length) {
+            return errors;
+        }
     }
 };
 
@@ -55,42 +110,6 @@ function parsePosition(setting: Setting): Coordinates | null {
     } catch (error) {
         throw new Error(`Can't parse widget's \`position\`.`
             + ` Correct setting syntax is, for example: '${setting.example}'`);
-    }
-}
-
-/**
- * Check if widget position doesn't overflow grid
- * @param widget - widget section to check
- */
-function detectGridOverflow(widget: Section): Diagnostic | void {
-    /**
-     * Get grid dimensions out of width- and height-units defined in configuration
-     * Or use default dimensions
-     */
-    const gridWidth = +getValueOfSetting("width-units", widget.parent.parent);
-    const gridHeight = +getValueOfSetting("height-units", widget.parent.parent);
-    const position = widget.getSettingFromTree("position");
-
-    if (position) {
-        try {
-            const { x1, x2, y1, y2 } = parsePosition(position);
-            if (x1 < 1 || x2 > gridWidth || y1 < 1 || y2 > gridHeight) {
-                return createDiagnostic(
-                    position.textRange,
-                    `Widget \`position\` '${position.value}' overflows grid` +
-                    ` ${gridHeight} times ${gridWidth}`,
-                    DiagnosticSeverity.Warning
-                );
-            }
-        } catch (e) {
-            /**
-             * Process 'position' setting parse errors
-             */
-            return createDiagnostic(
-                position.textRange,
-                e.message
-            );
-        }
     }
 }
 
