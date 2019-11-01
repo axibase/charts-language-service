@@ -134,3 +134,6 @@ export const VAR_OPEN_BRACKET: RegExp = /(=)?\s*[\[\{\(](|.*,)\s*$/;
 //     ...
 // ]  <- close bracket
 export const VAR_CLOSE_BRACKET: RegExp = /\s*[\]\}\)]\s*/;
+
+// sql|script|if|for|var|list|csv|expr
+export const KEYWORDS_REGEX: RegExp = new RegExp(`^[ \t]*(?:${CONTROL_KEYWORDS.join("|")})[ \t]*`, "g");

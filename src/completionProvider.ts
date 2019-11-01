@@ -4,6 +4,7 @@ import {
 import { CALENDAR_KEYWORDS, CONTROL_KEYWORDS, INTERVAL_UNITS } from "./constants";
 import { Field } from "./field";
 import { LanguageService } from "./languageService";
+import { KEYWORDS_REGEX } from "./regExpressions";
 import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { Setting } from "./setting";
 import { deleteComments, deleteScripts, getSetting } from "./util";
@@ -36,6 +37,14 @@ export class CompletionProvider {
     public getCompletionItems(): CompletionItem[] {
         const valueMatch = /^\s*(\S+)\s*=\s*/.exec(this.currentLine);
         const bracketsMatch = /\s*(\[.*?)\s*/.exec(this.currentLine);
+
+        /**
+         * No settings in IntelliSense suggestions (same line) for control keywords
+         */
+        if (KEYWORDS_REGEX.test(this.currentLine)) {
+            return [];
+        }
+
         if (valueMatch) {
             // completion requested at assign stage, i. e. type = <Ctrl + space>
             return this.completeSettingValue(valueMatch[1]);
@@ -119,7 +128,7 @@ endfor`;
         // detected `end`
         const endWordRegex: RegExp = /^[ \t]*(end)[ \t]*/gm;
         // detected any control keyword in previous code
-        const keywordsRegex: RegExp = new RegExp(`^[ \t]*(?:${CONTROL_KEYWORDS.join("|")})[ \t]*`, "mg");
+        const keywordsRegex: RegExp = new RegExp(KEYWORDS_REGEX.source, KEYWORDS_REGEX.flags + "m");
         let completions: CompletionItem[] = [];
 
         if (endWordRegex.test(this.text)) {
