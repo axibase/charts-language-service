@@ -2,7 +2,7 @@ import { Diagnostic, DiagnosticSeverity } from "vscode-languageserver-types";
 import { Section } from "../../configTree/section";
 import { POSITION_REGEX } from "../../regExpressions";
 import { Setting } from "../../setting";
-import { createDiagnostic, getValueOfSetting } from "../../util";
+import { createDiagnostic, getSetting, getValueOfSetting } from "../../util";
 import { Rule } from "../utils/interfaces";
 
 interface Coordinates {
@@ -68,10 +68,14 @@ function detectGridOverflow(widget: Section): Diagnostic | void {
     if (position) {
         /**
          * Get grid dimensions out of width- and height-units defined in configuration
-         * Or use default dimensions
+         * Or use default dimensions for configuration
          */
-        const gridWidth = +getValueOfSetting("width-units", widget.parent.parent);
-        const gridHeight = +getValueOfSetting("height-units", widget.parent.parent);
+        const [gridWidth, gridHeight] = ["width-units", "height-units"].map(setting => {
+            return +getValueOfSetting(setting, widget.parent.parent) || getSetting(setting).applyScope({
+                section: widget.parent.parent.name,
+                widget: ""
+            }).defaultValue;
+        });
 
         try {
             const { x1, x2, y1, y2 } = parsePosition(position);
@@ -79,7 +83,7 @@ function detectGridOverflow(widget: Section): Diagnostic | void {
                 return createDiagnostic(
                     position.textRange,
                     `Widget ${position.displayName} '${position.value}' overflows grid` +
-                    ` ${gridHeight} × ${gridWidth}`,
+                    ` ${gridHeight}×${gridWidth}`,
                     DiagnosticSeverity.Warning
                 );
             }

@@ -3,7 +3,8 @@ import { DiagnosticSeverity } from "vscode-languageserver-types";
 import { createDiagnostic, createRange } from "../util";
 import { Validator } from "../validator";
 
-const baseConfig = (setting: string) => `[configuration]
+const baseConfig = (setting: string, dimensions: string = "") => `[configuration]
+${dimensions}
 [group]
   [widget]
     type = chart
@@ -19,7 +20,7 @@ suite("Widgets position tests", () => {
         const actualDiagnostic = validator.lineByLine();
         const expectedDiagnostic = [
             createDiagnostic(
-                createRange(4, 8, 4),
+                createRange(4, 8, 5),
                 "Can't parse widget's position. Correct setting syntax is, for example: '1-1, 2-2'",
                 DiagnosticSeverity.Error
             )
@@ -49,8 +50,8 @@ suite("Widgets position tests", () => {
         const actualDiagnostic = validator.lineByLine();
         const expectedDiagnostic = [
             createDiagnostic(
-                createRange(4, 8, 4),
-                "Widget position '0-0' overflows grid 4 × 6",
+                createRange(4, 8, 5),
+                "Widget position '0-0' overflows grid 4×6",
                 DiagnosticSeverity.Warning
             )
         ];
@@ -63,7 +64,7 @@ suite("Widgets position tests", () => {
         const actualDiagnostic = validator.lineByLine();
         const expectedDiagnostic = [
             createDiagnostic(
-                createRange(4, 8, 4),
+                createRange(4, 8, 5),
                 "Can't parse widget's position. Correct setting syntax is, for example: '1-1, 2-2'"
             )
         ];
@@ -78,14 +79,32 @@ suite("Widgets position tests", () => {
         deepStrictEqual(actualDiagnostic, expectedDiagnostic, `Config: \n${config}`);
     });
 
+    test("Widget's position overflows grid with invalid dimensions (use default ones)", () => {
+        const config = baseConfig("position = 10-10, 11-11", "width-units = 'hello world'\n");
+        const validator = new Validator(config);
+        const actualDiagnostic = validator.lineByLine();
+        const expectedDiagnostic = [
+            createDiagnostic(
+                createRange(0, 11, 1),
+                "width-units should be a real (floating-point) number. For example, 2"
+            ),
+            createDiagnostic(
+                createRange(4, 8, 6),
+                "Widget position '10-10, 11-11' overflows grid 4×6",
+                DiagnosticSeverity.Warning
+            )
+        ];
+        deepStrictEqual(actualDiagnostic, expectedDiagnostic, `Config: \n${config}`);
+    });
+
     test("Widget's position overflows grid 10x10", () => {
         const config = baseConfig("position = 10-10, 11-11");
         const validator = new Validator(config);
         const actualDiagnostic = validator.lineByLine();
         const expectedDiagnostic = [
             createDiagnostic(
-                createRange(4, 8, 4),
-                "Widget position '10-10, 11-11' overflows grid 4 × 6",
+                createRange(4, 8, 5),
+                "Widget position '10-10, 11-11' overflows grid 4×6",
                 DiagnosticSeverity.Warning
             )
         ];
@@ -98,8 +117,8 @@ suite("Widgets position tests", () => {
         const actualDiagnostic = validator.lineByLine();
         const expectedDiagnostic = [
             createDiagnostic(
-                createRange(4, 8, 4),
-                "Widget position '11-11' overflows grid 4 × 6",
+                createRange(4, 8, 5),
+                "Widget position '11-11' overflows grid 4×6",
                 DiagnosticSeverity.Warning
             )
         ];
@@ -112,7 +131,7 @@ suite("Widgets position tests", () => {
         const actualDiagnostic = validator.lineByLine();
         const expectedDiagnostic = [
             createDiagnostic(
-                createRange(2, 11, 5),
+                createRange(2, 11, 6),
                 "'width-units' has no effect if 'position' is specified",
                 DiagnosticSeverity.Warning
             )
