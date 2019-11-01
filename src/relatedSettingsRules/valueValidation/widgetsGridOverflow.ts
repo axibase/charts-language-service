@@ -29,14 +29,14 @@ const rule: Rule = {
 
 /**
  * Widget position parsing helper function
- * @param line — position setting
+ * @param setting — position setting
  */
 function parsePosition(setting: Setting): Coordinates | null {
     let fullForm: string = setting.value;
     /**
      * Process case for 'position = 1-1' shorthand and turn it into 'position = 1-1, 1-1'
      */
-    if (setting.value.split(",").length === 1) {
+    if (setting.value.indexOf(",") < 0) {
         fullForm += "," + setting.value;
     }
 
@@ -78,7 +78,7 @@ function detectGridOverflow(widget: Section): Diagnostic | void {
                 return createDiagnostic(
                     position.textRange,
                     `Widget ${position.displayName} '${position.value}' overflows grid` +
-                    ` ${gridHeight} times ${gridWidth}`,
+                    ` ${gridHeight} × ${gridWidth}`,
                     DiagnosticSeverity.Warning
                 );
             }
