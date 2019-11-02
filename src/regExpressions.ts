@@ -134,3 +134,6 @@ export const VAR_OPEN_BRACKET: RegExp = /(=)?\s*[\[\{\(](|.*,)\s*$/;
 //     ...
 // ]  <- close bracket
 export const VAR_CLOSE_BRACKET: RegExp = /\s*[\]\}\)]\s*/;
+
+// position = 1-1, 2-2
+export const POSITION_REGEX: RegExp = /(\d+-\d+)(?:\s*,\s*)(\d+-\d+)/;

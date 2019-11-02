@@ -5589,9 +5589,9 @@
         },
         {
             "displayName": "position",
-            "section": "column",
+            "section": "widget",
             "type": "string",
-            "example": "first"
+            "example": "1-1, 2-2"
         },
         {
             "displayName": "primary-key",
