@@ -664,9 +664,13 @@ Counter format.
   
 Disable column name formatting.  
   
-## parsenumbers  
+## panelsperiod  
   
-If `true`, column values are processed as numbers.
+Comma-separated list of aggregation periods to be used instead of default ones in `summarize-period` panel. 
+  
+## parsenumbers  
+    
+If `true`, column values are processed as numbers.  
   
 ## formatsize  
   
