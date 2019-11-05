@@ -950,7 +950,9 @@ export class Validator {
         /**
          * Temporary workaround: 'columns' defined after [column] shouldn't raise a warning
          */
-        if (setting.displayName === "columns" && this.currentSection.text === "column") {
+        if (
+            (setting.displayName === "columns" || setting.displayName === "sort") &&
+            this.currentSection.text === "column") {
             return true;
         }
         const currDepth: number = ResourcesProviderBase.sectionDepthMap[this.currentSection.text];

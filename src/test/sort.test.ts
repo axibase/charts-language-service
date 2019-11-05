@@ -69,4 +69,17 @@ suite("Incorrect sort value", () => {
         ];
         assert.deepStrictEqual(expected, actual, `Config: \n${conf}`);
     });
+
+    test("Wrong sort order", () => {
+        const conf = baseConfig("sort = test hello");
+        const validator = new Validator(conf);
+        const actual: Diagnostic[] = validator.lineByLine();
+        const expected: Diagnostic[] = [
+            createDiagnostic(
+                createRange(4, 4, 8),
+                "'value asce' is not valid 'sort' setting value"
+            )
+        ];
+        assert.deepStrictEqual(expected, actual, `Config: \n${conf}`);
+    });
 });

@@ -13,20 +13,6 @@ const baseConfig = (setting: string) => `[configuration]
             entity = b`;
 
 suite("[column] section tests", () => {
-    test("Incorrect: 'sort' is [widget] setting", () => {
-        const config = baseConfig(`sort = command
-        `);
-        const validator = new Validator(config);
-        const actual = validator.lineByLine();
-        const expected = [
-            createDiagnostic(
-                createRange(10, "sort".length, 5),
-                "sort setting is not allowed here."
-            )
-        ];
-        assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
-    });
-
     /**
      * Here is a temporary warning supression. Now we cannot refer setting to parent section.
      * Probably, this will be changed, when syntax tree is build.
