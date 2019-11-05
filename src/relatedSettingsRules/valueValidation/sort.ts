@@ -19,7 +19,7 @@ const rule: Rule = {
         if (invalid) {
             return createDiagnostic(
                 sort.textRange,
-                `'${sort.value}' is not valid 'sort' setting value`
+                `Correct syntax for '${sort.displayName}' setting is, for example: '${sort.example}'`
             );
         }
     }
