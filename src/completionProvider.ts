@@ -35,15 +35,15 @@ export class CompletionProvider {
      * Creates completion items
      */
     public getCompletionItems(): CompletionItem[] {
-        const valueMatch = /^\s*(\S+)\s*=\s*/.exec(this.currentLine);
-        const bracketsMatch = /\s*(\[.*?)\s*/.exec(this.currentLine);
-
         /**
          * No settings in IntelliSense suggestions (same line) for control keywords
          */
         if (KEYWORDS_REGEX.test(this.currentLine)) {
             return [];
         }
+
+        const valueMatch = /^\s*(\S+)\s*=\s*/.exec(this.currentLine);
+        const bracketsMatch = /\s*(\[.*?)\s*/.exec(this.currentLine);
 
         if (valueMatch) {
             // completion requested at assign stage, i. e. type = <Ctrl + space>
