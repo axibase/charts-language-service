@@ -140,3 +140,13 @@ export const KEYWORDS_REGEX: RegExp = new RegExp(`^[ \t]*(?:${CONTROL_KEYWORDS.j
 
 // position = 1-1, 2-2
 export const POSITION_REGEX: RegExp = /(\d+-\d+)(?:\s*,\s*)(\d+-\d+)/;
+
+// [section -> true
+// [section] -> false
+export const OPENING_BRACKET: RegExp = /\[[^\]]*$/;
+
+// Some alpha characters at the beginnig of the line
+export const WORD_START: RegExp = /^\s*(\w)*\s*$/;
+
+// Matches setting value after '=' sign
+export const VALUE_MATCH: RegExp = /^\s*(\S+)\s*=\s*/;

@@ -4,7 +4,7 @@ import {
 import { CALENDAR_KEYWORDS, CONTROL_KEYWORDS, INTERVAL_UNITS } from "./constants";
 import { Field } from "./field";
 import { LanguageService } from "./languageService";
-import { KEYWORDS_REGEX } from "./regExpressions";
+import { KEYWORDS_REGEX, OPENING_BRACKET, VALUE_MATCH, WORD_START } from "./regExpressions";
 import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { Setting } from "./setting";
 import { deleteComments, deleteScripts, getSetting } from "./util";
@@ -42,8 +42,12 @@ export class CompletionProvider {
             return [];
         }
 
-        const valueMatch = /^\s*(\S+)\s*=\s*/.exec(this.currentLine);
-        const bracketsMatch = /\s*(\[.*?)\s*/.exec(this.currentLine);
+        const valueMatch = VALUE_MATCH.exec(this.currentLine);
+        const bracketsMatch = OPENING_BRACKET.exec(this.currentLine);
+        /**
+         * We are at the very beginning of a word
+         */
+        const wordStart = WORD_START.exec(this.currentLine);
 
         if (valueMatch) {
             // completion requested at assign stage, i. e. type = <Ctrl + space>
@@ -51,17 +55,18 @@ export class CompletionProvider {
         } else if (bracketsMatch) {
             // requested completion for section name in []
             return this.completeSectionName();
-        } else {
+        } else if (wordStart) {
             // completion requested at start of line (supposed that line is empty)
             return this.completeSnippets().concat(
                 this.completeIf(),
                 this.completeFor(),
                 this.completeSettingName(),
-                this.completeSectionName(),
                 this.completeControlKeyWord(),
-                this.completeEndKeyword()
+                this.completeEndKeyword(),
             );
         }
+
+        return [];
     }
 
     /**
