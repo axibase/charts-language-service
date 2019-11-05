@@ -77,7 +77,7 @@ suite("Incorrect sort value", () => {
         const expected: Diagnostic[] = [
             createDiagnostic(
                 createRange(4, 4, 8),
-                "'value asce' is not valid 'sort' setting value"
+                "'test hello' is not valid 'sort' setting value"
             )
         ];
         assert.deepStrictEqual(expected, actual, `Config: \n${conf}`);
