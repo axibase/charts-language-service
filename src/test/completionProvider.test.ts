@@ -64,8 +64,26 @@ suite("CompletionProvider endkeywords tests", () => {
         strictEqual(current.includes(expected), false);
     });
 
-    test("No IntelliSense suggestions (same line) for control keywords", () => {
+    test("No suggestions (same line) for control keywords", () => {
         const text = `csv =`;
+        const position = Position.create(2, 1);
+        const document: TextDocument = TextDocument.create("test", "axibasecharts", 1, text);
+        const cp: CompletionProvider = new CompletionProvider(document, position);
+        const current: CompletionItem[] = cp.getCompletionItems();
+        deepStrictEqual(current.length, 0);
+    });
+
+    test("No section name suggestions if line already contains section", () => {
+        const text = `[widget] `;
+        const position = Position.create(2, 1);
+        const document: TextDocument = TextDocument.create("test", "axibasecharts", 1, text);
+        const cp: CompletionProvider = new CompletionProvider(document, position);
+        const current: CompletionItem[] = cp.getCompletionItems();
+        deepStrictEqual(current.length, 0);
+    });
+
+    test("No suggestions after if expression", () => {
+        const text = `if hello == 'abc' `;
         const position = Position.create(2, 1);
         const document: TextDocument = TextDocument.create("test", "axibasecharts", 1, text);
         const cp: CompletionProvider = new CompletionProvider(document, position);
