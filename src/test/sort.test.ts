@@ -70,7 +70,7 @@ suite("Incorrect sort value", () => {
         assert.deepStrictEqual(expected, actual, `Config: \n${conf}`);
     });
 
-    test("Wrong sort order", () => {
+    test("Wrong sort value, no separating commas", () => {
         const conf = baseConfig("sort = test hello");
         const validator = new Validator(conf);
         const actual: Diagnostic[] = validator.lineByLine();
