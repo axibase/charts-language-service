@@ -2,6 +2,7 @@ import iconSettings from "./presenceValidation/iconSettings";
 import metricsAndEvaluateExpr from "./presenceValidation/metricsAndEvaluateExpr";
 import { noUselessSettingsForSeries, noUselessSettingsForWidget } from "./presenceValidation/noUselessSettings/index";
 import simultaneousTimeSettings from "./presenceValidation/noUselessSettings/simultaneousTimeSettings";
+import widgetsDimensions from "./presenceValidation/noUselessSettings/widgetsDimensions";
 import requiredSettings from "./presenceValidation/requiredSettings";
 import { Rule } from "./utils/interfaces";
 import calendarTimespan from "./valueValidation/calendarTimespan";
@@ -15,6 +16,7 @@ import paletteTicks from "./valueValidation/paletteTicks";
 import sort from "./valueValidation/sort";
 import startEndTime from "./valueValidation/startEndTime";
 import summarizePeriodTimespan from "./valueValidation/summarizePeriodTimespan";
+import widgetsGridOverflow from "./valueValidation/widgetsGridOverflow";
 import widgetsPerRow from "./valueValidation/widgetsPerRow";
 
 const rulesBySection: Map<string, Rule[]> = new Map<string, Rule[]>([
@@ -40,11 +42,13 @@ const rulesBySection: Map<string, Rule[]> = new Map<string, Rule[]>([
             simultaneousTimeSettings,
             startEndTime,
             sort,
-            summarizePeriodTimespan
+            summarizePeriodTimespan,
+            widgetsDimensions
         ]
     ],
     [
         "group", [
+            widgetsGridOverflow,
             widgetsPerRow
         ]
     ]

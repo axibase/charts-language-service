@@ -137,3 +137,6 @@ export const VAR_CLOSE_BRACKET: RegExp = /\s*[\]\}\)]\s*/;
 
 // sort = value ASC, sort = value DESCENDING, etc
 export const SORT_REGEX: RegExp = /^(\w+)(?:\s+)?((?:asc|desc)(?:ending)?)?$/;
+
+// position = 1-1, 2-2
+export const POSITION_REGEX: RegExp = /(\d+-\d+)(?:\s*,\s*)(\d+-\d+)/;
