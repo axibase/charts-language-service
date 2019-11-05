@@ -43,19 +43,21 @@ export class CompletionProvider {
         }
 
         const valueMatch = VALUE_MATCH.exec(this.currentLine);
+        if (valueMatch) {
+            // completion requested at assign stage, i. e. type = <Ctrl + space>
+            return this.completeSettingValue(valueMatch[1]);
+        }
+
         const bracketsMatch = OPENING_BRACKET.exec(this.currentLine);
+        if (bracketsMatch) {
+            // requested completion for section name in []
+            return this.completeSectionName();
+        }
         /**
          * We are at the very beginning of a word
          */
         const wordStart = WORD_START.exec(this.currentLine);
-
-        if (valueMatch) {
-            // completion requested at assign stage, i. e. type = <Ctrl + space>
-            return this.completeSettingValue(valueMatch[1]);
-        } else if (bracketsMatch) {
-            // requested completion for section name in []
-            return this.completeSectionName();
-        } else if (wordStart) {
+        if (wordStart) {
             // completion requested at start of line (supposed that line is empty)
             return this.completeSnippets().concat(
                 this.completeIf(),
