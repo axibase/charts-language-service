@@ -1,4 +1,4 @@
-import { BOOLEAN_KEYWORDS, CONTROL_KEYWORDS, INTERVAL_UNITS, RELATIONS } from "./constants";
+import { BOOLEAN_KEYWORDS, CONTROL_KEYWORDS, INTERVAL_UNITS, RELATIONS, STAT_FUNCTIONS } from "./constants";
 
 /** Regular expressions for CSV syntax checking */
 
@@ -140,3 +140,8 @@ export const SORT_REGEX: RegExp = /^(\w+)(?:\s+)?((?:asc|desc)(?:ending)?)?$/;
 
 // position = 1-1, 2-2
 export const POSITION_REGEX: RegExp = /(\d+-\d+)(?:\s*,\s*)(\d+-\d+)/;
+
+// stat_name('count unit'), for example: sum(5 minute), avg(10 second)
+export const STAT_COUNT_UNIT = new RegExp(
+    `(${STAT_FUNCTIONS.join("|")})\\s*\\(\\s*(\\d+(?:\.\\d+)?\\s*)(${INTERVAL_UNITS.join("|")})\\s*\\)\\s*((?:asc|desc)(?:ending)?)?$`
+);

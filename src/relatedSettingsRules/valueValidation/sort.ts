@@ -1,6 +1,7 @@
 import { Diagnostic } from "vscode-languageserver-types";
 import { Section } from "../../configTree/section";
-import { SORT_REGEX } from "../../regExpressions";
+import { INTERVAL_UNITS, STAT_FUNCTIONS } from "../../constants";
+import { INTERVAL_REGEXP, SORT_REGEX, STAT_COUNT_UNIT } from "../../regExpressions";
 import { Setting } from "../../setting";
 import { createDiagnostic } from "../../util";
 import { Rule } from "../utils/interfaces";
@@ -14,9 +15,15 @@ const rule: Rule = {
             return;
         }
 
-        const invalid = sort.value.split(",").some(element => !SORT_REGEX.test(element.trim()));
+        let correct: boolean = true;
 
-        if (invalid) {
+        if (section.getSetting("type").value === "calendar") {
+            correct = STAT_COUNT_UNIT.exec(sort.value) !== null || syntaxIsCorrect(sort.value);
+        } else {
+            correct = syntaxIsCorrect(sort.value);
+        }
+
+        if (!correct) {
             return createDiagnostic(
                 sort.textRange,
                 `Correct syntax for '${sort.displayName}' setting is, for example: '${sort.example}'`
@@ -24,5 +31,13 @@ const rule: Rule = {
         }
     }
 };
+
+/**
+ * Check each value item of 'sort' setting for syntax correctness
+ * @param value - 'sort' setting value
+ */
+function syntaxIsCorrect(value: string): boolean {
+    return value.split(",").every(element => SORT_REGEX.test(element.trim()));
+}
 
 export default rule;

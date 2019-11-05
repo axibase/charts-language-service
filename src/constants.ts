@@ -25,3 +25,5 @@ export const RELATIONS: string[] = [
 export const BOOLEAN_KEYWORDS: string[] = [
     "false", "no", "null", "none", "0", "off", "true", "yes", "on", "1",
 ];
+
+export const STAT_FUNCTIONS: string[] = ["sum", "min", "max", "avg", "first", "last"];
