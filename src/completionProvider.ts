@@ -62,7 +62,7 @@ export class CompletionProvider {
                 this.completeFor(),
                 this.completeSettingName(),
                 this.completeControlKeyWord(),
-                this.completeEndKeyword(),
+                this.completeEndKeyword()
             );
         }
 
