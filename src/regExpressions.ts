@@ -1,7 +1,6 @@
 import { BOOLEAN_KEYWORDS, CONTROL_KEYWORDS, INTERVAL_UNITS, RELATIONS, STAT_FUNCTIONS } from "./constants";
 
 /** Regular expressions for CSV syntax checking */
-
 //  csv <name> =
 //  <header1>, <header2>
 export const CSV_NEXT_LINE_HEADER_PATTERN = /(^[ \t]*csv[ \t]+)(\w+)[ \t]*(=)/m;
@@ -138,6 +137,9 @@ export const VAR_CLOSE_BRACKET: RegExp = /\s*[\]\}\)]\s*/;
 // sort = value ASC, sort = value DESCENDING, etc
 export const SORT_REGEX: RegExp = /^(\w+)(?:\s+)?((?:asc|desc)(?:ending)?)?$/;
 
+// sql|script|if|for|var|list|csv|expr
+export const KEYWORDS_REGEX: RegExp = new RegExp(`^[ \t]*(?:${CONTROL_KEYWORDS.join("|")})[ \t]*`, "g");
+
 // position = 1-1, 2-2
 export const POSITION_REGEX: RegExp = /(\d+-\d+)(?:\s*,\s*)(\d+-\d+)/;
 
@@ -146,3 +148,13 @@ export const STAT_COUNT_UNIT = new RegExp(
     // tslint:disable-next-line: max-line-length
     `(${STAT_FUNCTIONS.join("|")})\\s*\\(\\s*(\\d+(?:\.\\d+)?\\s*)(${INTERVAL_UNITS.join("|")})\\s*\\)\\s*((?:asc|desc)(?:ending)?)?$`
 );
+
+// [section -> true
+// [section] -> false
+export const OPENING_BRACKET: RegExp = /\[[^\]]*$/;
+
+// Some alpha characters at the beginnig of the line
+export const WORD_START: RegExp = /^\s*(\w)*\s*$/;
+
+// Matches setting value after '=' sign
+export const VALUE_MATCH: RegExp = /^\s*(\S+)\s*=\s*/;

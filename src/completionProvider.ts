@@ -4,6 +4,7 @@ import {
 import { CALENDAR_KEYWORDS, CONTROL_KEYWORDS, INTERVAL_UNITS } from "./constants";
 import { Field } from "./field";
 import { LanguageService } from "./languageService";
+import { KEYWORDS_REGEX, OPENING_BRACKET, VALUE_MATCH, WORD_START } from "./regExpressions";
 import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { Setting } from "./setting";
 import { deleteComments, deleteScripts, getSetting } from "./util";
@@ -34,25 +35,40 @@ export class CompletionProvider {
      * Creates completion items
      */
     public getCompletionItems(): CompletionItem[] {
-        const valueMatch = /^\s*(\S+)\s*=\s*/.exec(this.currentLine);
-        const bracketsMatch = /\s*(\[.*?)\s*/.exec(this.currentLine);
+        /**
+         * No settings in IntelliSense suggestions (same line) for control keywords
+         */
+        if (KEYWORDS_REGEX.test(this.currentLine)) {
+            return [];
+        }
+
+        const valueMatch = VALUE_MATCH.exec(this.currentLine);
         if (valueMatch) {
             // completion requested at assign stage, i. e. type = <Ctrl + space>
             return this.completeSettingValue(valueMatch[1]);
-        } else if (bracketsMatch) {
+        }
+
+        const bracketsMatch = OPENING_BRACKET.exec(this.currentLine);
+        if (bracketsMatch) {
             // requested completion for section name in []
             return this.completeSectionName();
-        } else {
+        }
+        /**
+         * We are at the very beginning of a word
+         */
+        const wordStart = WORD_START.exec(this.currentLine);
+        if (wordStart) {
             // completion requested at start of line (supposed that line is empty)
             return this.completeSnippets().concat(
                 this.completeIf(),
                 this.completeFor(),
                 this.completeSettingName(),
-                this.completeSectionName(),
                 this.completeControlKeyWord(),
                 this.completeEndKeyword()
             );
         }
+
+        return [];
     }
 
     /**
@@ -119,7 +135,7 @@ endfor`;
         // detected `end`
         const endWordRegex: RegExp = /^[ \t]*(end)[ \t]*/gm;
         // detected any control keyword in previous code
-        const keywordsRegex: RegExp = new RegExp(`^[ \t]*(?:${CONTROL_KEYWORDS.join("|")})[ \t]*`, "mg");
+        const keywordsRegex: RegExp = new RegExp(KEYWORDS_REGEX.source, KEYWORDS_REGEX.flags + "m");
         let completions: CompletionItem[] = [];
 
         if (endWordRegex.test(this.text)) {
