@@ -143,5 +143,6 @@ export const POSITION_REGEX: RegExp = /(\d+-\d+)(?:\s*,\s*)(\d+-\d+)/;
 
 // stat_name('count unit'), for example: sum(5 minute), avg(10 second)
 export const STAT_COUNT_UNIT = new RegExp(
+    // tslint:disable-next-line: max-line-length
     `(${STAT_FUNCTIONS.join("|")})\\s*\\(\\s*(\\d+(?:\.\\d+)?\\s*)(${INTERVAL_UNITS.join("|")})\\s*\\)\\s*((?:asc|desc)(?:ending)?)?$`
 );

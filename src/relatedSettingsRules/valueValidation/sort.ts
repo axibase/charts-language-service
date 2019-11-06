@@ -15,18 +15,28 @@ const rule: Rule = {
             return;
         }
 
-        let correct: boolean = true;
+        let errorMessage: string = "";
 
-        if (section.getSetting("type").value === "calendar") {
-            correct = STAT_COUNT_UNIT.exec(sort.value) !== null || syntaxIsCorrect(sort.value);
-        } else {
-            correct = syntaxIsCorrect(sort.value);
+        switch (section.getSetting("type").value) {
+            case "calendar": {
+                if (STAT_COUNT_UNIT.exec(sort.value) === null && incorrectSyntax(sort.value)) {
+                    errorMessage = `Correct syntax for '${sort.displayName}' setting is, ` +
+                        `for example: '${sort.example}' or 'stat_name('count unit')'`;
+                }
+                break;
+            }
+            default: {
+                if (incorrectSyntax(sort.value)) {
+                    errorMessage = `Correct syntax for '${sort.displayName}' setting is, ` +
+                        `for example: '${sort.example}'`;
+                }
+            }
         }
 
-        if (!correct) {
+        if (errorMessage) {
             return createDiagnostic(
                 sort.textRange,
-                `Correct syntax for '${sort.displayName}' setting is, for example: '${sort.example}'`
+                errorMessage
             );
         }
     }
@@ -36,8 +46,8 @@ const rule: Rule = {
  * Check each value item of 'sort' setting for syntax correctness
  * @param value - 'sort' setting value
  */
-function syntaxIsCorrect(value: string): boolean {
-    return value.split(",").every(element => SORT_REGEX.test(element.trim()));
+function incorrectSyntax(value: string): boolean {
+    return value.split(",").some(element => !SORT_REGEX.test(element.trim()));
 }
 
 export default rule;
