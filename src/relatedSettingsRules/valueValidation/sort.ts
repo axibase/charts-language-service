@@ -2,9 +2,9 @@ import { Diagnostic } from "vscode-languageserver-types";
 import { Section } from "../../configTree/section";
 import { INTERVAL_UNITS, STAT_FUNCTIONS } from "../../constants";
 import { supportedStatFunctions, supportedUnits } from "../../messageUtil";
-import { INTERVAL_REGEXP, SORT_REGEX, STAT_COUNT_UNIT } from "../../regExpressions";
+import { SORT_REGEX, STAT_COUNT_UNIT } from "../../regExpressions";
 import { Setting } from "../../setting";
-import { createDiagnostic } from "../../util";
+import { createDiagnostic, createRange } from "../../util";
 import { Rule } from "../utils/interfaces";
 
 const rule: Rule = {
@@ -16,8 +16,8 @@ const rule: Rule = {
             return;
         }
 
+        const errors: string[] = [];
         let errorMessage: string = "";
-
         const widgetType: string = section.getSetting("type").value;
 
         switch (widgetType) {
@@ -26,7 +26,6 @@ const rule: Rule = {
                  * Check calendar-specific stat_func syntax
                  */
                 const match = STAT_COUNT_UNIT.exec(sort.value);
-                const errors: string[] = [];
                 if (match !== null) {
                     const [, stat, quotes, contents] = match;
                     const [, unit] = contents.split(" ");
@@ -45,10 +44,6 @@ const rule: Rule = {
                     errors.push(`Incorrect syntax. '${sort.value}' doesn't match 'value ASC|DESC' schema`);
                 }
 
-                if (errors.length) {
-                    errorMessage = errors.join("\n");
-                }
-
                 break;
             }
             default: {
@@ -57,26 +52,26 @@ const rule: Rule = {
                  * TODO: in case we have more syntaxes, put type-specific regexes into array
                  */
                 if (STAT_COUNT_UNIT.exec(sort.value) !== null) {
-                    errorMessage = `Incorrect syntax for widget type '${widgetType}'. ` +
-                        `'${sort.value}' doesn't match 'value ASC|DESC' schema`;
+                    errors.push(`Incorrect syntax for widget type '${widgetType}'. ` +
+                    `'${sort.value}' doesn't match 'value ASC|DESC' schema`);
                 } else if (incorrectMultiValueSyntax(sort.value)) {
                     if (sort.value.indexOf(",") < 0) {
                         const [first, second] = sort.value.split(" ");
-                        errorMessage = `Incorrect syntax. Replace with '${first}, ${second}' or '${first} ASC|DESC'`;
+                        errors.push(`Incorrect syntax. Replace with '${first}, ${second}' or '${first} ASC|DESC'`);
                     } else {
                         /**
                          * Default error message in case we have dangling commas or something unmatchable by regex
                          */
-                        errorMessage = `Incorrect syntax. '${sort.value}' doesn't match 'value ASC|DESC' schema`;
+                        errors.push(`Incorrect syntax. '${sort.value}' doesn't match 'value ASC|DESC' schema`);
                     }
                 }
             }
         }
 
-        if (errorMessage) {
+        if (errors.length) {
             return createDiagnostic(
                 sort.textRange,
-                errorMessage
+                errors.join("\n")
             );
         }
     }

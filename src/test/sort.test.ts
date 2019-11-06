@@ -142,10 +142,10 @@ suite("Incorrect sort value", () => {
         const expected: Diagnostic[] = [
             createDiagnostic(
                 createRange(4, 4, 8),
-                "Unknown stat function: test \nSupported statistic functions:\n * sum\n * min\n * max\n" +
-                " * avg\n * first\n * last\nUnknown interval unit: hello \nSupported units:\n * nanosecond\n" +
-                " * millisecond\n * second\n * sec\n * minute\n * min\n * hour\n * day\n * week\n * month\n *" +
-                " quarter\n * year"
+                "Unknown stat function: test \nSupported statistic functions:\n * sum\n * min\n" +
+                " * max\n * avg\n * first\n * last\nUnknown interval unit: hello \nSupported units:\n" +
+                " * nanosecond\n * millisecond\n * second\n * sec\n * minute\n * min\n * hour\n * day\n" +
+                " * week\n * month\n * quarter\n * year"
             )
         ];
         assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
