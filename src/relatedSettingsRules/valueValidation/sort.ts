@@ -19,16 +19,32 @@ const rule: Rule = {
 
         switch (section.getSetting("type").value) {
             case "calendar": {
-                if (STAT_COUNT_UNIT.exec(sort.value) === null && incorrectSyntax(sort.value)) {
-                    errorMessage = `Correct syntax for '${sort.displayName}' setting is, ` +
-                        `for example: '${sort.example}' or 'stat_name('count unit')'`;
+                const match = STAT_COUNT_UNIT.exec(sort.value);
+                const errors: string[] = [];
+                if (match !== null) {
+                    const [, stat, contents] = match;
+                    const [, unit] = contents.split(" ");
+                    if (STAT_FUNCTIONS.indexOf(stat) < 0) {
+                        errors.push(`Unknown stat function: ${stat}`);
+                    }
+
+                    if (unit && INTERVAL_UNITS.indexOf(unit) < 0) {
+                        errors.push(`Unknown interval unit: ${unit}`);
+                    }
+                } else {
+                    if (incorrectSyntax(sort.value)) {
+                        errors.push(`Incorrect syntax. '${sort.value}' doesn't match 'value ASC|DESC' schema`);
+                    }
+                }
+
+                if (errors.length) {
+                    errorMessage = errors.join(". ");
                 }
                 break;
             }
             default: {
                 if (incorrectSyntax(sort.value)) {
-                    errorMessage = `Correct syntax for '${sort.displayName}' setting is, ` +
-                        `for example: '${sort.example}'`;
+                    errorMessage = `Incorrect syntax. '${sort.value}' doesn't match 'value asc|desc' schema`;
                 }
             }
         }

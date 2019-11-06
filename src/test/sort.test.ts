@@ -62,14 +62,6 @@ suite("Correct sort value", () => {
         const expected: Diagnostic[] = [];
         assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
     });
-
-    test("Correct interval syntax, spaces around parentheses", () => {
-        const config = baseConfig("sort = avg ( 5 minute ) ", "calendar");
-        const validator = new Validator(config);
-        const actual: Diagnostic[] = validator.lineByLine();
-        const expected: Diagnostic[] = [];
-        assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
-    });
 });
 
 suite("Incorrect sort value", () => {
@@ -80,7 +72,7 @@ suite("Incorrect sort value", () => {
         const expected: Diagnostic[] = [
             createDiagnostic(
                 createRange(4, 4, 8),
-                "Correct syntax for 'sort' setting is, for example: 'metric, value desc'"
+                "Incorrect syntax. 'value asce' doesn't match 'value asc|desc' schema"
             )
         ];
         assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
@@ -93,7 +85,7 @@ suite("Incorrect sort value", () => {
         const expected: Diagnostic[] = [
             createDiagnostic(
                 createRange(4, 4, 8),
-                "Correct syntax for 'sort' setting is, for example: 'metric, value desc'"
+                "Incorrect syntax. 'not valid' doesn't match 'value asc|desc' schema"
             )
         ];
         assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
@@ -106,7 +98,7 @@ suite("Incorrect sort value", () => {
         const expected: Diagnostic[] = [
             createDiagnostic(
                 createRange(4, 4, 8),
-                "Correct syntax for 'sort' setting is, for example: 'metric, value desc' or 'stat_name('count unit')'"
+                "Unknown stat function: test"
             )
         ];
         assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
@@ -119,7 +111,20 @@ suite("Incorrect sort value", () => {
         const expected: Diagnostic[] = [
             createDiagnostic(
                 createRange(4, 4, 8),
-                "Correct syntax for 'sort' setting is, for example: 'metric, value desc' or 'stat_name('count unit')'"
+                "Unknown interval unit: hello"
+            )
+        ];
+        assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
+    });
+
+    test("Incorrect statistic function and time units", () => {
+        const config = baseConfig("sort = test(5 hello) ", "calendar");
+        const validator = new Validator(config);
+        const actual: Diagnostic[] = validator.lineByLine();
+        const expected: Diagnostic[] = [
+            createDiagnostic(
+                createRange(4, 4, 8),
+                "Unknown stat function: test. Unknown interval unit: hello"
             )
         ];
         assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
@@ -132,33 +137,20 @@ suite("Incorrect sort value", () => {
         const expected: Diagnostic[] = [
             createDiagnostic(
                 createRange(4, 4, 8),
-                "Correct syntax for 'sort' setting is, for example: 'metric, value desc' or 'stat_name('count unit')'"
+                "Unknown interval unit: 8"
             )
         ];
         assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
     });
 
     test("Statistic function in 'box' widget, (allowed only in calendar)", () => {
-        const config = baseConfig("sort = max(5 8 hour) ", "box");
+        const config = baseConfig("sort = max(5 hour) ", "box");
         const validator = new Validator(config);
         const actual: Diagnostic[] = validator.lineByLine();
         const expected: Diagnostic[] = [
             createDiagnostic(
                 createRange(4, 4, 8),
-                "Correct syntax for 'sort' setting is, for example: 'metric, value desc'"
-            )
-        ];
-        assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
-    });
-
-    test("Closing parenthesis after stat_func is missing", () => {
-        const config = baseConfig("sort = max(8 min", "calendar");
-        const validator = new Validator(config);
-        const actual: Diagnostic[] = validator.lineByLine();
-        const expected: Diagnostic[] = [
-            createDiagnostic(
-                createRange(4, 4, 8),
-                "Correct syntax for 'sort' setting is, for example: 'metric, value desc' or 'stat_name('count unit')'"
+                "Incorrect syntax. 'max(5 hour)' doesn't match 'value asc|desc' schema"
             )
         ];
         assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
