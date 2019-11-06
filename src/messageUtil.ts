@@ -1,4 +1,4 @@
-import { INTERVAL_UNITS } from "./constants";
+import { INTERVAL_UNITS, STAT_FUNCTIONS } from "./constants";
 import { CSV_FROM_URL_MISSING_NAME_PATTERN } from "./regExpressions";
 
 type MessageFactoryMethod = (found?: string, msg?: any) => string;
@@ -44,7 +44,7 @@ export const getCsvErrorMessage: MessageFactoryMethod = (line: string): string =
  * If start-time, end-time and timespan are declared simultaneously, show the warning
  */
 export const simultaneousTimeSettingsWarning: MessageFactoryMethod = (): string =>
-`'start-time', 'end-time' and 'timespan' can not be declared simultaneously. 'timespan' will be ignored.`;
+  `'start-time', 'end-time' and 'timespan' can not be declared simultaneously. 'timespan' will be ignored.`;
 
 export const noRequiredSetting: MessageFactoryMethod = (dependent: string, required: string): string =>
   `${required} is required if ${dependent} is specified`;
@@ -61,6 +61,9 @@ export const lineFeedRequired: MessageFactoryMethod = (dependent: string): strin
 
 export const supportedUnits: MessageFactoryMethod = (): string =>
   `Supported units:\n * ${INTERVAL_UNITS.join("\n * ")}`;
+
+export const supportedStatFunctions: MessageFactoryMethod = (): string =>
+  `Supported statistic functions:\n * ${STAT_FUNCTIONS.join("\n * ")}`;
 
 export const dateError: MessageFactoryMethod = (specificMsg: string, name: string): string =>
   `${specificMsg}. ${name} must be a date or calendar expression, for example:

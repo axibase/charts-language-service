@@ -62,6 +62,22 @@ suite("Correct sort value", () => {
         const expected: Diagnostic[] = [];
         assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
     });
+
+    test("Correct interval syntax, single quotes", () => {
+        const config = baseConfig("sort = sum('5 minute')", "calendar");
+        const validator = new Validator(config);
+        const actual: Diagnostic[] = validator.lineByLine();
+        const expected: Diagnostic[] = [];
+        assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
+    });
+
+    test("Correct interval syntax, double quotes", () => {
+        const config = baseConfig("sort = sum(\"5 minute\")", "calendar");
+        const validator = new Validator(config);
+        const actual: Diagnostic[] = validator.lineByLine();
+        const expected: Diagnostic[] = [];
+        assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
+    });
 });
 
 suite("Incorrect sort value", () => {
@@ -72,7 +88,7 @@ suite("Incorrect sort value", () => {
         const expected: Diagnostic[] = [
             createDiagnostic(
                 createRange(4, 4, 8),
-                "Incorrect syntax. 'value asce' doesn't match 'value asc|desc' schema"
+                "Incorrect syntax. Replace with 'value, asce' or 'value ASC|DESC'"
             )
         ];
         assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
@@ -85,7 +101,7 @@ suite("Incorrect sort value", () => {
         const expected: Diagnostic[] = [
             createDiagnostic(
                 createRange(4, 4, 8),
-                "Incorrect syntax. 'not valid' doesn't match 'value asc|desc' schema"
+                "Incorrect syntax. Replace with 'not, valid' or 'not ASC|DESC'"
             )
         ];
         assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
@@ -98,7 +114,8 @@ suite("Incorrect sort value", () => {
         const expected: Diagnostic[] = [
             createDiagnostic(
                 createRange(4, 4, 8),
-                "Unknown stat function: test"
+                "Unknown stat function: test \n" +
+                "Supported statistic functions:\n * sum\n * min\n * max\n * avg\n * first\n * last"
             )
         ];
         assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
@@ -111,7 +128,8 @@ suite("Incorrect sort value", () => {
         const expected: Diagnostic[] = [
             createDiagnostic(
                 createRange(4, 4, 8),
-                "Unknown interval unit: hello"
+                "Unknown interval unit: hello \nSupported units:\n * nanosecond\n * millisecond\n" +
+                " * second\n * sec\n * minute\n * min\n * hour\n * day\n * week\n * month\n * quarter\n * year"
             )
         ];
         assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
@@ -124,7 +142,10 @@ suite("Incorrect sort value", () => {
         const expected: Diagnostic[] = [
             createDiagnostic(
                 createRange(4, 4, 8),
-                "Unknown stat function: test. Unknown interval unit: hello"
+                "Unknown stat function: test \nSupported statistic functions:\n * sum\n * min\n * max\n" +
+                " * avg\n * first\n * last\nUnknown interval unit: hello \nSupported units:\n * nanosecond\n" +
+                " * millisecond\n * second\n * sec\n * minute\n * min\n * hour\n * day\n * week\n * month\n *" +
+                " quarter\n * year"
             )
         ];
         assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
@@ -137,7 +158,8 @@ suite("Incorrect sort value", () => {
         const expected: Diagnostic[] = [
             createDiagnostic(
                 createRange(4, 4, 8),
-                "Unknown interval unit: 8"
+                "Unknown interval unit: 8 \nSupported units:\n * nanosecond\n * millisecond\n * second\n" +
+                " * sec\n * minute\n * min\n * hour\n * day\n * week\n * month\n * quarter\n * year"
             )
         ];
         assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
@@ -150,7 +172,7 @@ suite("Incorrect sort value", () => {
         const expected: Diagnostic[] = [
             createDiagnostic(
                 createRange(4, 4, 8),
-                "Incorrect syntax. 'max(5 hour)' doesn't match 'value asc|desc' schema"
+                "Incorrect syntax for widget type 'box'. 'max(5 hour)' doesn't match 'value ASC|DESC' schema"
             )
         ];
         assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
