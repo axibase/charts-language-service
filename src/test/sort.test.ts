@@ -78,6 +78,22 @@ suite("Correct sort value", () => {
         const expected: Diagnostic[] = [];
         assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
     });
+
+    test("Correct calendar sort by name", () => {
+        const config = baseConfig("sort = name", "calendar");
+        const validator = new Validator(config);
+        const actual: Diagnostic[] = validator.lineByLine();
+        const expected: Diagnostic[] = [];
+        assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
+    });
+
+    test("Correct calendar sort, name and order", () => {
+        const config = baseConfig("sort = name ASC", "calendar");
+        const validator = new Validator(config);
+        const actual: Diagnostic[] = validator.lineByLine();
+        const expected: Diagnostic[] = [];
+        assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
+    });
 });
 
 suite("Incorrect sort value", () => {
@@ -185,7 +201,7 @@ suite("Incorrect sort value", () => {
         const expected: Diagnostic[] = [
             createDiagnostic(
                 createRange(4, 4, 8),
-                "Incorrect syntax. 'value asc' doesn't match 'value' schema"
+                "Incorrect syntax. Replace with 'name' or 'name [ASC|DESC]'"
             )
         ];
         assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
@@ -198,7 +214,20 @@ suite("Incorrect sort value", () => {
         const expected: Diagnostic[] = [
             createDiagnostic(
                 createRange(4, 4, 8),
-                "Incorrect syntax. 'value asc, val desc' doesn't match 'value' schema"
+                "Incorrect syntax. Replace with 'name' or 'name [ASC|DESC]'"
+            )
+        ];
+        assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
+    });
+
+    test("Incorrect calendar sort, value instead of name", () => {
+        const config = baseConfig("sort = value ASC", "calendar");
+        const validator = new Validator(config);
+        const actual: Diagnostic[] = validator.lineByLine();
+        const expected: Diagnostic[] = [
+            createDiagnostic(
+                createRange(4, 4, 8),
+                "Incorrect syntax. Replace with 'name' or 'name [ASC|DESC]'"
             )
         ];
         assert.deepStrictEqual(actual, expected, `Config: \n${config}`);

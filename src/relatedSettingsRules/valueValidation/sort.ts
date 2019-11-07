@@ -2,7 +2,7 @@ import { Diagnostic } from "vscode-languageserver-types";
 import { Section } from "../../configTree/section";
 import { INTERVAL_UNITS, STAT_FUNCTIONS } from "../../constants";
 import { supportedStatFunctions, supportedUnits } from "../../messageUtil";
-import { NAME_REGEX, SORT_REGEX, STAT_COUNT_UNIT } from "../../regExpressions";
+import { CALENDAR_SORT_BY_NAME, SORT_REGEX, STAT_COUNT_UNIT } from "../../regExpressions";
 import { Setting } from "../../setting";
 import { createDiagnostic } from "../../util";
 import { Rule } from "../utils/interfaces";
@@ -37,11 +37,11 @@ const rule: Rule = {
                     if (unit && INTERVAL_UNITS.indexOf(unit) < 0) {
                         errors.push(`Unknown interval unit: ${unit} \n${supportedUnits()}`);
                     }
-                } else if (!NAME_REGEX.test(sort.value)) {
+                } else if (!CALENDAR_SORT_BY_NAME.test(sort.value)) {
                     /**
                      * Calendar supports only single sort by name syntax. 'val1 ASC, val2 DES' is not allowed
                      */
-                    errors.push(`Incorrect syntax. '${sort.value}' doesn't match 'value' schema`);
+                    errors.push("Incorrect syntax. Replace with 'name' or 'name [ASC|DESC]'");
                 }
 
                 break;
