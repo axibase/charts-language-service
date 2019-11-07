@@ -88,7 +88,7 @@ suite("Incorrect sort value", () => {
         const expected: Diagnostic[] = [
             createDiagnostic(
                 createRange(4, 4, 8),
-                "Incorrect syntax. Replace with 'value, asce' or 'value ASC|DESC'"
+                "Incorrect syntax. Replace with 'value, asce' or 'value [ASC|DESC]'"
             )
         ];
         assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
@@ -101,7 +101,7 @@ suite("Incorrect sort value", () => {
         const expected: Diagnostic[] = [
             createDiagnostic(
                 createRange(4, 4, 8),
-                "Incorrect syntax. Replace with 'not, valid' or 'not ASC|DESC'"
+                "Incorrect syntax. Replace with 'not, valid' or 'not [ASC|DESC]'"
             )
         ];
         assert.deepStrictEqual(actual, expected, `Config: \n${config}`);

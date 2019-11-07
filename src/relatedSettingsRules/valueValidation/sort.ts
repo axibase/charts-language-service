@@ -57,7 +57,7 @@ const rule: Rule = {
                 } else if (incorrectMultiValueSyntax(sort.value)) {
                     if (sort.value.indexOf(",") < 0) {
                         const [first, second] = sort.value.split(" ");
-                        errors.push(`Incorrect syntax. Replace with '${first}, ${second}' or '${first} ASC|DESC'`);
+                        errors.push(`Incorrect syntax. Replace with '${first}, ${second}' or '${first} [ASC|DESC]'`);
                     } else {
                         /**
                          * Default error message in case we have dangling commas or something unmatchable by regex
