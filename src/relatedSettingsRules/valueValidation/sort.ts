@@ -2,9 +2,9 @@ import { Diagnostic } from "vscode-languageserver-types";
 import { Section } from "../../configTree/section";
 import { INTERVAL_UNITS, STAT_FUNCTIONS } from "../../constants";
 import { supportedStatFunctions, supportedUnits } from "../../messageUtil";
-import { SORT_REGEX, STAT_COUNT_UNIT } from "../../regExpressions";
+import { NAME_REGEX, SORT_REGEX, STAT_COUNT_UNIT } from "../../regExpressions";
 import { Setting } from "../../setting";
-import { createDiagnostic, createRange } from "../../util";
+import { createDiagnostic } from "../../util";
 import { Rule } from "../utils/interfaces";
 
 const rule: Rule = {
@@ -37,11 +37,11 @@ const rule: Rule = {
                     if (unit && INTERVAL_UNITS.indexOf(unit) < 0) {
                         errors.push(`Unknown interval unit: ${unit} \n${supportedUnits()}`);
                     }
-                } else if (!SORT_REGEX.test(sort.value)) {
+                } else if (!NAME_REGEX.test(sort.value)) {
                     /**
-                     * Calendar supports only single sort value: 'val1 ASC, val2 DES' not allowed
+                     * Calendar supports only single sort by name syntax. 'val1 ASC, val2 DES' is not allowed
                      */
-                    errors.push(`Incorrect syntax. '${sort.value}' doesn't match 'value ASC|DESC' schema`);
+                    errors.push(`Incorrect syntax. '${sort.value}' doesn't match 'value' schema`);
                 }
 
                 break;

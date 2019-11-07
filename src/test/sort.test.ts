@@ -177,4 +177,30 @@ suite("Incorrect sort value", () => {
         ];
         assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
     });
+
+    test("Incorrect sort by name in calendar", () => {
+        const config = baseConfig("sort = value ASC", "calendar");
+        const validator = new Validator(config);
+        const actual: Diagnostic[] = validator.lineByLine();
+        const expected: Diagnostic[] = [
+            createDiagnostic(
+                createRange(4, 4, 8),
+                "Incorrect syntax. 'value asc' doesn't match 'value' schema"
+            )
+        ];
+        assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
+    });
+
+    test("Incorrect sort by name (multiple values) in calendar", () => {
+        const config = baseConfig("sort = value ASC, val DESC", "calendar");
+        const validator = new Validator(config);
+        const actual: Diagnostic[] = validator.lineByLine();
+        const expected: Diagnostic[] = [
+            createDiagnostic(
+                createRange(4, 4, 8),
+                "Incorrect syntax. 'value asc, val desc' doesn't match 'value' schema"
+            )
+        ];
+        assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
+    });
 });

@@ -153,5 +153,8 @@ export const OPENING_BRACKET: RegExp = /\[[^\]]*$/;
 // Some alpha characters at the beginnig of the line
 export const WORD_START: RegExp = /^\s*(\w)*\s*$/;
 
+// Single word consisting of alphanumeric characters
+export const NAME_REGEX: RegExp = /^\s*(\w+)\s*$/;
+
 // Matches setting value after '=' sign
 export const VALUE_MATCH: RegExp = /^\s*(\S+)\s*=\s*/;
