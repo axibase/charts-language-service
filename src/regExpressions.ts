@@ -1,7 +1,6 @@
-import { BOOLEAN_KEYWORDS, CONTROL_KEYWORDS, INTERVAL_UNITS, RELATIONS } from "./constants";
+import { BOOLEAN_KEYWORDS, CONTROL_KEYWORDS, INTERVAL_UNITS, RELATIONS, STAT_FUNCTIONS } from "./constants";
 
 /** Regular expressions for CSV syntax checking */
-
 //  csv <name> =
 //  <header1>, <header2>
 export const CSV_NEXT_LINE_HEADER_PATTERN = /(^[ \t]*csv[ \t]+)(\w+)[ \t]*(=)/m;
@@ -135,11 +134,17 @@ export const VAR_OPEN_BRACKET: RegExp = /(=)?\s*[\[\{\(](|.*,)\s*$/;
 // ]  <- close bracket
 export const VAR_CLOSE_BRACKET: RegExp = /\s*[\]\}\)]\s*/;
 
+// sort = value ASC, sort = value DESCENDING, etc
+export const SORT_REGEX: RegExp = /^(\w+)(?:\s+)?((?:asc|desc)(?:ending)?)?$/;
+
 // sql|script|if|for|var|list|csv|expr
 export const KEYWORDS_REGEX: RegExp = new RegExp(`^[ \t]*(?:${CONTROL_KEYWORDS.join("|")})[ \t]*`, "g");
 
 // position = 1-1, 2-2
 export const POSITION_REGEX: RegExp = /(\d+-\d+)(?:\s*,\s*)(\d+-\d+)/;
+
+// stat_name('count unit'), for example: sum(5 minute), avg(10 second)
+export const STAT_COUNT_UNIT = /([a-z_\$]+)\((['"])?(.+)\2\)\s*((?:asc|desc)(?:ending)?)?$/;
 
 // [section -> true
 // [section] -> false
@@ -147,6 +152,9 @@ export const OPENING_BRACKET: RegExp = /\[[^\]]*$/;
 
 // Some alpha characters at the beginnig of the line
 export const WORD_START: RegExp = /^\s*(\w)*\s*$/;
+
+// name [ASC|DESC]ENDING
+export const CALENDAR_SORT_BY_NAME: RegExp = /^\s*(name)\s*((?:asc|desc)(?:ending)?)?$/;
 
 // Matches setting value after '=' sign
 export const VALUE_MATCH: RegExp = /^\s*(\S+)\s*=\s*/;
