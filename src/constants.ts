@@ -26,4 +26,7 @@ export const BOOLEAN_KEYWORDS: string[] = [
     "false", "no", "null", "none", "0", "off", "true", "yes", "on", "1",
 ];
 
+/**
+ * Stat functions, supported by calendar sort
+ */
 export const STAT_FUNCTIONS: string[] = ["sum", "min", "max", "avg", "first", "last"];
