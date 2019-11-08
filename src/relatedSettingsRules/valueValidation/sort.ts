@@ -37,9 +37,15 @@ const rule: Rule = {
                     if (unit && INTERVAL_UNITS.indexOf(unit) < 0) {
                         errors.push(`Unknown interval unit: ${unit} \n${supportedUnits()}`);
                     }
-                } else if (!CALENDAR_SORT_BY_NAME.test(sort.value)) {
+                } else if (sort.value.indexOf(",") >= 0 && correctMultiValueSyntax(sort.value)) {
                     /**
                      * Calendar supports only single sort by name syntax. 'val1 ASC, val2 DES' is not allowed
+                     */
+                    errors.push("Multiple sorting columns are not supported in calendar");
+                } else if (!CALENDAR_SORT_BY_NAME.test(sort.value)) {
+                    /**
+                     * Final syntax check: stat function check failed, multiple values check failed
+                     * Either we have correct sort by name syntax, or something completely wrong
                      */
                     errors.push("Incorrect syntax. Replace with 'name' or 'name [ASC|DESC]'");
                 }
@@ -54,7 +60,7 @@ const rule: Rule = {
                 if (STAT_COUNT_UNIT.exec(sort.value) !== null) {
                     errors.push(`Incorrect syntax for widget type '${widgetType}'. ` +
                     `'${sort.value}' doesn't match 'value ASC|DESC' schema`);
-                } else if (incorrectMultiValueSyntax(sort.value)) {
+                } else if (!correctMultiValueSyntax(sort.value)) {
                     if (sort.value.indexOf(",") < 0) {
                         const [first, second] = sort.value.split(" ");
                         errors.push(`Incorrect syntax. Replace with '${first}, ${second}' or '${first} [ASC|DESC]'`);
@@ -81,8 +87,8 @@ const rule: Rule = {
  * Check each value item of 'sort' setting for syntax correctness
  * @param value - 'sort' setting value
  */
-function incorrectMultiValueSyntax(value: string): boolean {
-    return value.split(",").some(element => !SORT_REGEX.test(element.trim()));
+function correctMultiValueSyntax(value: string): boolean {
+    return value.split(",").every(element => SORT_REGEX.test(element.trim()));
 }
 
 export default rule;

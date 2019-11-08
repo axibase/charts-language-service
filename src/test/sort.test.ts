@@ -144,7 +144,8 @@ suite("Incorrect sort value", () => {
         const expected: Diagnostic[] = [
             createDiagnostic(
                 createRange(4, 4, 8),
-                "Unknown interval unit: hello \nSupported units:\n * nanosecond\n * millisecond\n" +
+                "Unknown interval unit: hello \n" +
+                "Supported units:\n * nanosecond\n * millisecond\n" +
                 " * second\n * sec\n * minute\n * min\n * hour\n * day\n * week\n * month\n * quarter\n * year"
             )
         ];
@@ -158,8 +159,10 @@ suite("Incorrect sort value", () => {
         const expected: Diagnostic[] = [
             createDiagnostic(
                 createRange(4, 4, 8),
-                "Unknown stat function: test \nSupported statistic functions:\n * sum\n * min\n" +
-                " * max\n * avg\n * first\n * last\nUnknown interval unit: hello \nSupported units:\n" +
+                "Unknown stat function: test \n" +
+                "Supported statistic functions:\n * sum\n * min\n * max\n * avg\n * first\n * last\n" +
+                "Unknown interval unit: hello \n" +
+                "Supported units:\n" +
                 " * nanosecond\n * millisecond\n * second\n * sec\n * minute\n * min\n * hour\n * day\n" +
                 " * week\n * month\n * quarter\n * year"
             )
@@ -174,7 +177,8 @@ suite("Incorrect sort value", () => {
         const expected: Diagnostic[] = [
             createDiagnostic(
                 createRange(4, 4, 8),
-                "Unknown interval unit: 8 \nSupported units:\n * nanosecond\n * millisecond\n * second\n" +
+                "Unknown interval unit: 8 \n" +
+                "Supported units:\n * nanosecond\n * millisecond\n * second\n" +
                 " * sec\n * minute\n * min\n * hour\n * day\n * week\n * month\n * quarter\n * year"
             )
         ];
@@ -214,20 +218,7 @@ suite("Incorrect sort value", () => {
         const expected: Diagnostic[] = [
             createDiagnostic(
                 createRange(4, 4, 8),
-                "Incorrect syntax. Replace with 'name' or 'name [ASC|DESC]'"
-            )
-        ];
-        assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
-    });
-
-    test("Incorrect calendar sort, value instead of name", () => {
-        const config = baseConfig("sort = value ASC", "calendar");
-        const validator = new Validator(config);
-        const actual: Diagnostic[] = validator.lineByLine();
-        const expected: Diagnostic[] = [
-            createDiagnostic(
-                createRange(4, 4, 8),
-                "Incorrect syntax. Replace with 'name' or 'name [ASC|DESC]'"
+                "Multiple sorting columns are not supported in calendar"
             )
         ];
         assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
