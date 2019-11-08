@@ -144,7 +144,7 @@ export const KEYWORDS_REGEX: RegExp = new RegExp(`^[ \t]*(?:${CONTROL_KEYWORDS.j
 export const POSITION_REGEX: RegExp = /(\d+-\d+)(?:\s*,\s*)(\d+-\d+)/;
 
 // stat_name('count unit'), for example: sum(5 minute), avg(10 second)
-export const STAT_COUNT_UNIT = /(.*)\((['"])?(.+)\2\)\s*((?:asc|desc)(?:ending)?)?$/;
+export const STAT_COUNT_UNIT = /([a-z_\$]+)\((['"])?(.+)\2\)\s*((?:asc|desc)(?:ending)?)?$/;
 
 // [section -> true
 // [section] -> false

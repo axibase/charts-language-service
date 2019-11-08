@@ -17,7 +17,6 @@ const rule: Rule = {
         }
 
         const errors: string[] = [];
-        let errorMessage: string = "";
         const widgetType: string = section.getSetting("type").value;
 
         switch (widgetType) {

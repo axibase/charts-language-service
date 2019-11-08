@@ -2,6 +2,7 @@ import assert = require("assert");
 import { Diagnostic } from "vscode-languageserver-types";
 import { createDiagnostic, createRange } from "../util";
 import { Validator } from "../validator";
+import { supportedStatFunctions, supportedUnits } from "../messageUtil";
 
 const baseConfig = (setting: string, type: string = "chart") => `[configuration]
   entity = d
@@ -131,7 +132,7 @@ suite("Incorrect sort value", () => {
             createDiagnostic(
                 createRange(4, 4, 8),
                 "Unknown stat function: test \n" +
-                "Supported statistic functions:\n * sum\n * min\n * max\n * avg\n * first\n * last"
+                supportedStatFunctions()
             )
         ];
         assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
@@ -145,8 +146,7 @@ suite("Incorrect sort value", () => {
             createDiagnostic(
                 createRange(4, 4, 8),
                 "Unknown interval unit: hello \n" +
-                "Supported units:\n * nanosecond\n * millisecond\n" +
-                " * second\n * sec\n * minute\n * min\n * hour\n * day\n * week\n * month\n * quarter\n * year"
+                supportedUnits()
             )
         ];
         assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
@@ -160,11 +160,9 @@ suite("Incorrect sort value", () => {
             createDiagnostic(
                 createRange(4, 4, 8),
                 "Unknown stat function: test \n" +
-                "Supported statistic functions:\n * sum\n * min\n * max\n * avg\n * first\n * last\n" +
+                supportedStatFunctions() + "\n" +
                 "Unknown interval unit: hello \n" +
-                "Supported units:\n" +
-                " * nanosecond\n * millisecond\n * second\n * sec\n * minute\n * min\n * hour\n * day\n" +
-                " * week\n * month\n * quarter\n * year"
+                supportedUnits()
             )
         ];
         assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
@@ -178,8 +176,7 @@ suite("Incorrect sort value", () => {
             createDiagnostic(
                 createRange(4, 4, 8),
                 "Unknown interval unit: 8 \n" +
-                "Supported units:\n * nanosecond\n * millisecond\n * second\n" +
-                " * sec\n * minute\n * min\n * hour\n * day\n * week\n * month\n * quarter\n * year"
+                supportedUnits()
             )
         ];
         assert.deepStrictEqual(actual, expected, `Config: \n${config}`);
