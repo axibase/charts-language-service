@@ -17,6 +17,7 @@
         },
         {
             "displayName": "alert-expression",
+            "multiLine": true,
             "type": "string",
             "section": [
                 "column",
