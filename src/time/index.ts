@@ -1,43 +1,49 @@
 import { Diagnostic } from "vscode-languageserver-types";
 import { Section } from "../configTree/section";
-import { dateError } from "../messageUtil";
+import { dateErrorMsg } from "../messageUtil";
 import { Setting } from "../setting";
 import { createDiagnostic, getValueOfSetting } from "../util";
 import { IntervalParser } from "./intervalParser";
-import { TimeParser } from "./timeParser";
-
-const timeParseCache: Map<Setting, Date> = new Map<Setting, Date>();
+import { DateWithTZ, getTime } from "./time_parser";
 
 /**
- * Parses value of time setting, adds diagnostic to `errors` if any error during parsing was thrown.
+ * Parses value of time setting to ISO string:
+ * 1) returns, if flag {@link Setting.isBroken} is true;
+ * 2) returns {@link Setting.parsedValue}, if it has been set;
+ * 3) tries to parse value, sets {@link Setting.parsedValue} field on success and returns it;
+ * 4) sets {@link Setting.isBroken} otherwise and adds diagnostic to `errors`.
  *
  * @param timeSetting - Date setting, which value is need to be parsed
- * @param section - Section, for which "time-zone" setting is need to be found.
+ * @param section - Section, for which "time-zone" setting is need to be found
  * @param errors - Array of diagnostics, to which information about error is added
- * @returns Value of `timeSetting`, parsed to Date.
+ * @returns Value of `timeSetting`, parsed to ISO string.
  */
-export function parseTimeValue(timeSetting: Setting, section: Section, errors: Diagnostic[]): Date {
-    let parsedValue;
+export function parseTimeValue(timeSetting: Setting, section: Section, errors: Diagnostic[]): string {
+    let result;
     if (timeSetting != null) {
-        if (timeParseCache.has(timeSetting)) {
-            const cached = timeParseCache.get(timeSetting);
-            if (cached instanceof Date) {
-                return cached;
-            }
-            return null;
+        if (timeSetting.isBroken) {
+            /** There was an attempt to parse this setting without success, no need to try again. */
+            return;
         }
+        if (timeSetting.parsedValue !== undefined) {
+            /** There was a successful attempt to parse this setting, return parsed value. */
+            return timeSetting.parsedValue;
+        }
+        /** No attempts to parse this setting, let's try. */
         try {
             const timeZoneValue = getValueOfSetting("time-zone", section);
-            const timeParser = new TimeParser(timeZoneValue as string);
-            parsedValue = timeParser.parseDateTemplate(timeSetting.value);
-            timeParseCache.set(timeSetting, parsedValue);
+            const parsedValue = getTime(timeSetting.value, timeZoneValue as string, true, true);
+            result = (parsedValue as DateWithTZ).toISOString();
+            timeSetting.parsedValue = result;
         } catch (err) {
+            /** Setting is incorrect, set flag and add error. */
+            timeSetting.isBroken = true;
             const diagnostic = createDiagnostic(timeSetting.textRange,
-                    dateError(err.message, timeSetting.displayName));
+                    dateErrorMsg(timeSetting.value, timeSetting.displayName));
             errors.push(diagnostic);
         }
     }
-    return parsedValue;
+    return result;
 }
 
 /**

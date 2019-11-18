@@ -79,11 +79,8 @@ export function countCsvColumns(line: string): number {
  * @param severity How severe is that problem?
  * @param message What message should be passed to the user?
  */
-export function createDiagnostic(
-    range: Range,
-    message: string,
-    severity: DiagnosticSeverity = DiagnosticSeverity.Error,
-): Diagnostic {
+export function createDiagnostic(range: Range, message: string,
+                                 severity: DiagnosticSeverity = DiagnosticSeverity.Error): Diagnostic {
     return Diagnostic.create(range, message, severity, undefined, DIAGNOSTIC_SOURCE);
 }
 
@@ -106,9 +103,9 @@ export function deleteComments(text: string): string {
     while (match !== null) {
         const newLines: number = match[0].split("\n").length - 1;
         const spaces: string = Array(match[0].length)
-            .fill(" ")
-            .concat(Array(newLines).fill("\n"))
-            .join("");
+                .fill(" ")
+                .concat(Array(newLines).fill("\n"))
+                .join("");
         content = `${content.substr(0, match.index)}${spaces}${content.substr(match.index + match[0].length)}`;
         match = multiLine.exec(content);
         if (match === null) {
@@ -144,13 +141,13 @@ export function isEmpty(str: string): boolean {
  */
 export function repetitionDiagnostic(range: Range, declaredAbove: Setting, current: Setting): Diagnostic {
     const diagnosticSeverity: DiagnosticSeverity =
-        (["script", "thresholds", "colors"].includes(current.name)) ?
-            DiagnosticSeverity.Warning : DiagnosticSeverity.Error;
+            (["script", "thresholds", "colors"].includes(current.name)) ?
+                    DiagnosticSeverity.Warning : DiagnosticSeverity.Error;
     let message: string;
     switch (current.name) {
         case "script": {
             message =
-                "Multi-line scripts are deprecated.\nGroup multiple scripts into blocks:\nscript\nendscript";
+                    "Multi-line scripts are deprecated.\nGroup multiple scripts into blocks:\nscript\nendscript";
             break;
         }
         case "thresholds": {
@@ -190,8 +187,8 @@ colors = red, yellow, green`;
  */
 export function createRange(start: number, length: number, lineNumber: number) {
     return Range.create(
-        Position.create(lineNumber, start),
-        Position.create(lineNumber, start + length),
+            Position.create(lineNumber, start),
+            Position.create(lineNumber, start + length)
     );
 }
 
@@ -205,12 +202,11 @@ export function createRange(start: number, length: number, lineNumber: number) {
  * @param recursive - Whether to search entire tree or just check current section
  * @returns Value of Setting with name `settingName`.
  */
-export function getValueOfSetting(
-    settingName: string, section: Section, recursive: boolean = true
-): string | number | boolean {
+export function getValueOfSetting(settingName: string, section: Section,
+                                  recursive: boolean = true): string | number | boolean {
     let value: string | number | boolean;
     let setting = recursive ? section.getSettingFromTree(settingName) : section.getSetting(
-        Setting.clearSetting(settingName)
+            Setting.clearSetting(settingName)
     );
     if (setting === undefined) {
         /**
@@ -224,7 +220,7 @@ export function getValueOfSetting(
             const widget: Setting = section.getSettingFromTree("type");
             setting = setting.applyScope({
                 section: section.name,
-                widget: widget ? widget.value : "",
+                widget: widget ? widget.value : ""
             }) as Setting;
             value = setting.defaultValue;
         }

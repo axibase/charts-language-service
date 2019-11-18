@@ -1,4 +1,4 @@
-import { BOOLEAN_KEYWORDS, CONTROL_KEYWORDS, INTERVAL_UNITS, RELATIONS, STAT_FUNCTIONS } from "./constants";
+import { BOOLEAN_KEYWORDS, CONTROL_KEYWORDS, INTERVAL_UNITS, RELATIONS } from "./constants";
 
 /** Regular expressions for CSV syntax checking */
 //  csv <name> =
@@ -71,9 +71,6 @@ export const INTERVAL_REGEXP: RegExp = new RegExp(
     // -5 month, +3 day, .3 year, 2.3 week, all
     `^(?:(?:[-+]?(?:(?:\\d+|(?:\\d+)?\\.\\d+)|@\\{.+\\})[ \\t]*(?:${INTERVAL_UNITS.join("|")}))|all)$`,
 );
-
-// 0.5 hour, 2 week
-export const COUNT_UNIT_FORMAT = /(\d+(?:\.\d+)?)\s+(\w+)/;
 
 // 1, 5.2, 0.3, .9, -8, -0.5, +1.4
 export const NUMBER_REGEXP: RegExp = /^(?:\-|\+)?(?:\.\d+|\d+(?:\.\d+)?)$/;
