@@ -5308,6 +5308,14 @@
             }
         },
         {
+            "displayName": "null-columns",
+            "type": "string",
+            "widget": ["console", "property", "table"],
+            "section": "widhet",
+            "multiple": true,
+            "example": "entity, time"
+        },
+        {
             "displayName": "offset",
             "type": "integer",
             "widget": "property",
