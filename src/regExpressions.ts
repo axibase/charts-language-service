@@ -76,7 +76,7 @@ export const INTERVAL_REGEXP: RegExp = new RegExp(
 export const NUMBER_REGEXP: RegExp = /^(?:\-|\+)?(?:\.\d+|\d+(?:\.\d+)?)$/;
 
 // ${server}, ${example}
-export const CALCULATED_REGEXP: RegExp = /[@$]\{.+\}/;
+export const CALCULATED_REGEXP: RegExp = /[@$]\{(\w+)\}/;
 
 // =, ==, !=, >=, <=, >, <
 export const RELATIONS_REGEXP: RegExp = new RegExp(`(^\\s*.+?)(\\s*?)(${RELATIONS.join("|")})(\\s*)`);

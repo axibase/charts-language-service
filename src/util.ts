@@ -2,21 +2,22 @@ import { Diagnostic, DiagnosticSeverity, Position, Range } from "vscode-language
 import { Section } from "./configTree/section";
 import { LanguageService } from "./languageService";
 import { Setting } from "./setting";
+import { Variable } from "./validator";
 
 const DIAGNOSTIC_SOURCE: string = "Axibase Charts";
 
 /**
- * @param value the value to find
+ * @param varName the variable name to find
  * @param map the map to search
  * @returns true if at least one value in map is/contains the wanted value
  */
-export function isInMap<T>(value: T, map: Map<string, T[]> | Map<string, T[][]>): boolean {
-    if (value == null) {
+export function isInMap(varName: string, map: Map<string, Variable[]>): boolean {
+    if (varName == null) {
         return false;
     }
     for (const array of map.values()) {
         for (const item of array) {
-            if ((Array.isArray(item) && item.includes(value)) || (item === value)) {
+            if (item.name === varName) {
                 return true;
             }
         }

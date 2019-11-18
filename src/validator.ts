@@ -17,6 +17,7 @@ import {
 } from "./messageUtil";
 import {
     BLANK_LINE_PATTERN,
+    CALCULATED_REGEXP,
     CSV_FROM_URL_PATTERN,
     CSV_INLINE_HEADER_PATTERN,
     CSV_KEYWORD_PATTERN,
@@ -44,6 +45,11 @@ import {
 const placeholderContainingSettings = [
     "url", "urlparameters"
 ];
+
+export interface Variable {
+    name: string;
+    value?: string;
+}
 
 /**
  * Performs validation of a whole document line by line.
@@ -118,8 +124,8 @@ export class Validator {
     /**
      * Map of defined variables, where key is type (for, var, csv...)
      */
-    private readonly variables: Map<string, string[]> = new Map([
-        ["freemarker", ["entity", "entities", "type"]],
+    private readonly variables: Map<string, Variable[]> = new Map([
+        ["freemarker", [{ name: "entity" }, { name: "entities" }, { name: "type" }]],
     ]);
     /**
      * Type of the current widget
@@ -231,8 +237,37 @@ export class Validator {
             throw new Error("Trying to add new entry to settingValues map and sectionStack based on undefined");
         }
         const value: string = Setting.clearValue(this.match[3]);
-        setting.value = value;
+        const templateMatch: RegExpMatchArray = this.match[3].match(new RegExp(CALCULATED_REGEXP.source, "g"));
+
+        setting.value = this.parseVariableTemplate(templateMatch, value);
         this.settingValues.set(setting.name, value);
+    }
+
+    /**
+     * Looks for corresponding var declarations and substitutes them into template string
+     * @param match - template regex match result
+     * @param rawValue - raw value, containing template ${} literal
+     */
+    private parseVariableTemplate(match: RegExpMatchArray, rawValue: string): string {
+        const variablesMap = this.variables.get("varNames");
+
+        if (!match || !variablesMap) {
+            return rawValue;
+        }
+
+        let computedValue = rawValue;
+
+        match.forEach(elem => {
+            const varName = CALCULATED_REGEXP.exec(elem)[1];
+            const index = computedValue.indexOf(varName);
+            const foundVar = variablesMap.find(item => item.name === varName);
+            if (foundVar && foundVar.value) {
+                computedValue = computedValue.substr(0, index - "${".length) + foundVar.value
+                    + computedValue.substr(index + foundVar.name.length + "}".length) || computedValue;
+            }
+        });
+
+        return computedValue;
     }
 
     /**
@@ -308,11 +343,11 @@ export class Validator {
      * @param key the key which value will contain the setting
      * @returns the map regardless was it modified or not
      */
-    private addToStringMap(map: Map<string, string[]>, key: string): Map<string, string[]> {
+    private addToStringMap(map: Map<string, Variable[]>, key: string): Map<string, Variable[]> {
         if (this.match == null) {
             return map;
         }
-        const [, indent, variable] = this.match;
+        const [, indent, variable, value] = this.match;
         if (isInMap(variable, map)) {
             const startPosition: number = this.match.index + indent.length;
             this.result.push(createDiagnostic(
@@ -320,11 +355,11 @@ export class Validator {
                 `${variable} is already defined`,
             ));
         } else {
-            let array: string[] | undefined = map.get(key);
+            let array: Variable[] | undefined = map.get(key);
             if (array === undefined) {
-                array = [variable];
+                array = [{ name: variable, value }];
             } else {
-                array.push(variable);
+                array.push({ name: variable, value });
             }
             map.set(key, array);
         }
@@ -738,7 +773,7 @@ export class Validator {
      * Removes the variable from the last `for`
      */
     private handleEndFor(): void {
-        let forVariables: string[] | undefined = this.variables.get("forVariables");
+        let forVariables: Variable[] | undefined = this.variables.get("forVariables");
         if (forVariables === undefined) {
             forVariables = [];
         } else {
@@ -1128,7 +1163,7 @@ export class Validator {
                         this.keywordsStack.push(this.foundKeyword);
                     }
                 }
-                this.match = /(var\s*)(\w+)\s*=/.exec(line);
+                this.match = /(var\s*)(\w+)\s*=\s*(.*)/.exec(line);
                 this.addToStringMap(this.variables, "varNames");
                 break;
             }
