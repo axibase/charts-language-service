@@ -11,10 +11,18 @@ const rule: Rule = {
          * Compare summary width-units of child widgets with parent's dimensions
          */
         const groupWidth = +getValueOfSetting("width-units", section.parent, false);
-        const widgetsWidth = section.children.reduce((total, childSection) => {
+        let widgetsWidth = section.children.reduce((total, childSection) => {
             const value = getValueOfSetting("width-units", childSection, false) as string;
             return total + parseFloat(value);
         }, 0);
+
+        /**
+         * Take into account widgets-per-row setting
+         */
+        const widgetsPerRow = section.getSettingFromTree("widgets-per-row");
+        if (widgetsPerRow && widgetsWidth >= +widgetsPerRow.value) {
+            widgetsWidth = +widgetsPerRow.value;
+        }
 
         if (widgetsWidth > groupWidth) {
             errorMessage = `Widgets overflow [group] horizontally. Decrease number of widgets per row`;
