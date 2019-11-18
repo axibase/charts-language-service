@@ -65,7 +65,7 @@ export const supportedUnits: MessageFactoryMethod = (): string =>
 export const supportedStatFunctions: MessageFactoryMethod = (): string =>
   `Supported statistic functions:\n * ${STAT_FUNCTIONS.join("\n * ")}`;
 
-export const dateError: MessageFactoryMethod = (specificMsg: string, name: string): string =>
-  `${specificMsg}. ${name} must be a date or calendar expression, for example:
+export const dateErrorMsg: MessageFactoryMethod = (wrongValue: string, name: string): string =>
+  `Incorrect date template: ${wrongValue}. ${name} must be a date or calendar expression, for example:
  * current_hour + 1 minute
  * 2019-04-01T10:15:00Z`;

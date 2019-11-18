@@ -3,17 +3,14 @@ export class TimeParseError extends Error {
 
     /**
      * Constructs error, thrown during time settings parsing.
-     * @param wrongValue - Incorrect value, which is the reason of the error
+     *
      * @param message - Specific description of the error
+     * @param wrongValue - Incorrect value, which is the reason of the error
      */
-    constructor(wrongValue: string, message: string) {
+    constructor(message: string, wrongValue: string | number) {
         super(message);
         this.message = message + ": " + wrongValue;
         this.name = this.constructor.name;
-        if (Error.captureStackTrace) {
-            Error.captureStackTrace(this, this.constructor);
-        } else {
-            this.stack = (new Error()).stack;
-        }
+        this.stack = (new Error()).stack;
     }
 }

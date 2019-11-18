@@ -1,6 +1,6 @@
 import { deepStrictEqual } from "assert";
 import { DiagnosticSeverity, Position, Range } from "vscode-languageserver-types";
-import { createDiagnostic } from "../util";
+import { createDiagnostic, createRange } from "../util";
 import { Validator } from "../validator";
 
 const sameSectionStartEnd = (startTime: string, endTime: string) => {
@@ -60,10 +60,8 @@ suite("Start-time and end-time comparison", () => {
     const config = sameSectionStartEnd("2017-04-22 01:00:00", "2015-04-22 01:00:00");
     const validator = new Validator(config);
     const actualDiagnostics = validator.lineByLine();
-    const expectedDiagnostic = createDiagnostic(
-      Range.create(Position.create(5, 4), Position.create(5, 12)),
-      "end-time must be greater than start-time",
-      DiagnosticSeverity.Error
+    const expectedDiagnostic = createDiagnostic(createRange(4, 12 - 4, 5),
+      "end-time must be greater than start-time"
     );
     deepStrictEqual(actualDiagnostics, [expectedDiagnostic], `Config: \n${config}`);
   });
