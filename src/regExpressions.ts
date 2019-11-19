@@ -78,8 +78,8 @@ export const NUMBER_REGEXP: RegExp = /^(?:\-|\+)?(?:\.\d+|\d+(?:\.\d+)?)$/;
 // ${server}, @{example}
 export const CALCULATED_REGEXP: RegExp = /[@$]\{.+\}/;
 
-// ${server}, {param}
-export const VAR_TEMPLATE_REGEX: RegExp = /@?(?:[^$])\{(\w+)\}/;
+// @{server}
+export const VAR_TEMPLATE_REGEX: RegExp = /@\{(\w+)\}/;
 
 // =, ==, !=, >=, <=, >, <
 export const RELATIONS_REGEXP: RegExp = new RegExp(`(^\\s*.+?)(\\s*?)(${RELATIONS.join("|")})(\\s*)`);
