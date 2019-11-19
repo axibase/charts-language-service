@@ -244,8 +244,7 @@ export class Validator {
 
     /**
      * Looks for corresponding var declarations and substitutes them into template string
-     * @param match - template regex match result
-     * @param rawValue - raw value, containing template ${} literal
+     * @param rawValue - raw value, containing template @{} literal
      */
     private parseVariableTemplate(rawValue: string): string {
         const variablesMap = this.variables.get("varNames");
