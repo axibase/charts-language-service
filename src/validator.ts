@@ -17,7 +17,6 @@ import {
 } from "./messageUtil";
 import {
     BLANK_LINE_PATTERN,
-    CALCULATED_REGEXP,
     CSV_FROM_URL_PATTERN,
     CSV_INLINE_HEADER_PATTERN,
     CSV_KEYWORD_PATTERN,
@@ -26,6 +25,7 @@ import {
     TAG_REGEXP,
     VAR_CLOSE_BRACKET,
     VAR_OPEN_BRACKET,
+    VAR_TEMPLATE_REGEX,
 } from "./regExpressions";
 import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { SectionStack } from "./sectionStack";
@@ -237,9 +237,8 @@ export class Validator {
             throw new Error("Trying to add new entry to settingValues map and sectionStack based on undefined");
         }
         const value: string = Setting.clearValue(this.match[3]);
-        const templateMatch: RegExpMatchArray = this.match[3].match(new RegExp(CALCULATED_REGEXP.source, "g"));
 
-        setting.value = this.parseVariableTemplate(templateMatch, value);
+        setting.value = this.parseVariableTemplate(value);
         this.settingValues.set(setting.name, value);
     }
 
@@ -248,24 +247,27 @@ export class Validator {
      * @param match - template regex match result
      * @param rawValue - raw value, containing template ${} literal
      */
-    private parseVariableTemplate(match: RegExpMatchArray, rawValue: string): string {
+    private parseVariableTemplate(rawValue: string): string {
         const variablesMap = this.variables.get("varNames");
 
-        if (!match || !variablesMap) {
+        if (!variablesMap) {
             return rawValue;
         }
 
+        const regex: RegExp = new RegExp(VAR_TEMPLATE_REGEX.source, "g");
         let computedValue = rawValue;
+        let match = regex.exec(computedValue);
 
-        match.forEach(elem => {
-            const varName = CALCULATED_REGEXP.exec(elem)[1];
-            const index = computedValue.indexOf(varName);
+        while (match) {
+            const [template, varName] = match;
+            const start = regex.lastIndex - template.length;
             const foundVar = variablesMap.find(item => item.name === varName);
+
             if (foundVar && foundVar.value) {
-                computedValue = computedValue.substr(0, index - "${".length) + foundVar.value
-                    + computedValue.substr(index + foundVar.name.length + "}".length) || computedValue;
+                computedValue = computedValue.substr(0, start) + foundVar.value + computedValue.substr(regex.lastIndex);
             }
-        });
+            match = regex.exec(computedValue);
+        }
 
         return computedValue;
     }

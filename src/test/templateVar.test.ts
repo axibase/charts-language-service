@@ -22,6 +22,20 @@ suite("Template var tests", () => {
         deepStrictEqual(actualDiagnostics, [], `Config: \n${config}`);
     });
 
+    test("Correct: variable and time-unit with same name", () => {
+        const config = baseConfig("var day = 0", "start-time = current_day - ${day} * day");
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        deepStrictEqual(actualDiagnostics, [], `Config: \n${config}`);
+    });
+
+    test("Correct: {variable} template", () => {
+        const config = baseConfig("var something = 0", "start-time = current_day - {something} * minute");
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        deepStrictEqual(actualDiagnostics, [], `Config: \n${config}`);
+    });
+
     test("Correct: two variables in start-time template", () => {
         const config = baseConfig(
             "var base_date = previous_day\n    var unit = hour",
