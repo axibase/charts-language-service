@@ -79,6 +79,24 @@ suite("Template var tests", () => {
         deepStrictEqual(actualDiagnostics, expectedDiagnostics, `Config: \n${config}`);
     });
 
+    test("Incorrect: freemarker vars shouldn't be substituted", () => {
+        const config = baseConfig(
+            "var base_date = previous_day",
+            "start-time = ${base_date} + 1 * hour"
+        );
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        const expectedDiagnostics = [
+            createDiagnostic(
+                createRange(6, 10, 5),
+                "Incorrect date template: ${base_date} + 1 * hour. " +
+                "start-time must be a date or calendar expression, for example:\n" +
+                " * current_hour + 1 minute\n * 2019-04-01T10:15:00Z"
+            )
+        ];
+        deepStrictEqual(actualDiagnostics, expectedDiagnostics, `Config: \n${config}`);
+    });
+
     test("Incorrect: variable declaration after template", () => {
         const config = baseConfig("start-time = @{base_date} + 1 * hour", "var base_date = previous_day");
         const validator = new Validator(config);
