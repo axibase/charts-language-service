@@ -5311,7 +5311,7 @@
             "displayName": "null-columns",
             "type": "string",
             "widget": ["console", "property", "table"],
-            "section": "widhet",
+            "section": "widget",
             "multiple": true,
             "example": "entity, time"
         },
