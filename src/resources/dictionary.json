@@ -5635,6 +5635,54 @@
             "example": "username"
         },
         {
+            "displayName": "range-delta",
+            "type": "number",
+            "section": "series",
+            "example": 10,
+            "minValue": {
+                "value": 0,
+                "excluded": true
+            }
+        },
+        {
+            "displayName": "range-delta-right",
+            "type": "number",
+            "section": "series",
+            "example": 10,
+            "minValue": {
+                "value": 0,
+                "excluded": true
+            }
+        },
+        {
+            "displayName": "range-delta-percent",
+            "type": "number",
+            "section": "series",
+            "example": 5.0,
+            "maxValue": {
+                "value": 100,
+                "excluded": true
+            },
+            "minValue": {
+                "value": 0,
+                "excluded": true
+            }
+        },
+        {
+            "displayName": "range-delta-percent-right",
+            "type": "number",
+            "section": "series",
+            "example": 5.0,
+            "maxValue": {
+                "value": 100,
+                "excluded": true
+            },
+            "minValue": {
+                "value": 0,
+                "excluded": true
+            }
+        },
+        {
             "displayName": "range-merge",
             "type": "boolean",
             "section": "widget",
