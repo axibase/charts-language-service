@@ -1,23 +1,5 @@
 import { DateWithTZ } from "./date_with_tz/date_with_tz";
-import { TimeParseError } from "./time_parse_error";
 import { daysInMonth, isWorkingDay } from "./utils";
-
-const INTERVAL_START = /[-+]/;
-
-/**
- * Returns date, corresponding to calendar expression.
- *
- * @param expression - Calendar expression
- * @param zone - Zone ID, in which expression is need to be processed, @see {@link DateWithTZ.zone}
- */
-export function parseCalendarExpression(expression: string, zone: string): DateWithTZ {
-    // start-time = current_day + 9 hour + 50 minute
-    const baseAndSpan = expression.split(INTERVAL_START);
-    const base = baseAndSpan[0]; // current_day
-    const baseAsDate: DateWithTZ = parseKeyword(base, zone);
-    const span = expression.substr(base.length); // + 9 hour + 50 minute
-    return span.length === 0 ? baseAsDate : parseIntervalExpression(span, baseAsDate);
-}
 
 /**
  * @param d - Date object, used as base to construct target date object
@@ -34,6 +16,7 @@ type DateFunction = (d: DateWithTZ, next?: boolean) => DateWithTZ;
  * For example, via {@link evalTime} (it seems that it was created for this purpose).
  */
 let cachedNow: number;
+
 /**
  * Parses base part of calendar expression to DateWithTZ .
  *
@@ -41,41 +24,14 @@ let cachedNow: number;
  * @param zone - Zone ID, in which keyword is need to be processed, @see {@link DateWithTZ.zone}
  * @returns Date object, corresponding to `keyword`.
  */
-function parseKeyword(keyword: string, zone: string): DateWithTZ {
+export function parseCalendarKeyword(keyword: string, zone: string): DateWithTZ {
     const v: string = keyword.trim();
     const parse: DateFunction = calendarKeywords[v] || daysOfWeek[v];
     if (parse == null) {
-        throw new TimeParseError("Incorrect calendar keyword", keyword);
+        return null;
     }
     const now = new DateWithTZ(undefined, zone);
     return parse(now);
-}
-
-/**
- * Parses span part of calendar expression and applies it to parsed base part. For example,
- * for expression "current_day + 9 hour + 50 minute", base part is "current_day"
- * and timespan is "+ 9 hour + 50 minute".
- *
- * @param timespan - Span part of calendar expression
- * @param baseDate - Parsed base part of calendar expression
- * @returns Date object, corresponding to parsed calendar expression.
- * @throws TimeParseError `timespan` must be in `<[+,-] count [*] unit>` format, e.g. "8 hour", "1 day";
- *                         to review additional restrictions,
- *                         @see DateWithTZ.shift()
- */
-function parseIntervalExpression(timespan: string, baseDate: DateWithTZ): DateWithTZ {
-    // <[+,-] count [*] unit>, e.g. -0.5*hour, + 1 day
-    const CHECK_SPAN_SYNTAX = /^\s*(([-+])\s*\d+(\.\d+)?\s*\*?\s*[A-Za-z]+\s*)*$/g;
-    if (!CHECK_SPAN_SYNTAX.test(timespan)) {
-        throw new TimeParseError("Incorrect interval expression syntax", timespan);
-    }
-    const PARSE_SPAN_SYNTAX = /\s*([-+])\s*(\d+(?:\.\d+)?)\s*\*?\s*([A-Za-z]+)\s*/g;
-    let m = PARSE_SPAN_SYNTAX.exec(timespan);
-    while (m) {
-        baseDate.shift(m[2], m[3], m[1]);
-        m = PARSE_SPAN_SYNTAX.exec(timespan);
-    }
-    return baseDate;
 }
 
 const calendarKeywords = {
@@ -103,7 +59,7 @@ const calendarKeywords = {
         d.month = 0;
         return cm(d);
     },
-    "current_working_day"(d) {
+    "current_working_day": function (d) {
         const cwd = isWorkingDay(d.dayOfWeek) ? d : pwd(d);
         cwd.setMidnight();
         return cwd;
@@ -217,7 +173,7 @@ function getToday(d: DateWithTZ) {
 }
 
 function cw(d: DateWithTZ) {
-    return daysOfWeek.mon(d);
+    return daysOfWeek["mon"](d);
 }
 
 function cm(d: DateWithTZ) {
@@ -233,11 +189,11 @@ function pd(d: DateWithTZ) {
 }
 
 function pwd(d: DateWithTZ) {
-    return isWorkingDay(d.dayOfWeek - 1) ? pd(d) : daysOfWeek.fri(d);
+    return isWorkingDay(d.dayOfWeek - 1) ? pd(d) : daysOfWeek["fri"](d);
 }
 
 function pvd(d: DateWithTZ) {
-    return isWorkingDay(d.dayOfWeek - 1) ? daysOfWeek.sun(d) : pd(d);
+    return isWorkingDay(d.dayOfWeek - 1) ? daysOfWeek["sun"](d) : pd(d);
 }
 
 function nd(d: DateWithTZ) {
@@ -247,11 +203,11 @@ function nd(d: DateWithTZ) {
 }
 
 function nwd(d: DateWithTZ) {
-    return isWorkingDay(d.dayOfWeek + 1) ? nd(d) : daysOfWeek.mon(d, true);
+    return isWorkingDay(d.dayOfWeek + 1) ? nd(d) : daysOfWeek["mon"](d, true);
 }
 
 function nvd(d: DateWithTZ) {
-    return isWorkingDay(d.dayOfWeek + 1) ? daysOfWeek.sat(d, true) : nd(d);
+    return isWorkingDay(d.dayOfWeek + 1) ? daysOfWeek["sat"](d, true) : nd(d);
 }
 
 function ld(d: DateWithTZ) {

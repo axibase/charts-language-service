@@ -1,5 +1,5 @@
-import { objToTS, offset, tsToObj } from "./offset";
 import { TimeParseError } from "../time_parse_error";
+import { objToTS, offset, tsToObj } from "./offset";
 import { CalendarObject, UtilZone } from "./util";
 
 /**
@@ -395,21 +395,21 @@ export class DateWithTZ {
     /**
      * Getters from Date (for back compatibility).
      */
-    public getFullYear() { return this._year }
+    public getFullYear() { return this._year; }
 
-    public getMonth() { return this._month }
+    public getMonth() { return this._month; }
 
     public getDate() { return this._day; }
 
     public getDay() { return this.dayOfWeek; }
 
-    public getHours() { return this._hour }
+    public getHours() { return this._hour; }
 
-    public getMinutes() { return this._minute }
+    public getMinutes() { return this._minute; }
 
-    public getSeconds() { return this._second }
+    public getSeconds() { return this._second; }
 
-    public getMilliseconds() { return this._millisecond }
+    public getMilliseconds() { return this._millisecond; }
 
     public getTime() { return this._timestamp; }
 }

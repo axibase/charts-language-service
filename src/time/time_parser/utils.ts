@@ -18,15 +18,3 @@ export function daysInMonth(d: DateWithTZ): number {
 export function isWorkingDay(n: number): boolean {
     return (n + 7) % 7 % 6 !== 0;
 }
-
-export enum TimeUnit {
-    MILLISECOND,
-    SECOND,
-    MINUTE,
-    HOUR,
-    DAY,
-    WEEK,
-    MONTH,
-    QUARTER,
-    YEAR
-}

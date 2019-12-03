@@ -21,9 +21,9 @@ const TIME_SEPARATOR = "T";
  * @param zone - Zone ID, in which template is need to be processed. It will be ignored if template contains offset
  *               @see DateWithTZ.zone
  * @returns Date object, corresponding to `template`.
+ * Acceptable formats are listed in corresponding parsers, also it's useful to review iso tests.
  * @see parseDateFunction
  * @see parseIsoLikeTemplate
- * @see {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse#Syntax}
  */
 export function parseDateTemplate(template: string, zone: string): DateWithTZ {
     /** Try to parse as {@link ISO_LIKE_DATE_TEMPLATE}. */
@@ -33,22 +33,15 @@ export function parseDateTemplate(template: string, zone: string): DateWithTZ {
         result = parseDateFunction(template, zone);
     }
     if (result === undefined) {
-        /**
-         * No success, try to parse using standard Date (in DateWithTZ under the hood).
-         * @example "2019 08 14" - August 14th.
-         */
-        try {
-            result = new DateWithTZ(template, zone);
-        } catch (err) {
-            return;
-        }
+        /** No success. */
+        return null;
     }
     return result;
 }
 
 /**
  * Parses {@link ISO_LIKE_DATE_TEMPLATE} template string and builds corresponding date object.
- * In addition to formats, accepted by Date constructor, there are some others, see examples below and iso tests.
+ * Acceptable formats are listed below, also it's useful to review iso tests.
  *
  * @param template - Date template string
  * @param zone - Zone ID, in which template is need to be processed. It will be ignored, if template contains offset
@@ -58,14 +51,12 @@ export function parseDateTemplate(template: string, zone: string): DateWithTZ {
  * @example yyyy-MM-ddThh:mm:ss[.S]Z
  * @example yyyy-MM-ddThh:mm:ss[.S]±hh:mm
  * @example yyyy-MM-ddThh:mm:ss[.S]±hhmm
- * @example yyyy-MM-ddThh:mm:ss[.S]
  * @example yyyy-MM-dd hh:mm:ss[.S]Z
  * @example yyyy-MM-dd hh:mm:ss[.S]±hh:mm
  * @example yyyy-MM-dd hh:mm:ss[.S]±hhmm
  * @example yyyy-MM-dd hh:mm:ss[.S]±hh
  * @example yyyy-MM-dd hh:mm:ss[.S]
  * @example yyyy-MM-dd
- * @example yyyy MM dd
  * @example yyyy-M-d
  * @example MM-dd
  * @example dd
@@ -100,7 +91,7 @@ function parseIsoLikeTemplate(template: string, zone: string): DateWithTZ {
                 [, date, time] = match;
             } else {
                 /**
-                 * No success, for example, "2015-01-01T00:00:00".
+                 * No success, for example, "2015-01-01T00:00:00Z".
                  * Try to split by {@link TIME_SEPARATOR}.
                  */
                 [date, time] = template.split(TIME_SEPARATOR);
