@@ -20,7 +20,7 @@ const PARSE_SPAN_SYNTAX = /\s*(\d+(?:\.\d+)?)\s*([A-Za-z]+)\s*/;
  * @param baseTime - Millis to construct base date, to which interval is need to be applied
  * @param [sign='+'] - "+" or  1, interval is added to base date,
  *                     "-" or -1, interval is subtracted from base date
- * @param [zone] - Zone ID, in which base date is need to be processed.
+ * @param [zone] - Zone ID, in which base date is need to be processed. TODO: is it suitable to always use "local"?
  *                 @see DateWithTZ.zone
  * @returns Milliseconds, corresponding to `interval`.
  * @throws TimeParseError `interval` must be in `<count unit>` format, e.g. "8 hour", "1 day";

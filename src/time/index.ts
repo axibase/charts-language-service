@@ -4,7 +4,7 @@ import { dateErrorMsg } from "../messageUtil";
 import { Setting } from "../setting";
 import { createDiagnostic, getValueOfSetting } from "../util";
 import { IntervalParser } from "./intervalParser";
-import { DateWithTZ, getTime } from "./time_parser";
+import { DateWithTZ, parseDateExpression } from "./time_parser";
 
 /**
  * Parses value of time setting to ISO string:
@@ -18,7 +18,7 @@ import { DateWithTZ, getTime } from "./time_parser";
  * @param errors - Array of diagnostics, to which information about error is added
  * @returns Value of `timeSetting`, parsed to ISO string.
  */
-export function parseTimeValue(timeSetting: Setting, section: Section, errors: Diagnostic[]): string {
+export function parseTimeValue(timeSetting: Setting, section: Section, errors: Diagnostic[]): string | void {
     let result;
     if (timeSetting != null) {
         if (timeSetting.isBroken) {
@@ -30,18 +30,19 @@ export function parseTimeValue(timeSetting: Setting, section: Section, errors: D
             return timeSetting.parsedValue;
         }
         /** No attempts to parse this setting, let's try. */
-        try {
-            const timeZoneValue = getValueOfSetting("time-zone", section);
-            const parsedValue = getTime(timeSetting.value, timeZoneValue as string, true, true);
-            result = (parsedValue as DateWithTZ).toISOString();
-            timeSetting.parsedValue = result;
-        } catch (err) {
-            /** Setting is incorrect, set flag and add error. */
+        const timeZoneValue = getValueOfSetting("time-zone", section);
+        const parsedValue = parseDateExpression(timeSetting.value, timeZoneValue as string);
+        if (parsedValue === null) {
+            /** Setting is incorrect - set flag, add error and return. */
             timeSetting.isBroken = true;
             const diagnostic = createDiagnostic(timeSetting.textRange,
                     dateErrorMsg(timeSetting.value, timeSetting.displayName));
             errors.push(diagnostic);
+            return;
         }
+        result = (parsedValue as DateWithTZ).toISOString();
+        timeSetting.parsedValue = result;
+
     }
     return result;
 }
