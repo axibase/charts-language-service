@@ -1564,13 +1564,13 @@
             "type": "boolean",
             "example": true,
             "defaultValue": false,
-            "section": "widget"
+            "section": "series"
         },
         {
             "displayName": "downsample-algorithm",
             "type": "enum",
             "example": "DETAIL",
-            "section": "widget",
+            "section": "series",
             "enum": [
                 "DETAIL",
                 "INTERPOLATE"
@@ -1581,7 +1581,7 @@
             "type": "number",
             "example": 4,
             "minValue": 0,
-            "section": "widget",
+            "section": "series",
             "excludes": [
                 "downsample-ratio"
             ]
@@ -1591,7 +1591,7 @@
             "type": "number",
             "example": 2,
             "minValue": 1,
-            "section": "widget",
+            "section": "series",
             "excludes": [
                 "downsample-difference"
             ]
@@ -1600,14 +1600,14 @@
             "displayName": "downsample-gap",
             "type": "interval",
             "example": "10 minute",
-            "section": "widget"
+            "section": "series"
         },
         {
             "displayName": "downsample-order",
             "type": "integer",
             "example": 5,
             "minValue": 0,
-            "section": "widget"
+            "section": "series"
         },
         {
             "displayName": "duration",
