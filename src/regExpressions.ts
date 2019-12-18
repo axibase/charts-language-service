@@ -140,8 +140,8 @@ export const SORT_REGEX: RegExp = /^(\w+)(?:\s+)?((?:asc|desc)(?:ending)?)?$/;
 // sql|script|if|for|var|list|csv|expr
 export const KEYWORDS_REGEX: RegExp = new RegExp(`^[ \t]*(?:${CONTROL_KEYWORDS.join("|")})[ \t]*`, "g");
 
-// position = 1-1, 2-2
-export const POSITION_REGEX: RegExp = /(\d+-\d+)(?:\s*,\s*)(\d+-\d+)/;
+// position = 1.2-1.4
+export const POSITION_REGEX: RegExp = /(?:\d+(?:\.\d+)?\s*-\s*\d+(?:\.\d+)?)(?:\s*,\s*\d+(?:\.\d+)?\s*-\s*\d+(?:\.\d+)?)?/;
 
 // stat_name('count unit'), for example: sum(5 minute), avg(10 second)
 export const STAT_COUNT_UNIT = /([a-z_\$]+)\((['"])?(.+)\2\)\s*((?:asc|desc)(?:ending)?)?$/;
