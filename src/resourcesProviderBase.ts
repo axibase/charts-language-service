@@ -32,6 +32,7 @@ export abstract class ResourcesProviderBase {
      * Key is section name, value is array of parent sections for the key section
      */
     public static parentSections: Map<string, string[]> = new Map([
+        ["axis", ["widget", "group", "configuration"]],
         ["widget", ["group", "configuration"]],
         ["series", ["widget", "link"]],
         ["tag", ["series"]],
@@ -49,6 +50,7 @@ export abstract class ResourcesProviderBase {
 
         "widget": 2,
 
+        "axis": 3,
         "column": 3,
         "dropdown": 3,
         "keys": 3,
@@ -71,7 +73,7 @@ export abstract class ResourcesProviderBase {
      * `max_depth` is a value from `sectionDepthMap`
      */
     public static inheritableSections: Set<string> = new Set([
-        "keys", "tags"
+        "axis", "keys", "tags"
     ]);
 
     /**
