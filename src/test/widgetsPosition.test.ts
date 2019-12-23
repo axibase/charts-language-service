@@ -20,9 +20,9 @@ suite("Widgets position tests", () => {
         const actualDiagnostic = validator.lineByLine();
         const expectedDiagnostic = [
             createDiagnostic(
-                createRange(4, 8, 5),
-                "Can't parse widget's position. Correct setting syntax is, for example: '1-1, 2-2'",
-                DiagnosticSeverity.Error
+                    createRange(4, 8, 5),
+                    "Can't parse widget's position. Correct setting syntax is, for example: '1-1, 2-2'",
+                    DiagnosticSeverity.Error
             )
         ];
         deepStrictEqual(actualDiagnostic, expectedDiagnostic, `Config: \n${config}`);
@@ -44,14 +44,22 @@ suite("Widgets position tests", () => {
         deepStrictEqual(actualDiagnostic, expectedDiagnostic, `Config: \n${config}`);
     });
 
+    test("Correct widgets position, fractional", () => {
+        const config = baseConfig("position = 1.2-1.4");
+        const validator = new Validator(config);
+        const actualDiagnostic = validator.lineByLine();
+        const expectedDiagnostic = [];
+        deepStrictEqual(actualDiagnostic, expectedDiagnostic, `Config: \n${config}`);
+    });
+
     test("Incorrect widgets position (3 values)", () => {
         const config = baseConfig("position = 1-1, 2-2, 3-3");
         const validator = new Validator(config);
         const actualDiagnostic = validator.lineByLine();
         const expectedDiagnostic = [
             createDiagnostic(
-                createRange(4, 8, 5),
-                "Can't parse widget's position. Correct setting syntax is, for example: '1-1, 2-2'"
+                    createRange(4, 8, 5),
+                    "Can't parse widget's position. Correct setting syntax is, for example: '1-1, 2-2'"
             )
         ];
         deepStrictEqual(actualDiagnostic, expectedDiagnostic, `Config: \n${config}`);
@@ -63,9 +71,9 @@ suite("Widgets position tests", () => {
         const actualDiagnostic = validator.lineByLine();
         const expectedDiagnostic = [
             createDiagnostic(
-                createRange(4, 8, 5),
-                "Widget position '0-0' overflows grid 4×6",
-                DiagnosticSeverity.Warning
+                    createRange(4, 8, 5),
+                    "Widget position '0-0' overflows grid 4×6",
+                    DiagnosticSeverity.Warning
             )
         ];
         deepStrictEqual(actualDiagnostic, expectedDiagnostic, `Config: \n${config}`);
@@ -77,8 +85,8 @@ suite("Widgets position tests", () => {
         const actualDiagnostic = validator.lineByLine();
         const expectedDiagnostic = [
             createDiagnostic(
-                createRange(4, 8, 5),
-                "Can't parse widget's position. Correct setting syntax is, for example: '1-1, 2-2'"
+                    createRange(4, 8, 5),
+                    "Can't parse widget's position. Correct setting syntax is, for example: '1-1, 2-2'"
             )
         ];
         deepStrictEqual(actualDiagnostic, expectedDiagnostic, `Config: \n${config}`);
@@ -98,13 +106,13 @@ suite("Widgets position tests", () => {
         const actualDiagnostic = validator.lineByLine();
         const expectedDiagnostic = [
             createDiagnostic(
-                createRange(0, 11, 1),
-                "width-units should be a real (floating-point) number. For example, 2"
+                    createRange(0, 11, 1),
+                    "width-units should be a real (floating-point) number. For example, 2"
             ),
             createDiagnostic(
-                createRange(4, 8, 6),
-                "Widget position '10-10, 11-11' overflows grid 4×6",
-                DiagnosticSeverity.Warning
+                    createRange(4, 8, 6),
+                    "Widget position '10-10, 11-11' overflows grid 4×6",
+                    DiagnosticSeverity.Warning
             )
         ];
         deepStrictEqual(actualDiagnostic, expectedDiagnostic, `Config: \n${config}`);
@@ -116,9 +124,9 @@ suite("Widgets position tests", () => {
         const actualDiagnostic = validator.lineByLine();
         const expectedDiagnostic = [
             createDiagnostic(
-                createRange(4, 8, 5),
-                "Widget position '10-10, 11-11' overflows grid 4×6",
-                DiagnosticSeverity.Warning
+                    createRange(4, 8, 5),
+                    "Widget position '10-10, 11-11' overflows grid 4×6",
+                    DiagnosticSeverity.Warning
             )
         ];
         deepStrictEqual(actualDiagnostic, expectedDiagnostic, `Config: \n${config}`);
@@ -130,9 +138,9 @@ suite("Widgets position tests", () => {
         const actualDiagnostic = validator.lineByLine();
         const expectedDiagnostic = [
             createDiagnostic(
-                createRange(4, 8, 5),
-                "Widget position '11-11' overflows grid 4×6",
-                DiagnosticSeverity.Warning
+                    createRange(4, 8, 5),
+                    "Widget position '11-11' overflows grid 4×6",
+                    DiagnosticSeverity.Warning
             )
         ];
         deepStrictEqual(actualDiagnostic, expectedDiagnostic, `Config: \n${config}`);
@@ -144,9 +152,9 @@ suite("Widgets position tests", () => {
         const actualDiagnostic = validator.lineByLine();
         const expectedDiagnostic = [
             createDiagnostic(
-                createRange(2, 11, 6),
-                "'width-units' has no effect if 'position' is specified",
-                DiagnosticSeverity.Warning
+                    createRange(2, 11, 6),
+                    "'width-units' has no effect if 'position' is specified",
+                    DiagnosticSeverity.Warning
             )
         ];
         deepStrictEqual(actualDiagnostic, expectedDiagnostic, `Config: \n${config}`);

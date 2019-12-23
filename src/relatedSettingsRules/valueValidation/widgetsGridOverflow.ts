@@ -1,6 +1,5 @@
 import { Diagnostic, DiagnosticSeverity } from "vscode-languageserver-types";
 import { Section } from "../../configTree/section";
-import { POSITION_REGEX } from "../../regExpressions";
 import { Setting } from "../../setting";
 import { createDiagnostic, getSetting, getValueOfSetting } from "../../util";
 import { Rule } from "../utils/interfaces";
@@ -32,34 +31,38 @@ const rule: Rule = {
  * @param setting — position setting
  */
 function parsePosition(setting: Setting): Coordinates | null {
-    let fullForm: string = setting.value;
-    const errorMessage: string = `Can't parse widget's ${setting.displayName}.`
-        + ` Correct setting syntax is, for example: '${setting.example}'`;
-
-    /**
-     * Process case for 'position = 1-1' shorthand and turn it into 'position = 1-1, 1-1'
-     */
-    if (setting.value.indexOf(",") < 0) {
-        fullForm += "," + setting.value;
-    } else if (setting.value.split(",").length > 2) {
-        throw new Error(errorMessage);
+    let line: string = setting.value;
+    line = line && line.trim();
+    if (!line) { return null; }
+    const PARSE_POSITION_ERROR = `Can't parse widget's ${setting.displayName}.`
+            + ` Correct setting syntax is, for example: '${setting.example}'`;
+    let parts = line.split(/\s*,\s*/g, 3);
+    if (parts.length > 2) {
+        throw new Error(PARSE_POSITION_ERROR);
     }
 
-    const match = POSITION_REGEX.exec(fullForm);
+    function parsePart(part: string) {
+        if (!part) {
+            throw new Error(PARSE_POSITION_ERROR);
+        }
 
-    try {
-        const start = match[1].split("-");
-        const end = match[2].split("-");
-
-        return {
-            x1: +start[1],
-            x2: +end[1],
-            y1: +start[0],
-            y2: +end[0],
-        };
-    } catch (error) {
-        throw new Error(errorMessage);
+        const coordinates = part.split("-");
+        if (coordinates.length > 2) {
+            /** For example, position = -1--3. */
+            throw new Error(PARSE_POSITION_ERROR);
+        }
+        let [x, y] = coordinates.map(c => +c);
+        if (isFinite(x) && isFinite(y)) {
+            return [y, x];
+        } else {
+            throw new Error(PARSE_POSITION_ERROR);
+        }
     }
+
+    let [x1, y1] = parsePart(parts[0]);
+    let [x2, y2] = parts[1] ? parsePart(parts[1]) : [x1, y1];
+
+    return { x1, y1, x2, y2 };
 }
 
 /**
@@ -85,10 +88,10 @@ function detectGridOverflow(widget: Section): Diagnostic | void {
             const { x1, x2, y1, y2 } = parsePosition(position);
             if (x1 < 1 || x2 > gridWidth || y1 < 1 || y2 > gridHeight) {
                 return createDiagnostic(
-                    position.textRange,
-                    `Widget ${position.displayName} '${position.value}' overflows grid` +
-                    ` ${gridHeight}×${gridWidth}`,
-                    DiagnosticSeverity.Warning
+                        position.textRange,
+                        `Widget ${position.displayName} '${position.value}' overflows grid` +
+                        ` ${gridHeight}×${gridWidth}`,
+                        DiagnosticSeverity.Warning
                 );
             }
         } catch (e) {
@@ -96,8 +99,8 @@ function detectGridOverflow(widget: Section): Diagnostic | void {
              * Process 'position' setting parse errors
              */
             return createDiagnostic(
-                position.textRange,
-                e.message
+                    position.textRange,
+                    e.message
             );
         }
     }
