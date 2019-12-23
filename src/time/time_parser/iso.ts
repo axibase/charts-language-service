@@ -1,11 +1,11 @@
 import { DateWithTZ } from "./date_with_tz/date_with_tz";
 import { UtilZone } from "./date_with_tz/util";
 import { TimeParseError } from "./time_parse_error";
-import { daysInMonth } from "./utils";
+import { DateFunction, daysInMonth } from "./utils";
 
 // yyyy-MM-dd hh:mm:ss
 const ISO_LIKE_DATE_TEMPLATE: RegExp =
-    /^\s*((?:[0-9]{1,4}-)*[0-9]{1,4})?(?:\s+|^|$)([0-9]{1,2}:[0-9]{2}(?::[0-9]{2}(?:\.[0-9]*)?)?)?\s*$/;
+        /^\s*((?:[0-9]{1,4}-)*[0-9]{1,4})?(?:\s+|^|$)([0-9]{1,2}:[0-9]{2}(?::[0-9]{2}(?:\.[0-9]*)?)?)?\s*$/;
 // <time>Z
 // <time>±hh:mm
 // <time>±hhmm
@@ -14,40 +14,48 @@ const OFFSET = /Z|[-+]\d{2}(?::?\d{2})?$/;
 const TIME_SEPARATOR = "T";
 
 /**
- * Parses date template string and builds corresponding date object.
- * Returns undefined, if the template can not be parsed.
+ * Parses date template string and returns corresponding {@link DateFunction}.
+ * Returns null, if the template can not be parsed.
  *
  * @param template - Date template string
- * @param zone - Zone ID, in which template is need to be processed. It will be ignored if template contains offset
- *               @see DateWithTZ.zone
- * @returns Date object, corresponding to `template`.
+ * @returns Date function, that builds {@link DateWithTZ}, corresponding to `template`.
  * Acceptable formats are listed in corresponding parsers, also it's useful to review iso tests.
- * @see parseDateFunction
  * @see parseIsoLikeTemplate
+ * @see parseDateFunction
  */
-export function parseDateTemplate(template: string, zone: string): DateWithTZ {
+export function parseDateTemplate(template: string): DateFunction {
     /** Try to parse as {@link ISO_LIKE_DATE_TEMPLATE}. */
-    let result = parseIsoLikeTemplate(template, zone);
+    let result = parseIsoLikeTemplate(template);
     if (result === undefined) {
         /** No success, try to parse as {@link DATE_FUNCTION}, legacy. */
-        result = parseDateFunction(template, zone);
+        result = parseDateFunction(template);
     }
     if (result === undefined) {
-        /** No success. */
+        /** No success, template can not be parsed as date string. */
         return null;
     }
     return result;
 }
 
+interface DateComponents {
+    year: number;
+    month: number;
+    day: number;
+}
+
+interface TimeComponents {
+    hour: number;
+    minute: number;
+    second: number;
+    millisecond: number;
+}
+
 /**
- * Parses {@link ISO_LIKE_DATE_TEMPLATE} template string and builds corresponding date object.
+ * Parses {@link ISO_LIKE_DATE_TEMPLATE} template string and returns corresponding {@link DateFunction}.
  * Acceptable formats are listed below, also it's useful to review iso tests.
  *
  * @param template - Date template string
- * @param zone - Zone ID, in which template is need to be processed. It will be ignored, if template contains offset
- *               @see DateWithTZ.zone
- * @returns Date object, corresponding to `template`.
- * @throws TimeParseError Date must be greater than start of Unix epoch.
+ * @returns Date function, that builds {@link DateWithTZ}, corresponding to `template`.
  * @example yyyy-MM-ddThh:mm:ss[.S]Z
  * @example yyyy-MM-ddThh:mm:ss[.S]±hh:mm
  * @example yyyy-MM-ddThh:mm:ss[.S]±hhmm
@@ -66,7 +74,7 @@ export function parseDateTemplate(template: string, zone: string): DateWithTZ {
  * @example hh:mm:ss
  * @example hh:mm:ss.S
  */
-function parseIsoLikeTemplate(template: string, zone: string): DateWithTZ {
+function parseIsoLikeTemplate(template: string): DateFunction {
     template = template.toUpperCase();
     let d;
     let date;
@@ -101,32 +109,50 @@ function parseIsoLikeTemplate(template: string, zone: string): DateWithTZ {
             return;
         }
     } else {
-        /** Success, there is ISO-like template without offset, create base date with specified zone. */
-        d = new DateWithTZ(void 0, zone);
+        /** Success, there is ISO-like template without offset. */
         [, date, time] = match;
     }
     if (date != null || time != null) {
+        let dateComponents: DateComponents;
+        let timeComponents: TimeComponents;
         if (date != null) {
-            d = parseDate(date, d);
+            dateComponents = parseDate(date);
         }
         if (time != null) {
-            d = parseTime(time, d);
-        } else {
-            /** Drop time to 00:00:00.000. */
-            d.roundToDay();
+            timeComponents = parseTime(time);
         }
-        return d;
+        return function(now: DateWithTZ): DateWithTZ {
+            const baseDate = d || now;
+            if (dateComponents !== undefined) {
+                let { year, month, day } = dateComponents;
+                // Set only year and month, because number of days depends on the specified month and year.
+                if (year != null) {
+                    baseDate.setDate(+year, +month, 1);
+                } else if (month != null) {
+                    baseDate.setDate(baseDate.year, +month, 1);
+                }
+                day = (day <= 0) ? 1 : Math.min(+day, daysInMonth(baseDate));
+                baseDate.day = day;
+            }
+            if (timeComponents !== undefined) {
+                let { hour, minute, second, millisecond } = timeComponents;
+                baseDate.setTime(hour, minute, second, millisecond);
+            } else {
+                /** Drop time to 00:00:00.000. */
+                baseDate.roundToDay();
+            }
+            return baseDate;
+        };
     }
 }
 
 /**
- * Parses date part and sets it to `d`.
+ * Parses date part to {@link DateComponents}.
  *
- * @param dateTemplate - Date template string in format yyyy-MM-dd
- * @param d - Date object, used as base to construct target date
- * @returns Date object with year, month and day corresponding to `dateTemplate`.
+ * @param dateTemplate - Date template string in format yyyy-MM-dd, MM-dd or dd
+ * @returns Object with components of date part.
  */
-function parseDate(dateTemplate: string, d: DateWithTZ): DateWithTZ {
+function parseDate(dateTemplate: string): DateComponents {
     const dateComponents = dateTemplate.split("-");
     let year;
     if (dateComponents[0].length > 2 || dateComponents.length === 3) {
@@ -147,37 +173,27 @@ function parseDate(dateTemplate: string, d: DateWithTZ): DateWithTZ {
 
     if (month != null) {
         month = (month <= 0) ? 1 : (month > 12) ? 12 : month;
-        // In JavaScript month are counted from 0.
+        // In JavaScript months are counted from 0.
         month = +month - 1;
     }
-    // Set only year and month, because number of days depends on the specified month and year.
-    if (year != null) {
-        d.setDate(+year, +month, 1);
-    } else if (month != null) {
-        d.setDate(d.year, +month, 1);
-    }
-    day = (day <= 0) ? 1 : Math.min(+day, daysInMonth(d));
-    d.day = day;
-    return d;
+    return { year, month, day };
 }
 
 const TIME_COMPONENTS_SEPARATOR = /[:.]/;
 
 /**
- * Parses time part and sets it to `d`.
+ * Parses time part to {@link TimeComponents}.
  *
- * @param timeTemplate - Time template string in format HH:mm:ss[.S]
- * @param d - Date object, used as base to construct target date
- * @returns Date object with hours, minutes, seconds and milliseconds corresponding to `timeTemplate`.
+ * @param timeTemplate - Time template string in format HH:mm:ss[.S], HH:mm:ss or HH:mm
+ * @returns Object with components of time part.
  */
-function parseTime(timeTemplate: string, d: DateWithTZ): DateWithTZ {
+function parseTime(timeTemplate: string): TimeComponents {
     const timeComponents: string[] = timeTemplate.split(TIME_COMPONENTS_SEPARATOR);
     const hour = +timeComponents[0];
     const minute = +timeComponents[1];
     const second = +timeComponents[2] || 0;
     const millisecond = timeComponents[3] ? Math.round(+(`0.${timeComponents[3]}`) * 1000) : 0;
-    d.setTime(hour, minute, second, millisecond);
-    return d;
+    return { hour, minute, second, millisecond };
 }
 
 // date("2016-06-09"), legacy
@@ -188,12 +204,11 @@ const QUOTED_DATE = /^(["'])(.*)\1$/;
 /**
  * Parses {@link DATE_FUNCTION} and builds corresponding date object.
  * It's legacy, that's why it's not covered with tests properly.
+ *
  * @param template - Date template string
- * @param zone - Zone ID, in which template is need to be processed. It will be ignored, if template contains offset
- *               @see DateWithTZ.zone
  * @example date("yyyy-MM-dd")
  */
-function parseDateFunction(template: string, zone: string): DateWithTZ {
+function parseDateFunction(template: string): DateFunction {
     let match = template.match(DATE_FUNCTION);
     if (match != null) {
         const argument = match[1];
@@ -202,6 +217,6 @@ function parseDateFunction(template: string, zone: string): DateWithTZ {
             throw new TimeParseError("date() argument is unquoted", template);
         }
         const templateCropped = match[2]; // 2016-06-09
-        return parseIsoLikeTemplate(templateCropped, zone);
+        return parseIsoLikeTemplate(templateCropped);
     }
 }

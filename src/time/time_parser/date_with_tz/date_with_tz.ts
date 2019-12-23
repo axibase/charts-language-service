@@ -42,7 +42,9 @@ export class DateWithTZ {
     private offset: number;
     /**
      * [IANA timezone name]{@link https://axibase.com/docs/atsd/shared/timezone-list.html#time-zones}, "local" or
-     * "fixed" (date is created from template with offset, use "fixed" to prevent extra offset recalculations).
+     * "fixed" (for developing purposes).
+     * "fixed" is used to prevent extra offset recalculations, if date is created from template with offset and
+     * components are set in parseDate and parseTime, i.e. "fixed" is used only in {@link parseIsoLikeTemplate}.
      */
     public readonly zone: string;
     /**

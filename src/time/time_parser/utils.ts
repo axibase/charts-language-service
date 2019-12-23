@@ -18,3 +18,11 @@ export function daysInMonth(d: DateWithTZ): number {
 export function isWorkingDay(n: number): boolean {
     return (n + 7) % 7 % 6 !== 0;
 }
+
+/**
+ * Constructs {@link DateWithTZ} using `d` as base.
+ *
+ * @param d - Date object, used as base to construct target date object
+ * @param [next] - Used by {@link calendar.dayOfWeek}
+ */
+export type DateFunction = (d: DateWithTZ, next?: boolean) => DateWithTZ;

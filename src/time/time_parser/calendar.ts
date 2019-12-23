@@ -1,37 +1,14 @@
+/**
+ * @module calendar
+ */
 import { DateWithTZ } from "./date_with_tz/date_with_tz";
-import { daysInMonth, isWorkingDay } from "./utils";
+import { DateFunction, daysInMonth, isWorkingDay } from "./utils";
 
 /**
- * @param d - Date object, used as base to construct target date object
- * @param next - @see {@link dayOfWeek}
+ * Returns {@link DateFunction}, corresponding to keyword.
  */
-type DateFunction = (d: DateWithTZ, next?: boolean) => DateWithTZ;
-
-/**
- * Timestamp of DateWithTZ, which corresponds to first {@link now} call.
- * Used to ensure the same "now" for different time settings,
- * @see parse_timespan.test.js > returns (end-time - start-time) in milliseconds...
- * TODO: is it correct to cache it?
- * It would be better to pass some general "now" DateWithTZ to {@link now} instead.
- * For example, via {@link evalTime} (it seems that it was created for this purpose).
- */
-let cachedNow: number;
-
-/**
- * Parses base part of calendar expression to DateWithTZ .
- *
- * @param keyword - Calendar keyword, @see {@link calendarKeywords} and {@link daysOfWeek}
- * @param zone - Zone ID, in which keyword is need to be processed, @see {@link DateWithTZ.zone}
- * @returns Date object, corresponding to `keyword`.
- */
-export function parseCalendarKeyword(keyword: string, zone: string): DateWithTZ {
-    const v: string = keyword.trim();
-    const parse: DateFunction = calendarKeywords[v] || daysOfWeek[v];
-    if (parse == null) {
-        return null;
-    }
-    const now = new DateWithTZ(undefined, zone);
-    return parse(now);
+export function parseCalendarKeyword(keyword: string): DateFunction {
+    return calendarKeywords[keyword] || daysOfWeek[keyword];
 }
 
 const calendarKeywords = {
@@ -59,7 +36,7 @@ const calendarKeywords = {
         d.month = 0;
         return cm(d);
     },
-    "current_working_day": function (d) {
+    "current_working_day": (d) => {
         const cwd = isWorkingDay(d.dayOfWeek) ? d : pwd(d);
         cwd.setMidnight();
         return cwd;
@@ -161,10 +138,7 @@ const daysOfWeek = {
 };
 
 function now(d: DateWithTZ) {
-    if (!cachedNow) {
-        cachedNow = +d;
-    }
-    return new DateWithTZ(cachedNow, d.zone);
+    return new DateWithTZ(undefined, d.zone);
 }
 
 function getToday(d: DateWithTZ) {

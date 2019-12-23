@@ -70,7 +70,7 @@ export class Section {
      */
     public getSettingFromTree(settingName: string): Setting | undefined {
         settingName = Setting.clearSetting(settingName);
-        let value = this.getScopeSetting(settingName);
+        let value = this.scope.get(settingName);
         if (value != null) {
             return value;
         }
@@ -83,11 +83,6 @@ export class Section {
             currentSection = currentSection.parent;
         }
         return undefined;
-    }
-
-    public getScopeSetting(settingName: string): Setting {
-        const cleared = Setting.clearSetting(settingName);
-        return this.scope.get(cleared);
     }
 
     /**
