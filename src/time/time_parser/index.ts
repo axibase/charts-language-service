@@ -6,5 +6,6 @@ import { parseDateExpression } from "./parse_date_expression";
 import { TimeParseError } from "./time_parse_error";
 
 export {
-    calendarKeywordsList, DateWithTZ, parseDateExpression, parseInterval, getDateFormatter, TimeParseError
+    calendarKeywordsList, DateWithTZ, parseDateExpression,
+    parseInterval, getDateFormatter, TimeParseError
 };
