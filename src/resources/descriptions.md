@@ -478,6 +478,10 @@ Possible values: `false`, `true`.
   
 ## fitsvg  
   
+## fixstarttime  
+    
+If `true`, original start date is used in incremental requests. The loading interval becomes expanding, not sliding.  
+  
 ## fontscale  
   
 Ratio of font height to row height when `auto-height = true`.  
