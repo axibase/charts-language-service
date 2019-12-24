@@ -7,11 +7,7 @@ import { IntervalParser } from "./intervalParser";
 import { DateWithTZ, parseDateExpression } from "./time_parser";
 
 /**
- * Parses value of time setting to ISO string:
- * 1) returns, if flag {@link Setting.isBroken} is true;
- * 2) returns {@link Setting.parsedValue}, if it has been set;
- * 3) tries to parse value, sets {@link Setting.parsedValue} field on success and returns it;
- * 4) sets {@link Setting.isBroken} otherwise and adds diagnostic to `errors`.
+ * Parses value of time setting to ISO string.
  *
  * @param timeSetting - Date setting, which value is need to be parsed
  * @param section - Section, for which "time-zone" setting is need to be found
@@ -21,28 +17,16 @@ import { DateWithTZ, parseDateExpression } from "./time_parser";
 export function parseTimeValue(timeSetting: Setting, section: Section, errors: Diagnostic[]): string | void {
     let result;
     if (timeSetting != null) {
-        if (timeSetting.isBroken) {
-            /** There was an attempt to parse this setting without success, no need to try again. */
-            return;
-        }
-        if (timeSetting.parsedValue !== undefined) {
-            /** There was a successful attempt to parse this setting, return parsed value. */
-            return timeSetting.parsedValue;
-        }
-        /** No attempts to parse this setting, let's try. */
         const timeZoneValue = getValueOfSetting("time-zone", section);
         const parsedValue = parseDateExpression(timeSetting.value, timeZoneValue as string);
         if (parsedValue === null) {
-            /** Setting is incorrect - set flag, add error and return. */
-            timeSetting.isBroken = true;
+            /** Setting is incorrect - add error and return. */
             const diagnostic = createDiagnostic(timeSetting.textRange,
                     dateErrorMsg(timeSetting.value, timeSetting.displayName));
             errors.push(diagnostic);
             return;
         }
         result = (parsedValue as DateWithTZ).toISOString();
-        timeSetting.parsedValue = result;
-
     }
     return result;
 }

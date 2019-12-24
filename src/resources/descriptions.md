@@ -398,7 +398,7 @@ Hide series in the widget legend based on expression or boolean statement.
 End of time interval, specified as [Date Expression](https://axibase.com/docs/charts/syntax/date-expressions.md), until which the values for the series are loaded.  
 The setting can be overridden by each widget separately.  
 Note that `start-time` is **inclusive** and `end-time` is **exclusive**.  
-This means that `start-time = 2017-09-14 10:00:00` includes data points that occurred exactly at `10:00:00` and later whereas `end-time = 2017-09-14 11:00:00` includes data points that occurred up to `10:59:59`, excluding points that occurred at `11:00:00`. 
+This means that `start-time = 2017-09-14 10:00:00` includes data points that occurred exactly at `10:00:00` and later whereas `end-time = 2017-09-14 11:00:00` includes data points that occurred up to `10:59:59`, excluding points that occurred at `11:00:00`.  
   
 ## endworkingminutes  
   
@@ -1467,7 +1467,7 @@ Disable series grouping to display each series in a separate column.
 Start of the time interval, specified as [Date Expression](https://axibase.com/docs/charts/syntax/date-expressions.md), from which the values for the series are loaded.
 The setting can be overridden by each widget separately.  
 Note that `start-time` is **inclusive** and `end-time` is **exclusive**.  
-This means that `start-time = 2017-09-14 10:00:00` includes data points that occurred exactly at `10:00:00` and later whereas `end-time = 2017-09-14 11:00:00` includes data points that occurred up to `10:59:59`, excluding points that occurred at `11:00:00`.
+This means that `start-time = 2017-09-14 10:00:00` includes data points that occurred exactly at `10:00:00` and later whereas `end-time = 2017-09-14 11:00:00` includes data points that occurred up to `10:59:59`, excluding points that occurred at `11:00:00`.  
   
 ## startworkingminutes  
   

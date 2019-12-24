@@ -24,9 +24,6 @@ export class Setting extends DefaultSetting {
     this._textRange = value;
   }
 
-  public parsedValue;
-  /** True if corresponding value parser failed. */
-  public isBroken = false;
   /**
    * Setting value, specified in config.
    */
