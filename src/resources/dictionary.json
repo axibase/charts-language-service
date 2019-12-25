@@ -3480,7 +3480,7 @@
             "example": false,
             "defaultValue": true,
             "widget": "chart",
-            "section": "widget"
+            "section": "series"
         },
         {
             "displayName": "last-value-label",
