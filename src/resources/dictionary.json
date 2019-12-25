@@ -3503,14 +3503,6 @@
             ]
         },
         {
-            "displayName": "left",
-            "type": "boolean",
-            "section": "axis",
-            "example": false,
-            "widget": "chart",
-            "defaultValue": "true"
-        },
-        {
             "displayName": "left-axis",
             "type": "enum",
             "example": "fraction",
@@ -5843,6 +5835,14 @@
             "type": "interval",
             "example": "5 minute",
             "section": "series"
+        },
+        {
+            "displayName": "right",
+            "type": "boolean",
+            "section": "axis",
+            "example": false,
+            "widget": "chart",
+            "defaultValue": false
         },
         {
             "displayName": "right-axis",
