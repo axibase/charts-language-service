@@ -730,10 +730,26 @@ Supported in server aggregation mode only: `server-aggregate = true`.
   
 Assign a group period to a series for computing [group](https://axibase.com/docs/atsd/api/data/series/group.html#group-processor) statistics.  
   
+## groupplaceconstraint  
+  
+Boolean expression that series in each subgroup must satisfy.  
+  
+## groupplacecount  
+   
+Maximum number of subgroups. The response can contain less than the maximum.  
+  
+## groupplaceminimize  
+  
+Objective [function](https://axibase.com/docs/atsd/api/data/series/group.html#functions-available-in-the-place-context) calculated for each subgroup. Partitioning into subgroups is performed to minimize the sum of function values.  
+  
 ## groupstatistic  
   
 Assign a group statistic function to the series.  
 See [Aggregators](https://axibase.com/docs/charts/configuration/aggregators.html) for more information.  
+  
+## grouptags  
+  
+List of tag names which determines how series are grouped.  
   
 ## headerstyle  
   
