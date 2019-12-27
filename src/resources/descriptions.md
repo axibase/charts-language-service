@@ -887,19 +887,15 @@ Hide most recent series value marker.
 ## lastvaluelabel  
   
 ## layout  
-  
+
 Form of the widget in `non-hierarchy` mode.  
-  
-## left  
-   
-If `true`, apply settings to left axis, otherwise apply settings to right axis.  
-  
+
 ## leftaxis  
-  
+
 Values displayed on the left-axis.  
 `density`: Scales the height of the bars such that the sum of their areas equals `1`.  
 `fractions`: Scales the height of the bars such that the sum of their heights equals `1`.  
-`frequency`: Scales the height of the bars such that each bar height is equal to the number of observations in the series. Thus, the sum of the heights is equal to the total number of observations  
+`frequency`: Scales the height of the bars such that each bar height is equal to the number of observations in the series. Thus, the sum of the heights is equal to the total number of observations.  
   
 ## leftunits  
   
@@ -1333,6 +1329,10 @@ Font size is reduced proportionally to widget size.
 ## retryrefreshinterval  
   
 Define the wait period after ATSD receives an empty sample to retry data refresh.  
+
+## right  
+
+If `true`, apply settings to right axis, otherwise apply settings to left axis.  
   
 ## rightaxis  
   
