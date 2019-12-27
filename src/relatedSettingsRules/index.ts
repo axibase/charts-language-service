@@ -1,10 +1,11 @@
 import iconSettings from "./presenceValidation/iconSettings";
 import metricsAndEvaluateExpr from "./presenceValidation/metricsAndEvaluateExpr";
-import { noUselessSettingsForSeries, noUselessSettingsForWidget } from "./presenceValidation/noUselessSettings/index";
+import { noUselessSettingsForSeries, noUselessSettingsForWidget } from "./presenceValidation/noUselessSettings";
 import simultaneousTimeSettings from "./presenceValidation/noUselessSettings/simultaneousTimeSettings";
 import widgetsDimensions from "./presenceValidation/noUselessSettings/widgetsDimensions";
 import requiredSettings from "./presenceValidation/requiredSettings";
 import { Rule } from "./utils/interfaces";
+import addMetaAndLabelFormat from "./valueValidation/addMetaAndLabelFormat";
 import calendarTimespan from "./valueValidation/calendarTimespan";
 import colorsThresholds from "./valueValidation/colorsThresholds";
 import forecastAutoCountAndEigentripleLimit from "./valueValidation/forecastAutoCountAndEigentripleLimit";
@@ -43,7 +44,8 @@ const rulesBySection: Map<string, Rule[]> = new Map<string, Rule[]>([
             startEndTime,
             sort,
             summarizePeriodTimespan,
-            widgetsDimensions
+            widgetsDimensions,
+            addMetaAndLabelFormat
         ]
     ],
     [
