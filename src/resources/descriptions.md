@@ -739,6 +739,22 @@ Boolean expression that series in each subgroup must satisfy.
 ## groupplacecount  
    
 Maximum number of subgroups. The response can contain less than the maximum.  
+   
+## groupplaceentities  
+   
+Entities containing group-specific information using entity tags with numeric characteristics of a subgroup.  
+  
+## groupplaceentitygroup  
+  
+Alternative to `entities` setting using an [entity group](https://axibase.com/docs/atsd/api/meta/entity-group/) name.  
+ 
+## groupplaceentityexpression  
+   
+Alternative to `entities` setting using an [expression](https://axibase.com/docs/atsd/api/data/filter-entity.html#entityexpression-syntax).  
+   
+## groupplacemethod  
+   
+The algorithm used to solve the [packing](https://axibase.com/docs/atsd/api/data/series/group.html#packing) problem.  
   
 ## groupplaceminimize  
   

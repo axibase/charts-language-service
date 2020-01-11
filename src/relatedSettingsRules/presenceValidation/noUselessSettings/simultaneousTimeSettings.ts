@@ -5,7 +5,7 @@ import { createDiagnostic } from "../../../util";
 import { Rule } from "../../utils/interfaces";
 
 const rule: Rule = {
-    name: "Start-time, end-time and timespan mustn't be declared sumultaneously",
+    name: "Start-time, end-time and timespan mustn't be declared simultaneously",
     check(section: Section): Diagnostic | void {
         const startTime = section.getSettingFromTree("start-time");
         const endTime = section.getSettingFromTree("end-time");
