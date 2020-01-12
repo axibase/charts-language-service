@@ -1,3 +1,4 @@
+import groupPlaceSettings from "./presenceValidation/groupPlaceSettings";
 import iconSettings from "./presenceValidation/iconSettings";
 import metricsAndEvaluateExpr from "./presenceValidation/metricsAndEvaluateExpr";
 import { noUselessSettingsForSeries, noUselessSettingsForWidget } from "./presenceValidation/noUselessSettings";
@@ -29,6 +30,7 @@ const rulesBySection: Map<string, Rule[]> = new Map<string, Rule[]>([
             forecastSsaGroupAutoUnion,
             forecastSsaGroupManualGroups,
             forecastStartTime,
+            groupPlaceSettings,
             iconSettings,
             metricsAndEvaluateExpr,
             noUselessSettingsForSeries,
