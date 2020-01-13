@@ -24,6 +24,7 @@ const sectionStackStub: SectionStack = {
 
 /**
  * Contains a test case and executes the test
+ * @deprecated Use linear intuitive test scenario, refer to sql.test.ts for example.
  */
 export class Test {
     /**
