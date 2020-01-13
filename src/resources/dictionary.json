@@ -3046,12 +3046,6 @@
             "defaultValue": "metric"
         },
         {
-            "displayName": "group-first",
-            "type": "boolean",
-            "example": false,
-            "section": "series"
-        },
-        {
             "displayName": "group-interpolate",
             "type": "enum",
             "section": "series",
