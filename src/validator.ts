@@ -897,6 +897,13 @@ export class Validator {
         this.currentSection = new TextRange(name, this.createRange(indent.length, name.length));
         this.parentSettings.delete(this.currentSection.text);
         this.setSectionToStackAndTree(this.currentSection);
+        /**
+         * If next section is [group] or [widget], value of 'type' setting must be dropped temporary to ensure correct
+         * validation of settings scope, see 102, note 2).
+         */
+        if (/group|widget/.test(name)) {
+            this.currentWidget = "";
+        }
     }
 
     /**
@@ -966,13 +973,19 @@ export class Validator {
     }
 
     /**
-     * Checks if setting is allowed in current widget type
+     * Checks if setting is allowed in current widget and adds error if necessary.
      * @param setting
      */
-    private notAllowedInWidget(setting: Setting): boolean {
-        return typeof setting.widget === "string"
-            && this.currentWidget
-            && setting.widget !== this.currentWidget;
+    private checkIsAllowedInWidget(setting: Setting) {
+        const notAllowed = typeof setting.widget === "string"
+                && this.currentWidget
+                && setting.widget !== this.currentWidget;
+        if (notAllowed) {
+            this.result.push(createDiagnostic(
+                    setting.textRange,
+                    `${setting.displayName} is not allowed in ${this.currentWidget} widget`, DiagnosticSeverity.Error
+            ));
+        }
     }
 
     /**
@@ -1040,19 +1053,18 @@ export class Validator {
         }
 
         if (setting.name === "type") {
-            this.currentWidget = this.match[3];
-            let reqs = ResourcesProviderBase.widgetRequirementsByType.get(this.currentWidget);
-            if (reqs && reqs.sections) {
-                this.sectionStack.setSectionRequirements("widget", reqs.sections);
+            /** [property] has a type too. */
+            if (this.currentSection && this.currentSection.text === "widget") {
+
+                this.currentWidget = this.match[3];
+                let reqs = ResourcesProviderBase.widgetRequirementsByType.get(this.currentWidget);
+                if (reqs && reqs.sections) {
+                    this.sectionStack.setSectionRequirements("widget", reqs.sections);
+                }
             }
         }
 
-        if (this.notAllowedInWidget(setting)) {
-            this.result.push(createDiagnostic(
-                setting.textRange,
-                `${setting.displayName} is not allowed in ${this.currentWidget} widget`, DiagnosticSeverity.Error,
-            ));
-        }
+        this.checkIsAllowedInWidget(setting);
 
         if (setting.multiple) {
             this.checkMultipleSetting(setting);
