@@ -679,14 +679,6 @@ Counter format.
   
 Disable column name formatting.  
   
-## panelsperiod  
-  
-Comma-separated list of aggregation periods to be used instead of default ones in `summarize-period` panel. 
-  
-## parsenumbers  
-    
-If `true`, column values are processed as numbers.  
-  
 ## formatsize  
   
 Format size setting values.  
@@ -1255,9 +1247,17 @@ Offset from the edge of the container in pixels.
   
 Display legend labels.  
   
+## panelsperiod  
+  
+Comma-separated list of aggregation periods to be used instead of default ones in `summarize-period` panel.  
+   
 ## parent  
   
 ID of parent vertex.  
+  
+## parsenumbers  
+  
+If `true`, column values are processed as numbers.  
   
 ## path  
   
