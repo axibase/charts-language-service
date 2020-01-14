@@ -815,7 +815,7 @@ Hide horizontal grid.
   
 ## icon  
   
-Name of the icon displayed in the cell.  
+Name of the icon displayed in the cell. Refer to [Blueprint](https://blueprintjs.com/docs/versions/1/#core/icons) icons.  
   
 ## iconalertexpression  
   

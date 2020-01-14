@@ -3437,7 +3437,7 @@
         {
             "displayName": "icon",
             "type": "string",
-            "example": "value > 1 ? 'exclamation-sign' : 'ok'",
+            "example": "value > 1 ? 'error' : 'tick'",
             "script": {
                 "returnValue": "string",
                 "fields": [
