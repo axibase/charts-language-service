@@ -53,7 +53,7 @@ export class Section {
     /**
      * Returns setting from this section by it's name.
      *
-     * @param name - Setting.name
+     * @param settingName - Setting.name
      * @returns Setting with name equal to `settingName`
      */
     public getSetting(settingName: string): Setting | undefined {
