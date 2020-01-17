@@ -749,9 +749,9 @@ Objective [function](https://axibase.com/docs/atsd/api/data/series/group.html#fu
   
 ## groupstatistic  
   
-List of [statistical functions](https://axibase.com/docs/charts/configuration/aggregators.html), applied to values with the same timestamp or within the same period, if the period is specified.
-Each function produces a separate grouped series.
-If one of the functions is set to `DETAIL`, its result contains the underlying series.  
+Assign a group statistic function to the series.
+
+See [Aggregators](https://axibase.com/docs/charts/configuration/aggregators.html) for more information. 
   
 ## grouptags  
   

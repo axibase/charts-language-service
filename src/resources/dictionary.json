@@ -3242,9 +3242,8 @@
         {
             "displayName": "group-statistic",
             "type": "enum",
-            "example": "sum, avg",
+            "example": "sum",
             "section": "series",
-            "multiple": true,
             "enum": [
                 "count",
                 "detail",
