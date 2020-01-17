@@ -750,7 +750,6 @@ Objective [function](https://axibase.com/docs/atsd/api/data/series/group.html#fu
 ## groupstatistic  
   
 Assign a group statistic function to the series.
-
 See [Aggregators](https://axibase.com/docs/charts/configuration/aggregators.html) for more information. 
   
 ## grouptags  
