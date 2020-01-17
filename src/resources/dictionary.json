@@ -3066,8 +3066,15 @@
             "section": "series"
         },
         {
+            "displayName": "group-interpolate-window-length",
+            "type": "integer",
+            "example": -1,
+            "section": "series"
+        },
+        {
             "displayName": "group-keys",
             "type": "string",
+            "multiple": true,
             "example": "entity, type",
             "section": "series"
         },
@@ -3235,10 +3242,12 @@
         {
             "displayName": "group-statistic",
             "type": "enum",
-            "example": "sum",
+            "example": "sum, avg",
             "section": "series",
+            "multiple": true,
             "enum": [
                 "count",
+                "detail",
                 "min",
                 "max",
                 "sum",
@@ -3248,15 +3257,9 @@
                 "standard_deviation",
                 "first",
                 "last",
-                "delta",
-                "counter",
-                "wtavg",
-                "wavg",
                 "min_value_time",
                 "max_value_time",
-                "threshold_count",
-                "threshold_duration",
-                "threshold_percent"
+                "median_abs_dev"
             ]
         },
         {

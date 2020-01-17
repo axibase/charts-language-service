@@ -711,8 +711,7 @@ Fill missing leading and trailing periods with `NEXT` and `PREVIOUS` values.
   
 ## groupkeys  
   
-Count messages by period with a comma-separated list of keys including `entity`, `type`, `source`, and custom tags.  
-Supported in server aggregation mode only: `server-aggregate = true`.  
+List of keys including `entity`, `type`, `source`, and custom tags to [count messages](https://axibase.com/docs/atsd/api/data/messages/stats.html#calculation-fields) by period.  
   
 ## grouplabel  
   
@@ -750,8 +749,9 @@ Objective [function](https://axibase.com/docs/atsd/api/data/series/group.html#fu
   
 ## groupstatistic  
   
-Assign a group statistic function to the series.  
-See [Aggregators](https://axibase.com/docs/charts/configuration/aggregators.html) for more information.  
+List of [statistical functions](https://axibase.com/docs/charts/configuration/aggregators.html), applied to values with the same timestamp or within the same period, if the period is specified.
+Each function produces a separate grouped series.
+If one of the functions is set to `DETAIL`, its result contains the underlying series.  
   
 ## grouptags  
   
