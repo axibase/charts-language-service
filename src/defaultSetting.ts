@@ -101,7 +101,7 @@ export class DefaultSetting {
      * Type of the widget were setting is applicable, for example,
      * gradient-count is applicable for gauge, treemap and calendar.
      */
-    public readonly widget: string[] | string = [];
+    public readonly widget: string[] | string;
     /**
      * String values that can assigned to the setting.
      * Do not prevent use other values, in comparison with enum.
@@ -184,10 +184,12 @@ export class DefaultSetting {
             result += `Allowed in section: ${this.section}  \n`;
         }
         let widgets: string[] | string = "all";
-        if (typeof this.widget !== "string" && this.widget.length > 0) {
-            widgets = this.widget.join(", ");
-        } else if (this.widget.length > 0) {
-            widgets = this.widget;
+        if (this.widget !== undefined) {
+            if (Array.isArray(this.widget)) {
+                widgets = this.widget.join(", ");
+            } else {
+                widgets = this.widget;
+            }
         }
         result += `Allowed in widgets: ${widgets}  \n`;
 

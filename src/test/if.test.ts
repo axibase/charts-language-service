@@ -1,19 +1,11 @@
-import { Position, Range } from "vscode-languageserver-types";
-import { createDiagnostic } from "../util";
-import { Test } from "./test";
-
-const elseIfError: string = "elseif has no matching if";
-const elseError: string = "else has no matching if";
-const endIfError: string = "endif has no matching if";
-const ifError: string = "if has no matching endif";
+import { deepStrictEqual } from "assert";
+import { createDiagnostic, createRange } from "../util";
+import { Validator } from "../validator";
 
 suite("If elseif else endif validation tests", () => {
-    const tests: Test[] = [
-        new Test(
-            "One correct if-elseif-endif",
-            `list servers = 'srv1', 'srv2'
+    test("One correct if-elseif-endif", () => {
+        const config = `list servers = 'srv1', 'srv2'
 for server in servers
-  [series]
     metric = temp
     entity = @{server}
     if server == 'srv1'
@@ -21,14 +13,15 @@ for server in servers
     elseif server == 'srv2'
       color = yellow
     endif
-endfor`,
-            [],
-        ),
-        new Test(
-            "One correct if-else-endif",
-            `list servers = 'srv1', 'srv2'
+endfor`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        const expected = [];
+        deepStrictEqual(actualDiagnostics, expected, `Config: \n${config}`);
+    });
+    test("One correct if-else-endif", () => {
+        const config = `list servers = 'srv1', 'srv2'
 for server in servers
-  [series]
     metric = temp
     entity = @{server}
     if server == 'srv1'
@@ -36,99 +29,80 @@ for server in servers
     else
       color = yellow
     endif
-endfor`,
-            [],
-        ),
-        new Test(
-            "One incorrect elseif-endif",
-            `list servers = 'srv1', 'srv2'
+endfor`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        const expected = [];
+        deepStrictEqual(actualDiagnostics, expected, `Config: \n${config}`);
+    });
+    test("One incorrect elseif-endif", () => {
+        const config = `list servers = 'srv1', 'srv2'
 for server in servers
-  [series]
     metric = temp
     entity = @{server}
     elseif server == 'srv1'
       color = yellow
     endif
-endfor`,
-            [
-                createDiagnostic(
-                    Range.create(5, "    ".length, 5, "    ".length + "elseif".length),
-                    elseIfError,
-                ),
-                createDiagnostic(
-                    Range.create(Position.create(7, "    ".length), Position.create(7, "    ".length + "endif".length)),
-                    endIfError,
-                )],
-        ),
-        new Test(
-            "One incorrect else-endif",
-            `list servers = 'srv1', 'srv2'
+endfor`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        const expected = [
+            createDiagnostic(createRange("    ".length, "elseif".length, 4), "elseif has no matching if"),
+            createDiagnostic(createRange("    ".length, "endif".length, 6), "endif has no matching if")
+        ];
+        deepStrictEqual(actualDiagnostics, expected, `Config: \n${config}`);
+    });
+    test("One incorrect else-endif", () => {
+        const config = `list servers = 'srv1', 'srv2'
 for server in servers
-  [series]
     metric = temp
     entity = @{server}
     else
       color = yellow
     endif
-endfor`,
-            [
-                createDiagnostic(
-                    Range.create(Position.create(5, "    ".length), Position.create(5, "    ".length + "else".length)),
-                    elseError,
-                ),
-                createDiagnostic(
-                    Range.create(Position.create(7, "    ".length), Position.create(7, "    ".length + "endif".length)),
-                    endIfError,
-                )],
-        ),
-        new Test(
-            "One incorrect else-endif with comment",
-            `list servers = 'srv1', 'srv2'
+endfor`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        const expected = [
+            createDiagnostic(createRange("    ".length, "else".length, 4), "else has no matching if"),
+            createDiagnostic(createRange("    ".length, "endif".length, 6), "endif has no matching if")
+        ];
+        deepStrictEqual(actualDiagnostics, expected, `Config: \n${config}`);
+    });
+    test("One incorrect else-endif with comment", () => {
+        const config = `list servers = 'srv1', 'srv2'
 for server in servers
-  [series]
     metric = temp
     entity = @{server}
     /* this is a comment */ else
       color = yellow
     endif /* a comment */ # too
-endfor`,
-            [
-                createDiagnostic(
-                    Range.create(
-                        5, "    /* this is a comment */ ".length, 5, "    /* this is a comment */ else".length,
-                    ),
-                    elseError,
-                ),
-                createDiagnostic(
-                    Range.create(Position.create(7, "    ".length), Position.create(7, "    ".length + "endif".length)),
-                    endIfError,
-                )],
-        ),
-        new Test(
-            "One incorrect if-else",
-            `list servers = 'srv1', 'srv2'
+endfor`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        const expected = [
+            createDiagnostic(createRange("    /* this is a comment */ ".length, "else".length, 4),
+                    "else has no matching if"),
+            createDiagnostic(createRange("    ".length, "endif".length, 6), "endif has no matching if")
+        ];
+        deepStrictEqual(actualDiagnostics, expected, `Config: \n${config}`);
+    });
+    test("One incorrect if-else", () => {
+        const config = `list servers = 'srv1', 'srv2'
 for server in servers
-  [series]
     metric = temp
     entity = @{server}
     if server == 'srv1'
       color = red
     else
       color = yellow
-endfor`,
-            [
-                createDiagnostic(
-                    Range.create(Position.create(9, 0), Position.create(9, "endfor".length)),
-                    "for has finished before if",
-                ),
-                createDiagnostic(
-                    Range.create(Position.create(5, "    ".length), Position.create(5, "    ".length + "if".length)),
-                    ifError,
-                )],
-        ),
-
-    ];
-
-    tests.forEach((test: Test) => { test.validationTest(); });
-
+endfor`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        const expected = [
+            createDiagnostic(createRange("".length, "endfor".length, 8), "for has finished before if"),
+            createDiagnostic(createRange("    ".length, "if".length, 4), "if has no matching endif")
+        ];
+        deepStrictEqual(actualDiagnostics, expected, `Config: \n${config}`);
+    });
 });

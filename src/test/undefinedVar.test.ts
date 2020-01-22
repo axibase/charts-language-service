@@ -1,6 +1,6 @@
+import { deepStrictEqual } from "assert";
 import { unknownToken } from "../messageUtil";
 import { createDiagnostic, createRange } from "../util";
-import { deepStrictEqual } from "assert";
 import { Validator } from "../validator";
 
 const baseConfig = `[configuration]
@@ -268,7 +268,7 @@ suite("Undefined variable in for loop", () => {
     });
 
     test("Correct CSV variable in for loop", () => {
-        const config = `[configuration] 
+        const config = `[configuration]
         csv metrics = 
             name,tag,format,sort,statistic,change
         endcsv
@@ -287,7 +287,7 @@ suite("Undefined variable in for loop", () => {
     });
 
     test("Undefined CSV variable in for loop", () => {
-        const config = `[configuration] 
+        const config = `[configuration]
         csv metrics_ = 
             name,tag,format,sort,statistic,change
         endcsv

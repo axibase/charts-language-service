@@ -13,7 +13,7 @@ const baseConfig = (timespan: string, summarizePeriod: string) => `[configuratio
       entity = nurswgvml006
       metric = cpu_busy`;
 
-suite("Calendar type specfifc validation rules", () => {
+suite("Calendar type specfic validation rules", () => {
     test("Incorrect: summarize-period is greater than timespan", () => {
         const config = baseConfig("1 hour", "1 day");
         const validator = new Validator(config);

@@ -1,7 +1,7 @@
 import { deepStrictEqual } from "assert";
 import { Formatter } from "../formatter";
 
-suite("Сomments formatting tests", () => {
+suite("Comments formatting tests", () => {
   test("Multiline comment alone", () => {
     const text = `/*
   one

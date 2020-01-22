@@ -1,126 +1,161 @@
-import { Diagnostic, DiagnosticSeverity, Position, Range } from "vscode-languageserver-types";
-import { settingsWithWhitespaces, unknownToken } from "../messageUtil";
-import { createDiagnostic } from "../util";
-import { Test } from "./test";
+import { deepStrictEqual } from "assert";
+import { DiagnosticSeverity } from "vscode-languageserver-types";
+import { createDiagnostic, createRange } from "../util";
+import { Validator } from "../validator";
 
+const unknownToken = "startime is unknown.";
 suite("Spelling checks", () => {
-    const tests: Test[] = [
-        new Test(
-            "starttime",
-            `[configuration]
-	start-time = 2018
-	startime = 2018`,
-            [
-                createDiagnostic(
-                    Range.create(Position.create(2, "	".length), Position.create(2, "	startime".length)),
-                    unknownToken("startime"),
-                ),
-
-            ],
-        ),
-        new Test(
-            "tags ignored",
-            `[tags]
-	startime = 2018`,
-            [],
-        ),
-        new Test(
-            "tags ignoring finished with new section",
-            `[tags]
+    test("starttime", () => {
+        const config = `[configuration]
+startime = 2018
+	[group]
+	[widget]
+	type = page`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        const expected = [
+            createDiagnostic(createRange(0, "startime".length, 1), unknownToken)
+        ];
+        deepStrictEqual(actualDiagnostics, expected, `Config: \n${config}`);
+    });
+    test("tags ignored", () => {
+        const config = `[configuration]
+	[group]
+	[widget]
+	type = page
+	[tags]
+	startime = 2018`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        const expected = [];
+        deepStrictEqual(actualDiagnostics, expected, `Config: \n${config}`);
+    });
+    test("tags ignoring finished with new section", () => {
+        const config = `[configuration]
+	[group]
+[tags]
 	startime = 2018
-[starttime]
-	startime = 2018`,
-            [
-                createDiagnostic(
-                    Range.create(Position.create(3, "	".length), Position.create(3, " ".length + "startime".length)),
-                    unknownToken("startime"),
-                )
-            ],
-        ),
-        new Test(
-            "tags ignoring finished with whitespace",
-            `[series]
+[widget]
+	type = page
+startime = 2018
+`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        const expected = [
+            createDiagnostic(createRange(0, "startime".length, 6), unknownToken)
+        ];
+        deepStrictEqual(actualDiagnostics, expected, `Config: \n${config}`);
+    });
+    test("tags ignoring finished with whitespace", () => {
+        const config = `[configuration]
+	[group]
+	[widget]
+	type = chart
+[series]
   entity = server
   metric = cpu_busy
   [tags]
     startime = 2018
 
-  startime = 2018`,
-            [createDiagnostic(
-                Range.create(Position.create(6, "  ".length), Position.create(6, "  ".length + "startime".length)),
-                unknownToken("startime"),
-            )],
-        ),
-        new Test(
-            "Space after section name",
-            // tslint:disable-next-line:no-trailing-whitespace
-            `[widget] 
-type = chart`,
-            [],
-        ),
-        new Test(
-            "Space before section name",
-            ` [widget]
-type = chart`,
-            [],
-        ),
-        new Test(
-            "Placeholders section contains valid items  ",
-            `url-parameters = ?queryName=EVTNOT&id=\${id}&sd=\${sd}&ed=\${ed}
-[placeholders]
-  id = none
-  sd = 0
-  ed = 0`,
-            [],
-        ),
-        new Test(
-            "Column setting",
-            `[widget]
+startime = 2018`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        const expected = [
+            createDiagnostic(createRange(0, "startime".length, 10), unknownToken)
+        ];
+        deepStrictEqual(actualDiagnostics, expected, `Config: \n${config}`);
+    });
+    test("Space after section name", () => {
+        // tslint:disable-next-line:no-trailing-whitespace
+        const config = `[configuration] 
+	[group]
+	[widget]
+	type = page
+`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        const expected = [];
+        deepStrictEqual(actualDiagnostics, expected, `Config: \n${config}`);
+    });
+    test("Space before section name", () => {
+        const config = ` [configuration]
+	[group]
+	[widget]
+	type = page
+`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        const expected = [];
+        deepStrictEqual(actualDiagnostics, expected, `Config: \n${config}`);
+    });
+    test("Column setting", () => {
+        const config = `[configuration]
+	[group]
+	[widget]
   type = table
   column-metric = null
-  column-value = null`,
-            [],
-        ),
-        new Test(
-            "Unclosed section tag",
-            `[series
-entity = nurswgvml006
-metric = cpu_iowait`,
-            [createDiagnostic(
-                Range.create(0, "[".length, 0, "[".length + "series".length),
-                "Section tag is unclosed",
-            )],
-        ),
-        new Test(
-            "Correct: no errors about spaces and custom names in settings of [properties]",
-            `[properties]
-            Data Center = Cuperito
-            Site = California
-            Function = SAP DB`,
-            [],
-        ),
-    ];
-
-    tests.forEach((test: Test) => {
-        test.validationTest();
+  column-value = null
+  [series]
+  entity = a
+  metric = b
+`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        const expected = [];
+        deepStrictEqual(actualDiagnostics, expected, `Config: \n${config}`);
     });
-
-});
-
-suite("Warn about setting that contains whitespaces", () => {
-    const settingsName: string = "vertical grid";
-    const expectedDiagnostic: Diagnostic = createDiagnostic(
-        Range.create(
-            Position.create(2, 0),
-            Position.create(2, settingsName.length)),
-        settingsWithWhitespaces(settingsName), DiagnosticSeverity.Warning);
-    [
-        new Test("should warn about setting with whitespaces",
-                 `[configuration]
-                 display-ticks = true
+    test("Correct: no errors about spaces and custom names in settings of [properties]", () => {
+        const config = `[configuration]
+	[group]
+	[widget]
+  type = table
+  [series]
+  entity = a
+  metric = b
+[properties]
+  Data Center = Cuperito
+  Site = California
+  Function = SAP DB
+`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        const expected = [];
+        deepStrictEqual(actualDiagnostics, expected, `Config: \n${config}`);
+    });
+    test("Unclosed section", () => {
+        const config = `[configuration]
+	[group]
+[widget]
+	type = chart
+[series
+entity = nurswgvml006
+metric = cpu_iowait
+`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        const expected = [
+            createDiagnostic(createRange("[".length, "series".length, 4), "Section tag is unclosed"),
+            createDiagnostic(createRange("[".length, "widget".length, 2), "Required section [series] is not declared.")
+        ];
+        deepStrictEqual(actualDiagnostics, expected, `Config: \n${config}`);
+    });
+    test("Warn about setting with whitespaces", () => {
+        const config = `[configuration]
 vertical grid = true
-max-range = 100
-            `,   [expectedDiagnostic],
-        ),
-    ].forEach((test: Test) => test.validationTest());
+	[group]
+	[widget]
+	type = chart
+[series]
+entity = nurswgvml006
+metric = cpu_iowait
+`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        const expected = [
+            createDiagnostic(createRange(0, "vertical grid".length, 1),
+                    `The setting "vertical grid" contains whitespaces.\nReplace spaces with hyphens.`,
+                    DiagnosticSeverity.Warning)
+        ];
+        deepStrictEqual(actualDiagnostics, expected, `Config: \n${config}`);
+    });
 });

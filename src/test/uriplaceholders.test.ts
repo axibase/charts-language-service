@@ -1,7 +1,7 @@
+import assert = require("assert");
 import { DiagnosticSeverity, Range } from "vscode-languageserver-types";
 import { createDiagnostic } from "../util";
 import { Validator } from "../validator";
-import assert = require("assert");
 
 suite("URL placeholders", () => {
     test("Validation is successful if url placeholders are resolved", () => {

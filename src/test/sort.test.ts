@@ -1,8 +1,8 @@
 import assert = require("assert");
 import { Diagnostic } from "vscode-languageserver-types";
+import { supportedStatFunctions, supportedUnits } from "../messageUtil";
 import { createDiagnostic, createRange } from "../util";
 import { Validator } from "../validator";
-import { supportedStatFunctions, supportedUnits } from "../messageUtil";
 
 const baseConfig = (setting: string, type: string = "chart") => `[configuration]
   entity = d
