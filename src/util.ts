@@ -142,15 +142,10 @@ export function isEmpty(str: string): boolean {
  */
 export function repetitionDiagnostic(range: Range, declaredAbove: Setting, current: Setting): Diagnostic {
     const diagnosticSeverity: DiagnosticSeverity =
-            (["script", "thresholds", "colors"].includes(current.name)) ?
+            (["thresholds", "colors"].includes(current.name)) ?
                     DiagnosticSeverity.Warning : DiagnosticSeverity.Error;
     let message: string;
     switch (current.name) {
-        case "script": {
-            message =
-                    "Multi-line scripts are deprecated.\nGroup multiple scripts into blocks:\nscript\nendscript";
-            break;
-        }
         case "thresholds": {
             message = `Replace multiple \`thresholds\` settings with one, for example:
 thresholds = 0

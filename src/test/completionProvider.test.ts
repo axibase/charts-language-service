@@ -1,30 +1,33 @@
 import { deepStrictEqual, strictEqual } from "assert";
 import { CompletionItem, Position, TextDocument } from "vscode-languageserver-types";
 import { CompletionProvider } from "../completionProvider";
-import { Test } from "./test";
 
-suite("CompletionProvider tests", () => {
-    [
-        new Test(
-            "Correct: completion using possibleValues",
-            `type = `,
-            ["chart", "gauge", "treemap", "bar", "calendar", "histogram", "box",
-                "pie", "graph", "text", "page", "console", "table", "property"],
-            Position.create(0, "type = ".length),
-        ),
-        new Test(
-            "Correct: completion using example",
-            `url = `,
-            ["http://atsd_hostname:port"],
-            Position.create(0, "url = ".length),
-        ),
-        new Test(
-            "Correct: completion using example and script",
-            `alert-style = `,
-            ["stroke: red; stroke-width: 2", "alert"],
-            Position.create(0, "alert-style = ".length),
-        )
-    ].forEach((test: Test): void => test.completionTest());
+suite("General CompletionProvider tests", () => {
+    test("Correct: completion using possibleValues", () => {
+        const text = `type = `;
+        const expected = ["chart", "gauge", "treemap", "bar", "calendar", "histogram", "box",
+                          "pie", "graph", "text", "page", "console", "table", "property"];
+        const document: TextDocument = TextDocument.create("test", "axibasecharts", 1, text);
+        const cp: CompletionProvider = new CompletionProvider(document, Position.create(0, "type = ".length));
+        const actual: string[] = cp.getCompletionItems().map(i => i.insertText);
+        deepStrictEqual(actual, expected);
+    });
+    test("Correct: completion using example", () => {
+        const text = `url = `;
+        const expected = ["http://atsd_hostname:port"];
+        const document: TextDocument = TextDocument.create("test", "axibasecharts", 1, text);
+        const cp: CompletionProvider = new CompletionProvider(document, Position.create(0, "url = ".length));
+        const actual: string[] = cp.getCompletionItems().map(i => i.insertText);
+        deepStrictEqual(actual, expected);
+    });
+    test("Correct: completion using example and script", () => {
+        const text = `alert-style = `;
+        const expected = ["stroke: red; stroke-width: 2", "alert"];
+        const document: TextDocument = TextDocument.create("test", "axibasecharts", 1, text);
+        const cp: CompletionProvider = new CompletionProvider(document, Position.create(0, "alert-style = ".length));
+        const actual: string[] = cp.getCompletionItems().map(i => i.insertText);
+        deepStrictEqual(actual, expected);
+    });
 });
 
 /**

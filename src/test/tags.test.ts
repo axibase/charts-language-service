@@ -1,115 +1,77 @@
-import { Diagnostic, DiagnosticSeverity, Position, Range } from "vscode-languageserver-types";
-import {
-    deprecatedTagSection,
-    settingNameInTags,
-    tagNameWithWhitespaces,
-} from "../messageUtil";
-import { createDiagnostic } from "../util";
-import { Test } from "./test";
+import { deepStrictEqual } from "assert";
+import { DiagnosticSeverity } from "vscode-languageserver-types";
+import { createDiagnostic, createRange } from "../util";
+import { Validator } from "../validator";
 
 const errorMessage: (setting: string) => string = (setting: string): string =>
-    `${setting} is interpreted as a series tag and is sent to the\nserver. ` +
-    `Move the setting outside of the [tags] section or
+        `${setting} is interpreted as a series tag and is sent to the\nserver. ` +
+        `Move the setting outside of the [tags] section or
 enclose in double-quotes to send it to the server without\na warning.`;
 
 suite("Warn about setting interpreted as a tag", () => {
-    const tests: Test[] = [
-        new Test(
-            "Is not double-quoted",
-            `[tags]
-	starttime = 20 second
-	startime = 30 minute`,
-            [createDiagnostic(
-                Range.create(Position.create(1, "	".length), Position.create(1, "	".length + "starttime".length)),
-                errorMessage("starttime"), DiagnosticSeverity.Information,
-            )],
-        ),
-        new Test(
-            "Is double-quoted",
-            `[tags]
-	"starttime" = 20 second
-	startime = 30 minute`,
-            [],
-        ),
-        new Test(
-            "Is upper-case with dash",
-            `[tags]
-	stArt-time = 20 second
-	startime = 30 minute`,
-            [createDiagnostic(
-                Range.create(Position.create(1, "	".length), Position.create(1, "	".length + "stArt-time".length)),
-                errorMessage("start-time"), DiagnosticSeverity.Information,
-            )],
-        ),
-        new Test(
-            "Error is not raised if the setting is not allowed in the widget",
-            `[widget]
-  type = box
-  entity = test
-  metric = cpu_busy
-  [series]
-    display = false
-    [tags]
-      Disk_Name = *
-      Parent = *`,
-            [],
-        ),
-    ];
-
-    tests.forEach((test: Test) => {
-        test.validationTest();
+    test("Is not double-quoted", () => {
+        const config = `[configuration]
+	[group]
+	[widget]
+	type = page
+[tags]
+starttime = 20 second
+	startime = 30 minute`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        const expected = [
+            createDiagnostic(createRange(0, "starttime".length, 5),
+                    errorMessage("starttime"), DiagnosticSeverity.Information)
+        ];
+        deepStrictEqual(actualDiagnostics, expected, `Config: \n${config}`);
     });
-
+    test("Is double-quoted", () => {
+        const config = `[configuration]
+	[group]
+	[widget]
+	type = page
+[tags]
+	"starttime" = 20 second
+	startime = 30 minute`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        const expected = [];
+        deepStrictEqual(actualDiagnostics, expected, `Config: \n${config}`);
+    });
+    test("Is upper-case with dash", () => {
+        const config = `[configuration]
+	[group]
+	[widget]
+	type = page
+[tags]
+stArt-time = 20 second
+	startime = 30 minute`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        const expected = [createDiagnostic(createRange(0, "start-time".length, 5),
+                errorMessage("start-time"), DiagnosticSeverity.Information)
+        ];
+        deepStrictEqual(actualDiagnostics, expected, `Config: \n${config}`);
+    });
 });
 
-suite("Warn about deprecated [tag] section", () => {
-    const expectedDiagnostic: Diagnostic = createDiagnostic(
-        Range.create(Position.create(0, 1),
-            Position.create(0, 4)),
-        deprecatedTagSection, DiagnosticSeverity.Warning,
-    );
-    [
-        new Test("Deprecated [tag]",
-            `[tag]
-                    name = a
-                    value = b
-            `, [expectedDiagnostic]),
-    ].forEach((test: Test) => test.validationTest());
-});
-
-suite("Warn about tag keys with whitespaces that not wrapped in double quotes", () => {
-    const expectedDiagnostic: Diagnostic =
-        createDiagnostic(Range.create(Position.create(1, 2),
-            Position.create(1, 11)),
-            tagNameWithWhitespaces("two words"),
-            DiagnosticSeverity.Warning);
-    [
-        new Test("Tag not wrapped in double-quote",
-            `[tags]
-  two words  = a
-  "two words" = b
-            `, [expectedDiagnostic]),
-    ].forEach((test: Test) => test.validationTest());
-});
-
-suite("Information about settingName in tags", () => {
-    const expectedDiagnostic: Diagnostic =
-        createDiagnostic(Range.create(Position.create(1, 0),
-            Position.create(1, 5)),
-            settingNameInTags("value"),
-            DiagnosticSeverity.Information);
-    [
-        new Test("setting as tag value in [tag] section",
-            `[tags]
-value = key`,
-            [expectedDiagnostic]),
-        new Test("setting name is correct for tag section",
-            `[tag]
-value = correct`,
-            [createDiagnostic(
-                Range.create(Position.create(0, 1),
-                    Position.create(0, 4)),
-                deprecatedTagSection, DiagnosticSeverity.Warning,
-            )]),
-    ].forEach((test: Test) => test.validationTest());
+suite("Deprecated [tag] section", () => {
+    test("Warning", () => {
+        const config = `[configuration]
+	[group]
+	[widget]
+	type = chart
+	[series]
+	entity = a
+	metric = b
+[tag]
+  name = a
+  value = b`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        const expected = [createDiagnostic(createRange("[".length, "tag".length, 7),
+                "Section [tag] is deprecated, use [tags] instead", DiagnosticSeverity.Warning)
+        ];
+        deepStrictEqual(actualDiagnostics, expected, `Config: \n${config}`);
+    });
 });

@@ -1,70 +1,66 @@
-import { Position, Range } from "vscode-languageserver-types";
-import { createDiagnostic } from "../util";
-import { Test } from "./test";
+import { deepStrictEqual } from "assert";
+import { createDiagnostic, createRange } from "../util";
+import { Validator } from "../validator";
 
 suite("Unmatched endfor tests", () => {
-    const tests: Test[] = [
-        new Test(
-            "One correct loop",
-            `list servers = 'srv1', 'srv2'
+    test("One correct loop", () => {
+        const config = `list servers = 'srv1', 'srv2'
 for server in servers
    do something
-endfor`,
-            [],
-        ),
-        new Test(
-            "Two correct loops",
-            `list servers = 'srv1', 'srv2'
+endfor`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        deepStrictEqual(actualDiagnostics, [], `Config: \n${config}`);
+    });
+    test("Two correct loops", () => {
+        const config = `list servers = 'srv1', 'srv2'
 for server in servers
    do something
 endfor
 for server in servers
    do something
-endfor`,
-            [],
-        ),
-        new Test(
-            "One incorrect loop",
-            `list servers = 'srv1', 'srv2'
+endfor`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        deepStrictEqual(actualDiagnostics, [], `Config: \n${config}`);
+    });
+    test("One incorrect loop", () => {
+        const config = `list servers = 'srv1', 'srv2'
 for server in servers
-   do something`,
-            [createDiagnostic(
-                Range.create(Position.create(1, 0), Position.create(1, "for".length)),
-                "for has no matching endfor",
-            )],
-        ),
-        new Test(
-            "Two incorrect loops",
-            `list servers = 'srv1', 'srv2'
-for server in servers
-   do something
-for srv in servers
-   do something`,
-            [
-                createDiagnostic(
-                    Range.create(Position.create(1, 0), Position.create(1, "for".length)),
-                    "for has no matching endfor",
-                ),
-                createDiagnostic(
-                    Range.create(Position.create(3, 0), Position.create(3, "for".length)),
-                    "for has no matching endfor",
-                )],
-        ),
-        new Test(
-            "One incorrect loop, one correct loop",
-            `list servers = 'srv1', 'srv2'
+   do something`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        const expected = [
+            createDiagnostic(createRange(0, "for".length, 1), "for has no matching endfor")
+        ];
+        deepStrictEqual(actualDiagnostics, expected, `Config: \n${config}`);
+    });
+    test("Two incorrect loops", () => {
+        const config = `list servers = 'srv1', 'srv2'
 for server in servers
    do something
 for srv in servers
+   do something`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        const expected = [
+            createDiagnostic(createRange(0, "for".length, 1), "for has no matching endfor"),
+            createDiagnostic(createRange(0, "for".length, 3), "for has no matching endfor")
+        ];
+        deepStrictEqual(actualDiagnostics, expected, `Config: \n${config}`);
+    });
+    test("One incorrect loop, one correct loop", () => {
+        const config = `list servers = 'srv1', 'srv2'
+for server in servers
    do something
-endfor`,
-            [createDiagnostic(
-                Range.create(Position.create(1, 0), Position.create(1, "for".length)),
-                "for has no matching endfor",
-            )],
-        ),
-    ];
-
-    tests.forEach((test: Test) => { test.validationTest(); });
-
+for srv in servers
+   do something
+endfor`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        const expected = [
+            createDiagnostic(createRange(0, "for".length, 1), "for has no matching endfor")
+        ];
+        deepStrictEqual(actualDiagnostics, expected, `Config: \n${config}`);
+    });
 });

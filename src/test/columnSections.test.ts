@@ -1,5 +1,4 @@
 import assert = require("assert");
-import { createDiagnostic, createRange } from "../util";
 import { Validator } from "../validator";
 
 const baseConfig = (setting: string) => `[configuration]
@@ -14,7 +13,7 @@ const baseConfig = (setting: string) => `[configuration]
 
 suite("[column] section tests", () => {
     /**
-     * Here is a temporary warning supression. Now we cannot refer setting to parent section.
+     * Here is a temporary warning suppression. Now we cannot refer setting to parent section.
      * Probably, this will be changed, when syntax tree is build.
      */
     test("Correct: no warning for 'columns' after [column]", () => {
