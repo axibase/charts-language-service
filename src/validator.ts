@@ -954,7 +954,7 @@ export class Validator {
             if (this.isAllowedWidget(setting)) {
                 this.result.push(createDiagnostic(
                     this.createRange(indent.length, name.length),
-                    settingNameInTags(name), DiagnosticSeverity.Information,
+                    settingNameInTags(name), DiagnosticSeverity.Warning,
                 ));
             }
         }

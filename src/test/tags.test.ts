@@ -21,7 +21,7 @@ starttime = 20 second
         const actualDiagnostics = validator.lineByLine();
         const expected = [
             createDiagnostic(createRange(0, "starttime".length, 5),
-                    errorMessage("starttime"), DiagnosticSeverity.Information)
+                    errorMessage("starttime"), DiagnosticSeverity.Warning)
         ];
         deepStrictEqual(actualDiagnostics, expected, `Config: \n${config}`);
     });
@@ -49,7 +49,7 @@ stArt-time = 20 second
         const validator = new Validator(config);
         const actualDiagnostics = validator.lineByLine();
         const expected = [createDiagnostic(createRange(0, "start-time".length, 5),
-                errorMessage("start-time"), DiagnosticSeverity.Information)
+                errorMessage("start-time"), DiagnosticSeverity.Warning)
         ];
         deepStrictEqual(actualDiagnostics, expected, `Config: \n${config}`);
     });
