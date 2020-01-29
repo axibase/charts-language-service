@@ -30,7 +30,7 @@ suite("[column] section tests", () => {
         [widget]
           type = console
           [column]
-            summary-text = row.date`;
+            value = row.date`;
         const validator = new Validator(config);
         const actual = validator.lineByLine();
         const expected = [];

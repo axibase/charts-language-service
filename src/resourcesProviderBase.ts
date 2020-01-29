@@ -102,17 +102,7 @@ export abstract class ResourcesProviderBase {
                 settings: [
                     [settingsMap.get("type")!],
                 ],
-            }],
-            ["dropdown", {
-                settings: [
-                    [settingsMap.get("onchange")!, settingsMap.get("changefield")!],
-                ],
-            }],
-            ["node", {
-                settings: [
-                    [settingsMap.get("id")],
-                ],
-            }],
+            }]
         ]);
     }
 

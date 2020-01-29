@@ -117,13 +117,6 @@ const checks: Map<string, Requirement> = new Map<string, Requirement>([
             requiredSetting: "caption"
         }],
     [
-        "summary-text", {
-            conditions: [
-                requiredCondition("type", ["console"])
-            ],
-            requiredSetting: "collapsible"
-        }],
-    [
         "forecast-baseline-function", {
             conditions: [
                 requiredCondition("type", ["chart"])
