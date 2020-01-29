@@ -1,4 +1,3 @@
-import alwaysRequiredForSeries from "./presenceValidation/alwaysRequiredForSeries";
 import groupPlaceSettings from "./presenceValidation/groupPlaceSettings";
 import iconSettings from "./presenceValidation/iconSettings";
 import metricsAndEvaluateExpr from "./presenceValidation/metricsAndEvaluateExpr";
@@ -8,7 +7,9 @@ import widgetsDimensions from "./presenceValidation/noUselessSettings/widgetsDim
 import requiredForColumn from "./presenceValidation/requiredForColumn";
 import requiredForDropdown from "./presenceValidation/requiredForDropdown";
 import requiredForNode from "./presenceValidation/requiredForNode";
+import requiredForSeriesAlways from "./presenceValidation/requiredForSeriesAlways";
 import requiredForSeriesOnConditions from "./presenceValidation/requiredForSeriesOnConditions";
+import requiredForWidget from  "./presenceValidation/requiredForWidget";
 import { Rule } from "./utils/interfaces";
 import addMetaAndLabelFormat from "./valueValidation/addMetaAndLabelFormat";
 import calendarTimespan from "./valueValidation/calendarTimespan";
@@ -53,7 +54,7 @@ const rulesBySection: Map<string, Rule[]> = new Map<string, Rule[]>([
             iconSettings,
             metricsAndEvaluateExpr,
             noUselessSettingsForSeries,
-            alwaysRequiredForSeries,
+            requiredForSeriesAlways,
             requiredForSeriesOnConditions
         ]
     ],
@@ -67,7 +68,8 @@ const rulesBySection: Map<string, Rule[]> = new Map<string, Rule[]>([
             sort,
             summarizePeriodTimespan,
             widgetsDimensions,
-            addMetaAndLabelFormat
+            addMetaAndLabelFormat,
+            requiredForWidget
         ]
     ],
     [

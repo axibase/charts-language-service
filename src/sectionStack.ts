@@ -1,5 +1,4 @@
 import { Diagnostic, DiagnosticSeverity, Position, Range } from "vscode-languageserver-types";
-import { LanguageService } from "./languageService";
 import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { Setting } from "./setting";
 import { TextRange } from "./textRange";
@@ -17,8 +16,7 @@ class SectionStackNode {
     public readonly settings: Setting[] = [];
 
     public constructor(public range: TextRange) {
-        const settingsMap = LanguageService.getResourcesProvider().settingsMap;
-        const deps = ResourcesProviderBase.getRequiredSectionSettingsMap(settingsMap).get(this.name);
+        const deps = ResourcesProviderBase.getRequiredSectionSettingsMap().get(this.name);
         if (deps && deps.sections) {
             this.setRequiredSections(deps.sections);
         }

@@ -3,7 +3,6 @@ import { DefaultSetting } from "./defaultSetting";
 import { Setting } from "./setting";
 
 interface SectionRequirements {
-    settings?: DefaultSetting[][];
     sections?: string[][];
 }
 
@@ -77,13 +76,9 @@ export abstract class ResourcesProviderBase {
     ]);
 
     /**
-     * Map of required settings for each section and their "aliases".
-     * For instance, `series` requires `entity`, but `entities` is also allowed.
-     * Additionally, `series` requires `metric`, but `table` with `attribute` is also ok
+     * Returns map of required sections for each section.
      */
-    public static getRequiredSectionSettingsMap(
-        settingsMap: Map<string, DefaultSetting>
-    ): Map<string, SectionRequirements> {
+    public static getRequiredSectionSettingsMap(): Map<string, SectionRequirements> {
         return new Map<string, SectionRequirements>([
             ["configuration", {
                 sections: [
@@ -98,10 +93,7 @@ export abstract class ResourcesProviderBase {
             ["widget", {
                 sections: [
                     ["series"],
-                ],
-                settings: [
-                    [settingsMap.get("type")!],
-                ],
+                ]
             }]
         ]);
     }
