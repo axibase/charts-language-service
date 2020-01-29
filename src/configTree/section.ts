@@ -86,6 +86,25 @@ export class Section {
     }
 
     /**
+     * Searches setting in neighbour sections, matching specified name.
+     *
+     * @param settingName - Setting.name
+     * @param neighbourName - Name of section, in which setting is need to be searched
+     * @returns Setting with name equal to `settingName`
+     */
+    public getSettingFromNeighbours(settingName: string, neighbourName: string): Setting | undefined {
+        const neighbours = this.parent.children;
+        for (const neighbour of neighbours) {
+            if (neighbour.name === neighbourName) {
+                const targetSetting: Setting = neighbour.getSetting(settingName);
+                if (targetSetting !== undefined) {
+                    return targetSetting;
+                }
+            }
+        }
+    }
+
+    /**
      * Returns true if section passes all of conditions, otherwise returns false.
      *
      * @param conditions - Array of conditions, for which section must be checked

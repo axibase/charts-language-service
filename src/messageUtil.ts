@@ -69,3 +69,5 @@ export const dateErrorMsg: MessageFactoryMethod = (wrongValue: string, name: str
   `Incorrect date template: ${wrongValue}. ${name} must be a date or calendar expression, for example:
  * current_hour + 1 minute
  * 2019-04-01T10:15:00Z`;
+
+export const requiredIsMissed: MessageFactoryMethod = (settingName: string): string => `${settingName} is required`;

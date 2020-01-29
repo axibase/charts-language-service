@@ -25,7 +25,7 @@ import {
     TAG_REGEXP,
     VAR_CLOSE_BRACKET,
     VAR_OPEN_BRACKET,
-    VAR_TEMPLATE_REGEX,
+    VAR_TEMPLATE_REGEX
 } from "./regExpressions";
 import { ResourcesProviderBase } from "./resourcesProviderBase";
 import { SectionStack } from "./sectionStack";
@@ -194,16 +194,24 @@ export class Validator {
         /**
          * Apply checks, which require walking through the ConfigTree.
          */
-        let rulesDiagnostics: Diagnostic[] = ConfigTreeValidator.validate(this.configTree);
+        const rulesDiagnostics: Diagnostic[] = ConfigTreeValidator.validate(this.configTree);
         /**
          * Ugly hack. Removes duplicates from rulesDiagnostics.
          */
-        rulesDiagnostics = [
-            ...rulesDiagnostics.reduce(
-                ((allItems, item) => allItems.has(item.range) ? allItems : allItems.set(item.range, item)),
-                new Map()).values()
-        ];
-        this.result.push(...rulesDiagnostics);
+        const unique = [];
+        rulesDiagnostics.reduce(
+                (allItems, item) => {
+                    if (allItems.has(item.range)) {
+                        const similarItem = allItems.get(item.range);
+                        if (similarItem.message === item.message) {
+                            return allItems;
+                        }
+                    }
+                    unique.push(item);
+                    return allItems.set(item.range, item);
+                },
+                new Map());
+        this.result.push(...unique);
         return this.result.concat(this.keywordHandler.diagnostics);
     }
 
@@ -486,17 +494,6 @@ export class Validator {
         const notFound: string[] = [];
         required: for (const options of this.requiredSettings) {
             const displayName: string = options[0].displayName;
-            if (displayName === "metric") {
-                const columnMetric: string | undefined = this.settingValues.get("columnmetric");
-                const columnValue: string | undefined = this.settingValues.get("columnvalue");
-                if (columnMetric === "null" && columnValue === "null") {
-                    continue;
-                }
-                const changeField: string | undefined = this.settingValues.get("changefield");
-                if (/metric/.test(changeField)) {
-                    continue;
-                }
-            }
             const optionsNames = options.map(s => s.name);
             if (isAnyInArray(optionsNames, this.currentSettings.map(s => s.name))) {
                 continue;

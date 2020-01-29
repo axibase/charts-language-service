@@ -126,7 +126,7 @@ endfor`;
         const expected = [];
         deepStrictEqual(actualDiagnostics, expected, `Config: \n${config}`);
     });
-    test("Setting is specified only in if-elseif statements", () => {
+    test.skip("Setting is specified only in if-elseif statements", () => {
         const config = `[configuration]
 [group]
    type = chart
@@ -172,21 +172,6 @@ endfor`;
 [series]
   entities = server
   metric = cpu_busy`;
-        const validator = new Validator(config);
-        const actualDiagnostics = validator.lineByLine();
-        const expected = [];
-        deepStrictEqual(actualDiagnostics, expected, `Config: \n${config}`);
-    });
-    test("Do not raise error if both column-metric and column-value are null", () => {
-        const config = `[configuration]
-[group]
-   type = chart
-[widget]
-  type = table
-  column-metric = null
-  column-value = null
-  [series]
-    entity = a`;
         const validator = new Validator(config);
         const actualDiagnostics = validator.lineByLine();
         const expected = [];
@@ -251,110 +236,6 @@ endfor`;
     [series]
       entity-expression = entity-1, e-2
       metric = metric-1`;
-        const validator = new Validator(config);
-        const actualDiagnostics = validator.lineByLine();
-        const expected = [];
-        deepStrictEqual(actualDiagnostics, expected, `Config: \n${config}`);
-    });
-});
-
-suite("Required: [series] declared inside if", () => {
-    test("Correct: metric and entity are declared in [series], no [tags]", () => {
-        const config = `[configuration]
-    [group]
-      [widget]
-        type = bar
-    if "a" == "a"
-        [series]
-          entity = a
-          metric = b
-    endif`;
-        const validator = new Validator(config);
-        const actualDiagnostics = validator.lineByLine();
-        const expected = [];
-        deepStrictEqual(actualDiagnostics, expected, `Config: \n${config}`);
-    });
-    test("Correct: metric and entity are declared in [series] with [tags]", () => {
-        const config = `[configuration]
-    [group]
-      [widget]
-        type = bar
-    if "a" == "a"
-        [series]
-          entity = a
-          metric = b
-          [tags]
-              a = b
-    endif`;
-        const validator = new Validator(config);
-        const actualDiagnostics = validator.lineByLine();
-        const expected = [];
-        deepStrictEqual(actualDiagnostics, expected, `Config: \n${config}`);
-    });
-    test("Incorrect: no metric, no [tags]", () => {
-        const config = `[configuration]
-    [group]
-      [widget]
-        type = bar
-    if "a" == "a"
-[series]
-   entity = a
-    endif`;
-        const validator = new Validator(config);
-        const actualDiagnostics = validator.lineByLine();
-        const expected = [
-            createDiagnostic(createRange("[".length, "series".length, 5), "metric is required")
-        ];
-        deepStrictEqual(actualDiagnostics, expected, `Config: \n${config}`);
-    });
-    test("Incorrect: no metric, [tags] at EOF - expected one error", () => {
-        const config = `[configuration]
-    [group]
-      [widget]
-        type = bar
-    if "a" == "a"
-[series]
-          entity = a
-        [tags]
-          a = b
-    endif`;
-        const validator = new Validator(config);
-        const actualDiagnostics = validator.lineByLine();
-        const expected = [
-            createDiagnostic(createRange("[".length, "series".length, 5), "metric is required")
-        ];
-        deepStrictEqual(actualDiagnostics, expected, `Config: \n${config}`);
-    });
-    test("Incorrect: no metric, [tags] - expected one error", () => {
-        const config = `[configuration]
-    [group]
-      [widget]
-        type = bar
-    if "a" == "a"
-[series]
-          entity = a
-        [tags]
-          a = b
-    endif`;
-        const validator = new Validator(config);
-        const actualDiagnostics = validator.lineByLine();
-        const expected = [
-            createDiagnostic(createRange("[".length, "series".length, 5), "metric is required")
-        ];
-        deepStrictEqual(actualDiagnostics, expected, `Config: \n${config}`);
-    });
-});
-
-suite("Required: No metric is required if change-field value contains \"metric\"", () => {
-    test("Correct, no errors should be raised", () => {
-        const config = `[configuration]
-    entity = atsd
-  [group]
-    [widget]
-      type = chart
-  [dropdown]
-    change-field = metric
-  [series]`;
         const validator = new Validator(config);
         const actualDiagnostics = validator.lineByLine();
         const expected = [];
