@@ -5,7 +5,10 @@ import metricsAndEvaluateExpr from "./presenceValidation/metricsAndEvaluateExpr"
 import { noUselessSettingsForSeries, noUselessSettingsForWidget } from "./presenceValidation/noUselessSettings";
 import simultaneousTimeSettings from "./presenceValidation/noUselessSettings/simultaneousTimeSettings";
 import widgetsDimensions from "./presenceValidation/noUselessSettings/widgetsDimensions";
-import requiredSettings from "./presenceValidation/requiredSettings";
+import requiredForColumn from "./presenceValidation/requiredForColumn";
+import requiredForDropdown from "./presenceValidation/requiredForDropdown";
+import requiredForNode from "./presenceValidation/requiredForNode";
+import requiredForSeriesOnConditions from "./presenceValidation/requiredForSeriesOnConditions";
 import { Rule } from "./utils/interfaces";
 import addMetaAndLabelFormat from "./valueValidation/addMetaAndLabelFormat";
 import calendarTimespan from "./valueValidation/calendarTimespan";
@@ -24,6 +27,21 @@ import widgetsPerRow from "./valueValidation/widgetsPerRow";
 
 const rulesBySection: Map<string, Rule[]> = new Map<string, Rule[]>([
     [
+        "column", [
+            requiredForColumn
+        ]
+    ],
+    [
+        "dropdown", [
+            requiredForDropdown
+        ]
+    ],
+    [
+        "node", [
+            requiredForNode
+        ]
+    ],
+    [
         "series", [
             colorsThresholds,
             forecastAutoCountAndEigentripleLimit,
@@ -35,8 +53,8 @@ const rulesBySection: Map<string, Rule[]> = new Map<string, Rule[]>([
             iconSettings,
             metricsAndEvaluateExpr,
             noUselessSettingsForSeries,
-            requiredSettings,
-            alwaysRequiredForSeries
+            alwaysRequiredForSeries,
+            requiredForSeriesOnConditions
         ]
     ],
     [
