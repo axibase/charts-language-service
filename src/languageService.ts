@@ -1,4 +1,4 @@
-import { Position, TextDocument, FormattingOptions } from "vscode-languageserver-types";
+import { FormattingOptions, Position, TextDocument } from "vscode-languageserver-types";
 import { CompletionProvider } from "./completionProvider";
 import { Formatter } from "./formatter";
 import { HoverProvider } from "./hoverProvider";

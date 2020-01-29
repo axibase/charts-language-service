@@ -15,21 +15,6 @@ import { Requirement, Rule } from "../utils/interfaces";
  */
 const checks: Map<string, Requirement> = new Map<string, Requirement>([
     [
-        "colors", {
-            /**
-             * If "colors" is specified:
-             *  1) check that:
-             *      1) "type" is "calendar", "treemap " or "gauge";
-             *      2) "mode" is "half" or "default";
-             *  2) require "thresholds" (try to search in tree and create Diagnostic if neccessary).
-             */
-            conditions: [
-                requiredCondition("type", ["calendar", "treemap", "gauge"]),
-                requiredCondition("mode", ["half", "default"])
-            ],
-            requiredSetting: "thresholds"
-        }],
-    [
         "gradient-count", {
             requiredSetting: "thresholds"
         }],

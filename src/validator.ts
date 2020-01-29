@@ -4,7 +4,6 @@ import { ConfigTree } from "./configTree/configTree";
 import { ConfigTreeValidator } from "./configTree/configTreeValidator";
 import { DefaultSetting } from "./defaultSetting";
 import { KeywordHandler } from "./keywordHandler";
-import { LanguageService } from "./languageService";
 import {
     deprecatedTagSection,
     getCsvErrorMessage,
@@ -195,23 +194,7 @@ export class Validator {
          * Apply checks, which require walking through the ConfigTree.
          */
         const rulesDiagnostics: Diagnostic[] = ConfigTreeValidator.validate(this.configTree);
-        /**
-         * Ugly hack. Removes duplicates from rulesDiagnostics.
-         */
-        const unique = [];
-        rulesDiagnostics.reduce(
-                (allItems, item) => {
-                    if (allItems.has(item.range)) {
-                        const similarItem = allItems.get(item.range);
-                        if (similarItem.message === item.message) {
-                            return allItems;
-                        }
-                    }
-                    unique.push(item);
-                    return allItems.set(item.range, item);
-                },
-                new Map());
-        this.result.push(...unique);
+        this.result.push(...rulesDiagnostics);
         return this.result.concat(this.keywordHandler.diagnostics);
     }
 
@@ -479,17 +462,6 @@ export class Validator {
              */
             this.currentSettings = this.previousSettings;
             this.currentSection = this.previousSection;
-        }
-        const settingsMap = LanguageService.getResourcesProvider().settingsMap;
-        const sectionRequirements = ResourcesProviderBase.getRequiredSectionSettingsMap(settingsMap)
-            .get(this.currentSection.text);
-
-        if (!sectionRequirements) {
-            return;
-        }
-        const required: DefaultSetting[][] | undefined = sectionRequirements.settings;
-        if (required !== undefined) {
-            this.requiredSettings = required.concat(this.requiredSettings);
         }
         const notFound: string[] = [];
         required: for (const options of this.requiredSettings) {

@@ -73,27 +73,28 @@ suite("Required settings for sections tests", () => {
     test("Incorrect series with closed parent section", () => {
         const config = `[configuration]
 [group]
-   type = chart
    [widget]
+   type = chart
        entity = hello
        [series]
            metric = hello
 
    [widget]
+   type = chart
 [series]
            metric = hello`;
         const validator = new Validator(config);
         const actualDiagnostics = validator.lineByLine();
         const expected = [
-            createDiagnostic(createRange("[".length, "series".length, 9), "entity is required")
+            createDiagnostic(createRange("[".length, "series".length, 10), "entity is required")
         ];
         deepStrictEqual(actualDiagnostics, expected, `Config: \n${config}`);
     });
     test("Two incorrect series without parent categories", () => {
         const config = `[configuration]
 [group]
-   type = chart
    [widget]
+   type = chart
 [series]
    metric = hello
 [series]
@@ -109,8 +110,8 @@ suite("Required settings for sections tests", () => {
     test("Setting is specified in if statement", () => {
         const config = `[configuration]
 [group]
-   type = chart
    [widget]
+   type = chart
 list servers = vps, vds
 for server in servers
    [series]
@@ -151,8 +152,8 @@ endfor`;
     test("Derived series", () => {
         const config = `[configuration]
 [group]
-   type = chart
    [widget]
+   type = chart
 [series]
   entity = server
   metric = cpu_busy
@@ -167,8 +168,8 @@ endfor`;
     test("Entities instead of entity", () => {
         const config = `[configuration]
 [group]
-   type = chart
    [widget]
+   type = chart
 [series]
   entities = server
   metric = cpu_busy`;
@@ -241,9 +242,23 @@ endfor`;
         const expected = [];
         deepStrictEqual(actualDiagnostics, expected, `Config: \n${config}`);
     });
+    test("Incorrect: widget type is not inherited", () => {
+        const config = `[configuration]
+    type = chart
+[group]
+[widget]
+    [series]
+      entity-expression = entity-1, e-2
+      metric = metric-1`;
+        const validator = new Validator(config);
+        const actualDiagnostics = validator.lineByLine();
+        const expected = [
+            createDiagnostic(createRange("[".length, "widget".length, 3), "type is required")];
+        deepStrictEqual(actualDiagnostics, expected, `Config: \n${config}`);
+    });
 });
 
-suite("Required: No duplicate errors with [tags]", () => {
+suite("Required: no duplicate errors with [tags]", () => {
     test("[tags] at EOF in [widget] without type", () => {
         const config = `[configuration]
     entity = atsd
