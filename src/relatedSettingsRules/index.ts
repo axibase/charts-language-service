@@ -1,3 +1,4 @@
+import alwaysRequiredForSeries from "./presenceValidation/alwaysRequiredForSeries";
 import groupPlaceSettings from "./presenceValidation/groupPlaceSettings";
 import iconSettings from "./presenceValidation/iconSettings";
 import metricsAndEvaluateExpr from "./presenceValidation/metricsAndEvaluateExpr";
@@ -34,7 +35,8 @@ const rulesBySection: Map<string, Rule[]> = new Map<string, Rule[]>([
             iconSettings,
             metricsAndEvaluateExpr,
             noUselessSettingsForSeries,
-            requiredSettings
+            requiredSettings,
+            alwaysRequiredForSeries
         ]
     ],
     [
