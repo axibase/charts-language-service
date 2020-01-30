@@ -4382,7 +4382,7 @@
             "displayName": "min",
             "widget": "chart",
             "section": "axis",
-            "type": "integer",
+            "type": "number",
             "example": 42
         },
         {
