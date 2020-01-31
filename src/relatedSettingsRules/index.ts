@@ -25,6 +25,7 @@ import startEndTime from "./valueValidation/startEndTime";
 import summarizePeriodTimespan from "./valueValidation/summarizePeriodTimespan";
 import widgetsGridOverflow from "./valueValidation/widgetsGridOverflow";
 import widgetsPerRow from "./valueValidation/widgetsPerRow";
+import workingMinutes from "./valueValidation/workingMinutes";
 
 const rulesBySection: Map<string, Rule[]> = new Map<string, Rule[]>([
     [
@@ -55,7 +56,8 @@ const rulesBySection: Map<string, Rule[]> = new Map<string, Rule[]>([
             metricsAndEvaluateExpr,
             noUselessSettingsForSeries,
             requiredForSeriesAlways,
-            requiredForSeriesOnConditions
+            requiredForSeriesOnConditions,
+            workingMinutes
         ]
     ],
     [

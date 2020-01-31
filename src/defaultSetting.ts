@@ -27,7 +27,8 @@ export class DefaultSetting {
      * @returns cleared string
      */
     public static clearSetting: (str: string) => string = (str: string): string =>
-        str.toLowerCase().replace(/[^a-z]/g, "")
+            str.toLowerCase().replace(/[^a-z]/g, "")
+               .replace(/(statistic|hidecolumn)s$/, "$1");
 
     /**
      * Lowercases the value of setting
