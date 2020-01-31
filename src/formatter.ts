@@ -477,6 +477,7 @@ export class Formatter {
             }
             line = this.nextLine();
         }
+        this.dumpCommentBuffer();
     }
 
     /** Push line of comment block to buffer and calculate indent */
