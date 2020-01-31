@@ -1,6 +1,7 @@
 import groupPlaceSettings from "./presenceValidation/groupPlaceSettings";
 import iconSettings from "./presenceValidation/iconSettings";
 import metricsAndEvaluateExpr from "./presenceValidation/metricsAndEvaluateExpr";
+import minOrMaxThreshold from "./presenceValidation/minOrMaxThreshold";
 import { noUselessSettingsForSeries, noUselessSettingsForWidget } from "./presenceValidation/noUselessSettings";
 import simultaneousTimeSettings from "./presenceValidation/noUselessSettings/simultaneousTimeSettings";
 import widgetsDimensions from "./presenceValidation/noUselessSettings/widgetsDimensions";
@@ -9,7 +10,7 @@ import requiredForDropdown from "./presenceValidation/requiredForDropdown";
 import requiredForNode from "./presenceValidation/requiredForNode";
 import requiredForSeriesAlways from "./presenceValidation/requiredForSeriesAlways";
 import requiredForSeriesOnConditions from "./presenceValidation/requiredForSeriesOnConditions";
-import requiredForWidget from  "./presenceValidation/requiredForWidget";
+import requiredForWidget from "./presenceValidation/requiredForWidget";
 import { Rule } from "./utils/interfaces";
 import addMetaAndLabelFormat from "./valueValidation/addMetaAndLabelFormat";
 import calendarTimespan from "./valueValidation/calendarTimespan";
@@ -57,7 +58,8 @@ const rulesBySection: Map<string, Rule[]> = new Map<string, Rule[]>([
             noUselessSettingsForSeries,
             requiredForSeriesAlways,
             requiredForSeriesOnConditions,
-            workingMinutes
+            workingMinutes,
+            minOrMaxThreshold
         ]
     ],
     [
