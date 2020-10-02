@@ -158,12 +158,12 @@ suite("Type check tests", () => {
 [group]
 [widget]
   type = console
-  class =
+  mode =
   entity =
 `;
         const validator = new Validator(config);
         const expected = [
-            createDiagnostic(createRange("  ".length, "class".length, 4), "class must be one of:\n * terminal"),
+            createDiagnostic(createRange("  ".length, "mode".length, 4), "mode must be one of:\n * terminal"),
             createDiagnostic(createRange("  ".length, "entity".length, 5), "entity can not be empty")
         ];
         const actual = validator.lineByLine();
