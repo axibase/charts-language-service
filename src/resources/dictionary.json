@@ -720,12 +720,14 @@
         {
             "displayName": "instrument",
             "type": "string",
+            "example": "symbol_[class]",
             "section": "series",
             "excludes": ["entity", "symbol", "class"]
         },
         {
             "displayName": "class",
             "type": "string",
+            "example": "TQBR",
             "section": "series",
             "excludes": ["entity", "instrument"]
         },
@@ -733,6 +735,7 @@
             "displayName": "symbol",
             "type": "string",
             "section": "series",
+            "example": "SYMBOL",
             "excludes": ["entity", "instrument"]
         },
         {
