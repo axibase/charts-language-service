@@ -1,5 +1,6 @@
 import { readFileSync } from "fs";
 import { join } from "path";
+import { ExternalValueCompleters } from "../../completionProvider";
 import { ResourcesProviderBase } from "../../resourcesProviderBase";
 import { Setting } from "../../setting";
 
@@ -48,5 +49,10 @@ export class ResourcesProvider extends ResourcesProviderBase {
         }
 
         return map;
+    }
+
+    // TODO Add ATSD-side completion if needed, discuss in #8
+    public getExternalValueCompleters(): ExternalValueCompleters {
+        return {};
     }
 }

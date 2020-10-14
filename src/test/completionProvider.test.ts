@@ -9,7 +9,7 @@ suite("General CompletionProvider tests", () => {
                           "pie", "graph", "text", "page", "console", "table", "property"];
         const document: TextDocument = TextDocument.create("test", "axibasecharts", 1, text);
         const cp: CompletionProvider = new CompletionProvider(document, Position.create(0, "type = ".length));
-        const actual: string[] = cp.getCompletionItems().map(i => i.insertText);
+        const actual: string[] = (cp.getCompletionItems() as CompletionItem[]).map(i => i.insertText);
         deepStrictEqual(actual, expected);
     });
     test("Correct: completion using example", () => {
@@ -17,7 +17,7 @@ suite("General CompletionProvider tests", () => {
         const expected = ["http://atsd_hostname:port"];
         const document: TextDocument = TextDocument.create("test", "axibasecharts", 1, text);
         const cp: CompletionProvider = new CompletionProvider(document, Position.create(0, "url = ".length));
-        const actual: string[] = cp.getCompletionItems().map(i => i.insertText);
+        const actual: string[] = (cp.getCompletionItems() as CompletionItem[]).map(i => i.insertText);
         deepStrictEqual(actual, expected);
     });
     test("Correct: completion using example and script", () => {
@@ -25,7 +25,27 @@ suite("General CompletionProvider tests", () => {
         const expected = ["stroke: red; stroke-width: 2", "alert"];
         const document: TextDocument = TextDocument.create("test", "axibasecharts", 1, text);
         const cp: CompletionProvider = new CompletionProvider(document, Position.create(0, "alert-style = ".length));
-        const actual: string[] = cp.getCompletionItems().map(i => i.insertText);
+        const actual: string[] = (cp.getCompletionItems() as CompletionItem[]).map(i => i.insertText);
+        deepStrictEqual(actual, expected);
+    });
+
+    test("Correct: completion using custom provider", () => {
+        const text = `instrument = `;
+        const expected = ["demo_[demo]"];
+        const document: TextDocument = TextDocument.create("test", "axibasecharts", 1, text);
+        const completers = {"instrument": () => expected};
+        const cp: CompletionProvider = new CompletionProvider(document, Position.create(0, text.length), completers);
+        const actual: string[] = (cp.getCompletionItems() as CompletionItem[]).map(i => i.insertText);
+        deepStrictEqual(actual, expected);
+    });
+
+    test("Correct: completion using custom provider with prefix", () => {
+        const text = `instrument = demo`;
+        const expected = ["demo_[demo]"];
+        const document: TextDocument = TextDocument.create("test", "axibasecharts", 1, text);
+        const completers = {"instrument": (prefix: string) => prefix === "demo" ? expected : []};
+        const cp: CompletionProvider = new CompletionProvider(document, Position.create(0, text.length), completers);
+        const actual: string[] = (cp.getCompletionItems() as CompletionItem[]).map(i => i.insertText);
         deepStrictEqual(actual, expected);
     });
 });
@@ -41,7 +61,7 @@ suite("CompletionProvider endkeywords tests", () => {
         const position = Position.create(2, 1);
         const document: TextDocument = TextDocument.create("test", "axibasecharts", 1, text);
         const cp: CompletionProvider = new CompletionProvider(document, position);
-        const current: string[] = cp.getCompletionItems().map(i => i.insertText);
+        const current: string[] = (cp.getCompletionItems() as CompletionItem[]).map(i => i.insertText);
         strictEqual(current.includes(expected), true);
     });
 
@@ -52,7 +72,7 @@ suite("CompletionProvider endkeywords tests", () => {
         const position = Position.create(2, 1);
         const document: TextDocument = TextDocument.create("test", "axibasecharts", 1, text);
         const cp: CompletionProvider = new CompletionProvider(document, position);
-        const current: string[] = cp.getCompletionItems().map(i => i.insertText);
+        const current: string[] = (cp.getCompletionItems() as CompletionItem[]).map(i => i.insertText);
         strictEqual(current.includes(expected), false);
     });
 
@@ -63,7 +83,7 @@ suite("CompletionProvider endkeywords tests", () => {
         const position = Position.create(2, 1);
         const document: TextDocument = TextDocument.create("test", "axibasecharts", 1, text);
         const cp: CompletionProvider = new CompletionProvider(document, position);
-        const current: string[] = cp.getCompletionItems().map(i => i.insertText);
+        const current: string[] = (cp.getCompletionItems() as CompletionItem[]).map(i => i.insertText);
         strictEqual(current.includes(expected), false);
     });
 
@@ -72,7 +92,7 @@ suite("CompletionProvider endkeywords tests", () => {
         const position = Position.create(2, 1);
         const document: TextDocument = TextDocument.create("test", "axibasecharts", 1, text);
         const cp: CompletionProvider = new CompletionProvider(document, position);
-        const current: CompletionItem[] = cp.getCompletionItems();
+        const current: CompletionItem[] = (cp.getCompletionItems() as CompletionItem[]);
         deepStrictEqual(current.length, 0);
     });
 
@@ -81,7 +101,7 @@ suite("CompletionProvider endkeywords tests", () => {
         const position = Position.create(2, 1);
         const document: TextDocument = TextDocument.create("test", "axibasecharts", 1, text);
         const cp: CompletionProvider = new CompletionProvider(document, position);
-        const current: CompletionItem[] = cp.getCompletionItems();
+        const current: CompletionItem[] = (cp.getCompletionItems() as CompletionItem[]);
         deepStrictEqual(current.length, 0);
     });
 
@@ -90,7 +110,7 @@ suite("CompletionProvider endkeywords tests", () => {
         const position = Position.create(2, 1);
         const document: TextDocument = TextDocument.create("test", "axibasecharts", 1, text);
         const cp: CompletionProvider = new CompletionProvider(document, position);
-        const current: CompletionItem[] = cp.getCompletionItems();
+        const current: CompletionItem[] = (cp.getCompletionItems() as CompletionItem[]);
         deepStrictEqual(current.length, 0);
     });
 });
