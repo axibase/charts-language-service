@@ -52,23 +52,23 @@ metric = b
         const actual = validator.lineByLine();
         assert.deepStrictEqual(actual, expected, `Config:\n${config}`);
     });
-    test("Incorrect: class = terminal for box", () => {
+    test("Incorrect: mode = terminal for box", () => {
         const config = `[configuration]
 entity = a
 metric = b
 [group]
 [widget]
   type = console
-  class = terminal
+  mode = terminal
   [series]
 [widget]
   type = box
-  class = terminal
+  mode = terminal
   [series]
 `;
         const validator = new Validator(config);
         const expected = [
-            createDiagnostic(createRange("  ".length, "class".length, 10), "class must be one of:\n * metro")
+            createDiagnostic(createRange("  ".length, "mode".length, 10), "mode must be one of:\n * metro")
         ];
         const actual = validator.lineByLine();
         assert.deepStrictEqual(actual, expected, `Config:\n${config}`);

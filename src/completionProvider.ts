@@ -17,24 +17,30 @@ export interface ItemFields {
     name?: string;
 }
 
+export type ExternalValueCompleter = (prefix: string) => string[] | PromiseLike<string[]>;
+export type ExternalValueCompleters = {[setting: string]: ExternalValueCompleter};
+export type CompletionResult = CompletionItem[] | PromiseLike<CompletionItem[]>;
+
 /**
  * Provides dynamic completion items.
  */
 export class CompletionProvider {
     private readonly text: string;
     private readonly currentLine: string;
+    private readonly externalCompleters: ExternalValueCompleters;
 
-    public constructor(textDocument: TextDocument, position: Position) {
+    public constructor(textDocument: TextDocument, position: Position, completers: ExternalValueCompleters = {}) {
         const text: string = textDocument.getText().substr(0, textDocument.offsetAt(position));
         this.text = deleteScripts(deleteComments(text));
         let textList = this.text.split("\n");
         this.currentLine = textList[textList.length - 1];
+        this.externalCompleters = completers;
     }
 
     /**
      * Creates completion items
      */
-    public getCompletionItems(): CompletionItem[] {
+    public getCompletionItems(): CompletionResult {
         /**
          * No settings in IntelliSense suggestions (same line) for control keywords
          */
@@ -45,7 +51,11 @@ export class CompletionProvider {
         const valueMatch = VALUE_MATCH.exec(this.currentLine);
         if (valueMatch) {
             // completion requested at assign stage, i. e. type = <Ctrl + space>
-            return this.completeSettingValue(valueMatch[1]);
+
+            let valueStr = this.currentLine.slice(valueMatch[0].length).trim();
+            let lastWord = this.currentLine.match(/[^\s-!?\.,\(\)\[\]]+$/);
+            let prefix = lastWord ? lastWord[0] : "";
+            return this.completeSettingValue(valueMatch[1], prefix);
         }
 
         const bracketsMatch = OPENING_BRACKET.exec(this.currentLine);
@@ -267,14 +277,14 @@ endif
      * @param settingName name of the setting, for example "colors"
      * @returns array containing completions
      */
-    private completeSettingValue(settingName: string): CompletionItem[] {
+    private completeSettingValue(settingName: string, prefix: string): CompletionResult {
         const setting = getSetting(settingName);
         if (!setting) {
             return [];
         }
         switch (setting.type) {
             case "string": {
-                return this.completeStringSettingValue(setting);
+                return this.completeStringSettingValue(setting, prefix);
             }
             case "number":
             case "integer":
@@ -329,9 +339,12 @@ endif
      * @param setting the setting
      * @returns array containing completions
      */
-    private completeStringSettingValue(setting: Setting): CompletionItem[] {
+    private completeStringSettingValue(setting: Setting, prefix: string): CompletionResult {
         let valueItems: CompletionItem[] = [];
         let scriptItems: CompletionItem[] = [];
+        if (setting.name in this.externalCompleters) {
+            return this.applyExternalCompleter(this.externalCompleters[setting.name], prefix);
+        }
         if (setting.possibleValues) {
             valueItems = setting.possibleValues.map(v =>
                 this.fillCompletionItem({ insertText: v.value, detail: v.detail }));
@@ -408,4 +421,11 @@ endif
         return items;
     }
 
+    private applyExternalCompleter(complete: ExternalValueCompleter, prefix: string): CompletionResult {
+        let result = complete(prefix);
+        if ("then" in result) {
+            return result.then(items => items.map(insertText => this.fillCompletionItem({insertText})));
+        }
+        return result.map(insertText => this.fillCompletionItem({insertText}));
+    }
 }

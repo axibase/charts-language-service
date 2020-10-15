@@ -4,7 +4,7 @@ import { requiredIsMissed } from "../../messageUtil";
 import { createDiagnostic } from "../../util";
 import { Rule } from "../utils/interfaces";
 
-const entitySettings = ["entity", "entities", "entitygroup", "entityexpression"];
+const entitySettings = ["entity", "entities", "entitygroup", "entityexpression", "instrument", "symbol", "class"];
 const metricSettings = ["metric", "table", "attribute"];
 // change-field = series.metric or change-field = metric
 export const METRIC = /^(series\.)?metric$/i;

@@ -1,4 +1,5 @@
 import { Range } from "vscode-languageserver-types";
+import { ExternalValueCompleters } from "./completionProvider";
 import { DefaultSetting } from "./defaultSetting";
 import { Setting } from "./setting";
 
@@ -167,6 +168,11 @@ export abstract class ResourcesProviderBase {
      * @returns snippets JSON contents
      */
     public abstract readSnippets(): string;
+
+    /**
+     * Provides custom completion for setting values, e.g. values received from ATSD instance
+     */
+    public abstract getExternalValueCompleters(): ExternalValueCompleters;
 
     /**
      * Reads dictionary from "dictionary.json" file

@@ -20,7 +20,8 @@ export class LanguageService {
     }
 
     public static getCompletionProvider(textDocument: TextDocument, position: Position) {
-        return new CompletionProvider(textDocument, position);
+        let externals = this.getResourcesProvider().getExternalValueCompleters();
+        return new CompletionProvider(textDocument, position, externals);
     }
 
     public static getValidator(text: string) {
