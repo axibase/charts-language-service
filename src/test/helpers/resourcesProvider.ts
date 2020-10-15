@@ -25,7 +25,7 @@ export class ResourcesProvider extends ResourcesProviderBase {
      */
     protected readSettings(): Setting[] {
         const dictionaryFilePath: string = join(__dirname, "../../..", "src/resources/dictionary.json");
-        const jsonContent: string = readFileSync(dictionaryFilePath, "UTF-8");
+        const jsonContent: string = readFileSync(dictionaryFilePath, "utf-8");
         const dictionary: IDictionary = JSON.parse(jsonContent) as IDictionary;
 
         return dictionary.settings;
@@ -37,7 +37,7 @@ export class ResourcesProvider extends ResourcesProviderBase {
      */
     protected readDescriptions(): Map<string, string> {
         const descriptionsPath: string = join(__dirname, "../../..", "src/resources/descriptions.md");
-        const content: string = readFileSync(descriptionsPath, "UTF-8");
+        const content: string = readFileSync(descriptionsPath, "utf-8");
         const map: Map<string, string> = new Map();
         // ## settingname\n\nsetting description[url](hello#html)\n
         const regExp: RegExp = /\#\# ([a-z]+?)  \n  \n([^\s#][\S\s]+?)  (?=\n  (?:\n(?=\#)|$))/g;
