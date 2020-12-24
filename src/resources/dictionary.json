@@ -7623,6 +7623,11 @@
                 "threshold_count",
                 "threshold_duration",
                 "threshold_percent",
+                "open",
+                "high",
+                "low",
+                "close",
+                "vwap",
                 "ohlcv"
             ]
         },
@@ -7652,6 +7657,11 @@
                 "threshold_count",
                 "threshold_duration",
                 "threshold_percent",
+                "open",
+                "high",
+                "low",
+                "close",
+                "vwap",
                 "ohlcv"
             ]
         },
