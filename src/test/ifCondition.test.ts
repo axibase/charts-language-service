@@ -29,7 +29,7 @@ suite("If condition syntax tests", () => {
         const actualDiagnostics = validator.lineByLine();
         const expectedDiagnostic = createDiagnostic(
             Range.create(Position.create(8, 9), Position.create(8, 15)),
-            "Unexpected token >",
+            "Unexpected token '>'",
             DiagnosticSeverity.Error
         );
         deepStrictEqual(actualDiagnostics, [expectedDiagnostic], `Config: \n${config}`);
